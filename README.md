@@ -1,6 +1,7 @@
 Java to C++ Translator
-----------------------
+======================
 
-Authors:
--Ulysses Popple
--David Iserovich
+##Authors:
+
+*Ulysses Popple
+*David Iserovich
