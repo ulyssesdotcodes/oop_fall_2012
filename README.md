@@ -5,3 +5,4 @@ Java to C++ Translator
 
 * Ulysses Popple
 * David Iserovich
+* Alexandra Qin
