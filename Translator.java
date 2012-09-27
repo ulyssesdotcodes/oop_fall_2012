@@ -30,6 +30,7 @@ import xtc.parser.Result;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
+import xtc.tree.Location;
 
 import xtc.util.Tool;
 
@@ -101,6 +102,7 @@ public class Translator extends Tool {
         public void visitMethodDeclaration(GNode n) {
           runtime.console().p("Name of node: ").p(n.getName()).pln();
           runtime.console().p("Name of method: ").p(n.getString(3)).pln();
+          runtime.console().p("starting at: ").p(Integer.toString(n.getLocation().line)).pln();
           visit(n);
           count++;
         }
