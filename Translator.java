@@ -52,7 +52,7 @@ public class Translator extends Tool {
   }
 
   public String getCopy() {
-    return "(C) 2012 <Group Name>";
+    return "(C) 2012 qimpp";
   }
 
   public void init() {
