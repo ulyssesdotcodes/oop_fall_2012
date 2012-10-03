@@ -42,12 +42,12 @@ import xtc.util.Tool;
  * @author Robert Grimm
  * @version $Revision$
  */
-public class PoppleTranslator extends Tool {
+public class qimppTranslator extends Tool {
   
   Printer fileout;
   
   /** Create a new translator. */
-  public PoppleTranslator() {
+  public qimppTranslator() {
   	try{
 	fileout = new Printer(new PrintWriter("out.cc"));
 	} catch( Exception e){}
