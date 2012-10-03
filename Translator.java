@@ -16,7 +16,7 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
  * USA.
  */
-package qimpp;
+package xtc.oop;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,6 @@ import xtc.parser.Result;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
-import xtc.tree.Location;
 
 import xtc.util.Tool;
 
@@ -52,11 +51,16 @@ public class Translator extends Tool {
   }
 
   public String getCopy() {
-    return "(C) 2012 qimpp";
+    return "(C) 2012 <Group Name>";
   }
 
   public void init() {
     super.init();
+
+    // Declare command line arguments.
+    runtime.
+      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
+      bool("countMethods", "countMethods", false, "Count all Java methods.");
   }
 
   public void prepare() {
@@ -81,22 +85,32 @@ public class Translator extends Tool {
   }
 
   public void process(Node node) {
-	  new Visitor() {
-		private int count = 0;
-		
-		public void visitCompilationUnit(GNode n) {
-		  visit(n);
-		}
+    if (runtime.test("printJavaAST")) {
+      runtime.console().format(node).pln().flush();
+    }
 
-		public void visitMethodDeclaration(GNode n) {
-		  visit(n);
-		}
+    if (runtime.test("countMethods")) {
+      new Visitor() {
+        private int count = 0;
 
-		public void visit(Node n) {
-		  for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-		}
+        public void visitCompilationUnit(GNode n) {
+          visit(n);
+          runtime.console().p("Number of methods: ").p(count).pln().flush();
+        }
 
-	  }.dispatch(node);
+        public void visitMethodDeclaration(GNode n) {
+          runtime.console().p("Name of node: ").p(n.getName()).pln();
+          runtime.console().p("Name of method: ").p(n.getString(3)).pln();
+          visit(n);
+          count++;
+        }
+
+        public void visit(Node n) {
+          for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+        }
+
+      }.dispatch(node);
+    }
   }
 
   /**
@@ -105,6 +119,9 @@ public class Translator extends Tool {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
+    //Translator t = new Translator();
+    //t.run(args);
+
     new Translator().run(args);
   }
 
