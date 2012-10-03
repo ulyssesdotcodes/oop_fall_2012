@@ -56,6 +56,10 @@ public class Translator extends Tool {
 
   public void init() {
     super.init();
+    
+    runtime.
+      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
+      bool("countMethods", "countMethods", false, "Count all Java methods.");
   }
 
   public void prepare() {
