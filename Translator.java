@@ -51,16 +51,11 @@ public class Translator extends Tool {
   }
 
   public String getCopy() {
-    return "(C) 2012 <Group Name>";
+    return "(C) 2012 qimpp";
   }
 
   public void init() {
     super.init();
-
-    // Declare command line arguments.
-    runtime.
-      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-      bool("countMethods", "countMethods", false, "Count all Java methods.");
   }
 
   public void prepare() {
@@ -119,9 +114,6 @@ public class Translator extends Tool {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
-    //Translator t = new Translator();
-    //t.run(args);
-
     new Translator().run(args);
   }
 
