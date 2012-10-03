@@ -47,7 +47,7 @@ PACKAGE_LOC = qimpp
 
 SOURCE = \
 	Translator.java \
-	qimppTranslator.java
+	QimppTranslator.java
 
 JNI_SOURCE =
 
