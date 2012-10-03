@@ -47,7 +47,7 @@ PACKAGE_LOC = qimpp
 
 SOURCE = \
 	Translator.java \
-	Iserovich.java
+	PoppleTranslator.java
 
 JNI_SOURCE =
 

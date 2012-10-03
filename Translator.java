@@ -52,16 +52,11 @@ public class Translator extends Tool {
   }
 
   public String getCopy() {
-    return "(C) 2012 <Group Name>";
+    return "(C) 2012 qimpp";
   }
 
   public void init() {
     super.init();
-
-    // Declare command line arguments.
-    runtime.
-      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
-      bool("countMethods", "countMethods", false, "Count all Java methods.");
   }
 
   public void prepare() {
@@ -86,33 +81,22 @@ public class Translator extends Tool {
   }
 
   public void process(Node node) {
-    if (runtime.test("printJavaAST")) {
-      runtime.console().format(node).pln().flush();
-    }
+	  new Visitor() {
+		private int count = 0;
+		
+		public void visitCompilationUnit(GNode n) {
+		  visit(n);
+		}
 
-    if (runtime.test("countMethods")) {
-      new Visitor() {
-        private int count = 0;
+		public void visitMethodDeclaration(GNode n) {
+		  visit(n);
+		}
 
-        public void visitCompilationUnit(GNode n) {
-          visit(n);
-          runtime.console().p("Number of methods: ").p(count).pln().flush();
-        }
+		public void visit(Node n) {
+		  for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+		}
 
-        public void visitMethodDeclaration(GNode n) {
-          runtime.console().p("Name of node: ").p(n.getName()).pln();
-          runtime.console().p("Name of method: ").p(n.getString(3)).pln();
-          runtime.console().p("starting at: ").p(Integer.toString(n.getLocation().line)).pln();
-          visit(n);
-          count++;
-        }
-
-        public void visit(Node n) {
-          for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-        }
-
-      }.dispatch(node);
-    }
+	  }.dispatch(node);
   }
 
   /**
@@ -121,9 +105,6 @@ public class Translator extends Tool {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
-    //Translator t = new Translator();
-    //t.run(args);
-
     new Translator().run(args);
   }
 
