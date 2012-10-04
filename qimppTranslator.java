@@ -88,19 +88,18 @@ public class QimppTranslator extends Tool {
 
   public void process(Node node) {
     new Visitor() {
-    private int count = 0;
     
     public void visitCompilationUnit(GNode n) {
       fileout.pln("#include \"java_lang.h\"")
             .pln("#include <iostream>")
-            .pln("using java::lang;").pln().flush();
+            .pln("using namespace java::lang;").pln().flush();
           visit(n);
     }
     
         public void visitNewClassExpression(GNode n) {
             if (n.getGeneric(2) != null) {
                 if (n.getGeneric(2).getString(0).equals("Object")) {
-                    fileout.p("new __" + n.getGeneric(2).getString(0)).p("(")
+                    fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
                     .flush();                
                 }
             }
