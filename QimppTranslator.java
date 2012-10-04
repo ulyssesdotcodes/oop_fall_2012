@@ -91,7 +91,7 @@ public class QimppTranslator extends Tool {
 		private int count = 0;
 		
 		public void visitCompilationUnit(GNode n) {
-		  fileout.p("#include <java_lang.h>").pln()
+		  fileout.p("#include \"java_lang.h\"").pln()
             .p("#include <iostream>").pln().pln().flush();
           visit(n);
 		}
@@ -102,15 +102,26 @@ public class QimppTranslator extends Tool {
 		}
 		
         public void visitMethodDeclaration(GNode n) {
-          if (typeof(n[3]) == String && n[3] != null && n[3].equals("main")) {
-            fileout.p("int main(int argc, char *argv) {").flush();
+          if (n.getString(3) != null && n.getString(3).equals("main")) {
+            fileout.p("int main(int argc, char **argv) {").pln().flush();
             visit(n);
-            fileout.p("}").pln().flush();
+            fileout.indent().pln("return 0;").pln("}").flush();
           }
           else {
             visit(n);
           }
 		}
+        
+        public void visitCallExpression(GNode n) {
+            if (n.getString(2) != null && n.getString(2).equals("println")) {
+                fileout.indent().p("std::cout << ").flush();
+                GNode args = n.getGeneric(3);
+                GNode string_literal = args.getGeneric(0);
+                String str = string_literal.getString(0);
+                fileout.p(str).p(";").pln().flush();
+            }
+            visit(n);
+        }
 
 		public void visit(Node n) {
 		  for (Object o : n) if (o instanceof Node) dispatch((Node)o);
