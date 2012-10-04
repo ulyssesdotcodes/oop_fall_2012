@@ -39,19 +39,19 @@ import xtc.util.Tool;
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
- * @author Robert Grimm
+ * @author QIMPP
  * @version $Revision$
  */
-public class qimppTranslator extends Tool {
+public class QimppTranslator extends Tool {
   
   Printer fileout;
   
   /** Create a new translator. */
-  public qimppTranslator() {
-  	try{
-	fileout = new Printer(new PrintWriter("out.cc"));
-	} catch( Exception e){}
-  }
+  public QimppTranslator() {
+      try {
+      fileout = new Printer(new PrintWriter("out.cc"));
+    } catch(Exception e) {}
+    }
 
   public String getName() {
     return "Java to C++ Translator";
@@ -87,27 +87,71 @@ public class qimppTranslator extends Tool {
   }
 
   public void process(Node node) {
-	  new Visitor() {
-		private int count = 0;
-		
-		public void visitCompilationUnit(GNode n) {
-		  visit(n);		  
-		}
-		
-		public void visitClassDeclaration(GNode n) {
-		  visit(n);
-		  fileout.p(n.getString(1)).pln().flush();
-		}
+    new Visitor() {
+    private int count = 0;
+    
+    public void visitCompilationUnit(GNode n) {
+      fileout.pln("#include \"java_lang.h\"")
+            .pln("#include <iostream>")
+            .pln("using java::lang;").pln().flush();
+          visit(n);
+    }
+    
+        public void visitNewClassExpression(GNode n) {
+            if (n.getGeneric(2) != null) {
+                if (n.getGeneric(2).getString(0).equals("Object")) {
+                    fileout.p("new __" + n.getGeneric(2).getString(0)).p("(")
+                    .flush();                
+                }
+            }
+            visit(n);
+            fileout.p(")").flush();
+        }
+        
+        public void visitDeclarators(GNode n) {
+          fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
+          visit(n);
+        }
+        
+        public void visitFieldDeclaration(GNode n) {
+            if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
+              fileout.p("Object ").flush();
+              visit(n);
+              fileout.pln(";").flush();
+            }
+        }
+        
+    public void visitClassDeclaration(GNode n) {
+      visit(n);
+    }
+    
+        public void visitMethodDeclaration(GNode n) {
+          if (n.getString(3) != null && n.getString(3).equals("main")) {
+            fileout.p("int main(int argc, char **argv) {").pln().flush();
+            visit(n);
+            fileout.indent().pln("return 0;").pln("}").flush();
+          }
+          else {
+            visit(n);
+          }
+    }
+        
+        public void visitCallExpression(GNode n) {
+            if (n.getString(2) != null && n.getString(2).equals("println")) {
+                fileout.indent().p("std::cout << ").flush();
+                GNode args = n.getGeneric(3);
+                GNode string_literal = args.getGeneric(0);
+                String str = string_literal.getString(0);
+                fileout.p(str).p(";").pln().flush();
+            }
+            visit(n);
+        }
 
-		public void visitMethodDeclaration(GNode n) {
-		  visit(n);
-		}
+    public void visit(Node n) {
+      for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+    }
 
-		public void visit(Node n) {
-		  for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-		}
-
-	  }.dispatch(node);
+    }.dispatch(node);
   }
 
   /**
@@ -116,7 +160,19 @@ public class qimppTranslator extends Tool {
    * @param args The command line arguments.
    */
   public static void main(String[] args) {
-    new Translator().run(args);
+    new QimppTranslator().run(args);
   }
+
+
+  /**
+   * What we're trying to go for:
+
+    #include <iostream>
+
+    void main() {
+        cout << "Hello World!";
+    }
+    
+    **/
 
 }
