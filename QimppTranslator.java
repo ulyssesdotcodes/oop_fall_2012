@@ -49,8 +49,8 @@ public class QimppTranslator extends Tool {
   /** Create a new translator. */
   public QimppTranslator() {
       try {
-	    fileout = new Printer(new PrintWriter("out.cc"));
-	  } catch(Exception e) {}
+      fileout = new Printer(new PrintWriter("out.cc"));
+    } catch(Exception e) {}
     }
 
   public String getName() {
@@ -87,20 +87,43 @@ public class QimppTranslator extends Tool {
   }
 
   public void process(Node node) {
-	  new Visitor() {
-		private int count = 0;
-		
-		public void visitCompilationUnit(GNode n) {
-		  fileout.p("#include \"java_lang.h\"").pln()
-            .p("#include <iostream>").pln().pln().flush();
+    new Visitor() {
+    
+    public void visitCompilationUnit(GNode n) {
+      fileout.pln("#include \"java_lang.h\"")
+            .pln("#include <iostream>")
+            .pln("using namespace java::lang;").pln().flush();
           visit(n);
-		}
-		
-		public void visitClassDeclaration(GNode n) {
-		  visit(n);
-		  //fileout.p(n.getString(1)).pln().flush();
-		}
-		
+    }
+    
+        public void visitNewClassExpression(GNode n) {
+            if (n.getGeneric(2) != null) {
+                if (n.getGeneric(2).getString(0).equals("Object")) {
+                    fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
+                    .flush();                
+                }
+            }
+            visit(n);
+            fileout.p(")").flush();
+        }
+        
+        public void visitDeclarators(GNode n) {
+          fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
+          visit(n);
+        }
+        
+        public void visitFieldDeclaration(GNode n) {
+            if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
+              fileout.p("Object ").flush();
+              visit(n);
+              fileout.pln(";").flush();
+            }
+        }
+        
+    public void visitClassDeclaration(GNode n) {
+      visit(n);
+    }
+    
         public void visitMethodDeclaration(GNode n) {
           if (n.getString(3) != null && n.getString(3).equals("main")) {
             fileout.p("int main(int argc, char **argv) {").pln().flush();
@@ -110,7 +133,7 @@ public class QimppTranslator extends Tool {
           else {
             visit(n);
           }
-		}
+    }
         
         public void visitCallExpression(GNode n) {
             if (n.getString(2) != null && n.getString(2).equals("println")) {
@@ -123,11 +146,11 @@ public class QimppTranslator extends Tool {
             visit(n);
         }
 
-		public void visit(Node n) {
-		  for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-		}
+    public void visit(Node n) {
+      for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+    }
 
-	  }.dispatch(node);
+    }.dispatch(node);
   }
 
   /**
