@@ -40,7 +40,7 @@ import xtc.util.Tool;
  * A translator from (a subset of) Java to (a subset of) C++.
  *
  * @author QIMPP
- * @version $Revision$
+ * @version 0.1
  */
 public class QimppTranslator extends Tool {
   
@@ -48,10 +48,14 @@ public class QimppTranslator extends Tool {
   
   /** Create a new translator. */
   public QimppTranslator() {
-      try {
+    try {
       fileout = new Printer(new PrintWriter("out.cc"));
-    } catch(Exception e) {}
+      
+    } catch(Exception e) {
+      System.err.println("Couldn't open file to write out!");
+      System.exit(1); 
     }
+  }
 
   public String getName() {
     return "Java to C++ Translator";
@@ -120,9 +124,18 @@ public class QimppTranslator extends Tool {
             }
         }
         
-    public void visitClassDeclaration(GNode n) {
-      visit(n);
-    }
+        public void visitClassDeclaration(GNode n) {
+          // Send the class declaration to our header file - this is a hack, as we actually need to collect all the 
+          // classes, and then send them to print out
+          InheritanceManager i = new InheritanceManager();
+          GNode qimppFormattedClassDeclaration = i.getQimppClassDeclaration(n);
+          
+          HeaderWriter w = new HeaderWriter();
+          GNode[] classesForHeader = {qimppFormattedClassDeclaration};
+          w.generateHeader(classesForHeader);
+          
+          visit(n);
+        }
     
         public void visitMethodDeclaration(GNode n) {
           if (n.getString(3) != null && n.getString(3).equals("main")) {
