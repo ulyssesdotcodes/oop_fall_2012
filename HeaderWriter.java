@@ -36,7 +36,7 @@ public class HeaderWriter{
   * a method returning a Point, so they must know about each other through
   * forward-declarations in C++)
   * 
-  *@param roots The ClassDeclaration nodes for the classes we want to create a header for
+  *@param roots The QimppClassDeclaration nodes for the classes we want to create a header for
   */
   public HeaderWriter(){
 
@@ -85,6 +85,7 @@ public class HeaderWriter{
     fileout.p(";\n").flush();
   }
   
+  /** Write out the struct definition for a given class, with all its newly defined methods */
   private void writeStruct(int index){
     fileout.p("struct __").p(roots[index].getString(1)).p("{\n");
     indentDepth++;
@@ -99,10 +100,11 @@ public class HeaderWriter{
     
     indentDepth--;
     fileout.setLevel(indentDepth);
+    fileout.p("}\n").flush();
   }
   
   private void writeVptr(int index){
-  
+    fileout.p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
   }
   
   private void writeConstructor(int index){
