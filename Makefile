@@ -47,11 +47,17 @@ PACKAGE_LOC = qimpp
 
 SOURCE = \
 	Translator.java \
-	QimppTranslator.java
+	TranslatorTest.java \
+	QimppTranslator.java \
+	HeaderWriter.java \
+	ImplementationWriter.java \
+	InheritanceManager.java \
+	Type.java
 
 JNI_SOURCE =
 
-JAR_EXTRAS = 
+JAR_EXTRAS = \
+	junit-4.6.jar
 
 
 #***************************************************************************
