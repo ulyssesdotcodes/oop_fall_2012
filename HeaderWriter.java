@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.PrintWriter;
+import java.util.Iterator;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -22,7 +23,6 @@ public class HeaderWriter{
   
   private Printer fileout;
   private GNode[] roots;
-  private int indentDepth = 0;
   
   /** Constructor. Opens a new file called defined_classes.h
   *
@@ -35,6 +35,15 @@ public class HeaderWriter{
   * cross-references in the defined types (Point may contain a Color, and Color may contain
   * a method returning a Point, so they must know about each other through
   * forward-declarations in C++)
+  *
+  *
+  * Useful Notes:
+  *
+  * ClassBody is contained in roots[index].getGeneric(2)
+  * Use .indent() to indent when needed. The Printer doesn't do it automatically. 
+  * Use .incr() to increase indentation, and .decr() to decrease intentation.
+  
+  * TODO: Packages
   * 
   *@param roots The QimppClassDeclaration nodes for the classes we want to create a header for
   */
@@ -69,7 +78,7 @@ public class HeaderWriter{
   * @param index the index of the class we are writing
   */
   private void writeTypeDeclaration(int index){
-    fileout.setLevel(indentDepth);
+    fileout.incr();
     // ClassDeclaration field 1 is the name of the class
     fileout.p("struct __").p(roots[index].getString(1)).p(";\n");
     fileout.p("struct __").p(roots[index].getString(1)).p("_VT;\n").flush();
@@ -89,24 +98,30 @@ public class HeaderWriter{
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(int index){
     fileout.p("struct __").p(roots[index].getString(1)).p("{\n");
-    indentDepth++;
-    fileout.setLevel(indentDepth);
+    fileout.incr();
     
-    writeVptr(index);
-    writeFields(index);
+      writeVptr(index);
+      plnFlush();
+      writeFields(index);
+      plnFlush();
+      
+      writeConstructor(index);
+      plnFlush();
+      writeMethods(index);
+      plnFlush();
+      writeClass(index);
+      plnFlush();
+      writeVtable(index);
     
-    writeConstructor(index);
-    writeMethods(index);
-    writeClass(index);
-    writeVtable(index);
+    fileout.decr();
     
-    indentDepth--;
-    fileout.setLevel(indentDepth);
+    //TODO: write struct __[Class]_VT
+    
     fileout.p("};\n").flush();
   }
   
   private void writeVptr(int index){
-    fileout.p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
+    fileout.indent().p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
   }
  
 	/** 
@@ -115,7 +130,7 @@ public class HeaderWriter{
 	 * @param index the index of the class we are writing.
 	 */ 
   private void writeConstructor(int index){
-		fileout.p("__").p(roots[index].getString(1)).p("(");
+		indentOut().p("__").p(roots[index].getString(1)).p("(");
 
 		// Now for parameters:
 		// Iterate through initializing types and fields. Use Type.
@@ -134,8 +149,16 @@ public class HeaderWriter{
 	 * @param index The index of the class we are writing.
 	 */
   private void writeFields(int index) {
-		String t = new Type().translate(roots[index].getGeneric(1));
-		fileout.p(t).p(" ").flush(); // just prints type so far, not name of field
+    //Interate through the FieldDeclarations
+    for(Iterator<Object> iter = roots[index].getGeneric(2).iterator(); iter.hasNext();){
+      Object objCurrent = iter.next();
+      if(objCurrent == null || objCurrent instanceof String) continue;
+      GNode current = (GNode) objCurrent;
+      if(current.hasName("FieldDeclaration"))
+        //For now just get the first field declared
+        indentOut().p(Type.translate(current)).p(" ").p(current.getGeneric(2).getGeneric(0).getString(0)).p(";").pln();
+    }
+		
   }
   
   private void writeMethods(int index){
@@ -143,10 +166,18 @@ public class HeaderWriter{
   }
   
   private void writeClass(int index){
- 		fileout.p("static Class __class();").flush(); 
+ 		indentOut().pln("static Class __class();").flush(); 
   }
   
   private void writeVtable(int index){
- 		fileout.p("static ").p(roots[index].getString(1)).p("_VT __vtable;").flush();
+ 		indentOut().p("static ").p(roots[index].getString(1)).pln("_VT __vtable;").flush();
+  }
+  
+  private Printer indentOut(){
+    return fileout.indent();
+  }
+  
+  private Printer plnFlush(){
+    return fileout.pln().flush();
   }
 }
