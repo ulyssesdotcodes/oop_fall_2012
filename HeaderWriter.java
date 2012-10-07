@@ -1,10 +1,5 @@
 package qimpp;
-
-<<<<<<< HEAD
 import qimpp.Type;
-
-=======
->>>>>>> davidmi-unstable
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
