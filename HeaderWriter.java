@@ -53,7 +53,7 @@ public class HeaderWriter{
   
   /** Write out the header */
   public void generateHeader(GNode[] roots){
-
+    // Store all of the GNodes required to write the header in roots
     this.roots = roots;
   
     for (int i = 0; i < roots.length; i++){
@@ -139,7 +139,7 @@ public class HeaderWriter{
   }
   
   private void writeMethods(int index){
-  
+    
   }
   
   private void writeClass(int index){

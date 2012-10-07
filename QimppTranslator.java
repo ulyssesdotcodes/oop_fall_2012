@@ -49,10 +49,10 @@ public class QimppTranslator extends Tool {
   
   /** Create a new translator. */
   public QimppTranslator() {
-      try {
+    try {
       fileout = new Printer(new PrintWriter("out.cc"));
     } catch(Exception e) {}
-    }
+  }
 
   public String getName() {
     return "Java to C++ Translator";
@@ -90,66 +90,66 @@ public class QimppTranslator extends Tool {
   public void process(Node node) {
     new Visitor() {
     
-    public void visitCompilationUnit(GNode n) {
-      fileout.pln("#include \"java_lang.h\"")
-            .pln("#include <iostream>")
-            .pln("using namespace java::lang;").pln().flush();
-          visit(n);
-    }
+      public void visitCompilationUnit(GNode n) {
+        fileout.pln("#include \"java_lang.h\"")
+              .pln("#include <iostream>")
+              .pln("using namespace java::lang;").pln().flush();
+            visit(n);
+      }
     
-        public void visitNewClassExpression(GNode n) {
-            if (n.getGeneric(2) != null) {
-                if (n.getGeneric(2).getString(0).equals("Object")) {
-                    fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
-                    .flush();                
-                }
-            }
+      public void visitNewClassExpression(GNode n) {
+          if (n.getGeneric(2) != null) {
+              if (n.getGeneric(2).getString(0).equals("Object")) {
+                  fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
+                  .flush();                
+              }
+          }
+          visit(n);
+          fileout.p(")").flush();
+      }
+      
+      public void visitDeclarators(GNode n) {
+        fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
+        visit(n);
+      }
+      
+      public void visitFieldDeclaration(GNode n) {
+          if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
+            fileout.p("Object ").flush();
             visit(n);
-            fileout.p(")").flush();
-        }
+            fileout.pln(";").flush();
+          }
+      }
         
-        public void visitDeclarators(GNode n) {
-          fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
+      public void visitClassDeclaration(GNode n) {
+        visit(n);
+      }
+    
+      public void visitMethodDeclaration(GNode n) {
+        if (n.getString(3) != null && n.getString(3).equals("main")) {
+          fileout.p("int main(int argc, char **argv) {").pln().flush();
+          visit(n);
+          fileout.indent().pln("return 0;").pln("}").flush();
+        }
+        else {
           visit(n);
         }
+      }
         
-        public void visitFieldDeclaration(GNode n) {
-            if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
-              fileout.p("Object ").flush();
-              visit(n);
-              fileout.pln(";").flush();
-            }
-        }
-        
-    public void visitClassDeclaration(GNode n) {
-      visit(n);
-    }
-    
-        public void visitMethodDeclaration(GNode n) {
-          if (n.getString(3) != null && n.getString(3).equals("main")) {
-            fileout.p("int main(int argc, char **argv) {").pln().flush();
-            visit(n);
-            fileout.indent().pln("return 0;").pln("}").flush();
+      public void visitCallExpression(GNode n) {
+          if (n.getString(2) != null && n.getString(2).equals("println")) {
+              fileout.indent().p("std::cout << ").flush();
+              GNode args = n.getGeneric(3);
+              GNode string_literal = args.getGeneric(0);
+              String str = string_literal.getString(0);
+              fileout.p(str).p(";").pln().flush();
           }
-          else {
-            visit(n);
-          }
-    }
-        
-        public void visitCallExpression(GNode n) {
-            if (n.getString(2) != null && n.getString(2).equals("println")) {
-                fileout.indent().p("std::cout << ").flush();
-                GNode args = n.getGeneric(3);
-                GNode string_literal = args.getGeneric(0);
-                String str = string_literal.getString(0);
-                fileout.p(str).p(";").pln().flush();
-            }
-            visit(n);
-        }
+          visit(n);
+      }
 
-    public void visit(Node n) {
-      for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-    }
+      public void visit(Node n) {
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      }
 
     }.dispatch(node);
   }
