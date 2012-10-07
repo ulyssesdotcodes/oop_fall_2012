@@ -1,7 +1,10 @@
 package qimpp;
 
+<<<<<<< HEAD
 import qimpp.Type;
 
+=======
+>>>>>>> davidmi-unstable
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -88,6 +91,7 @@ public class HeaderWriter{
   }
   
   /** Write out the struct definition for a given class, with all its newly defined methods */
+  // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(int index){
     fileout.p("struct __").p(roots[index].getString(1)).p("{\n");
     indentDepth++;
@@ -95,6 +99,7 @@ public class HeaderWriter{
     
     writeVptr(index);
     writeFields(index);
+    
     writeConstructor(index);
     writeMethods(index);
     writeClass(index);
