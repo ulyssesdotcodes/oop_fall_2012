@@ -2,6 +2,7 @@
 # silly script that makes qimpp, runs it on HelloWorld.java, then compiles out.cc
 set -e
 make
+rm testfiles/out.h testfiles/out.cc
 java qimpp/QimppTranslator testfiles/HelloWorld.java
 cd testfiles
 g++ java_lang.cc out.cc

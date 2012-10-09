@@ -12,11 +12,6 @@ struct __HelloWorld {
 
 
   __HelloWorld();
-  static int32_t hashCode(HelloWorld);
-  static bool equals(HelloWorld, Object);
-  static Class getClass(HelloWorld);
-  static String toString(HelloWorld);
-
 
   static Class __class();
 
@@ -35,9 +30,9 @@ struct __HelloWorld_VT {
   __HelloWorld_VT()
     : __isa(__HelloWorld::__class()),
     hashCode((int32_t(*)(HelloWorld))&__Object::hashCode),
-    equals(&__HelloWorld::equals),
-    getClass(Class(*)(HelloWorld)&__Object::getClass),
-    toString(&__HelloWorld::toString)
+    equals((bool(*)(HelloWorld,Object))&__Object::equals),
+    getClass((Class(*)(HelloWorld))&__Object::getClass),
+    toString((String(*)(HelloWorld))&__Object::toString)
 
 
  {

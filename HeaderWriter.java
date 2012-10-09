@@ -87,8 +87,8 @@ public class HeaderWriter{
   */
   private void writeTypeDeclaration(int index){
     // ClassDeclaration field 1 is the name of the class
-    fileout.p("struct __").p(roots[index].getString(1)).p(";\n");
-    fileout.p("struct __").p(roots[index].getString(1)).p("_VT;\n").pln().flush();
+    fileout.p("struct __").p(name(index)).p(";\n");
+    fileout.p("struct __").p(name(index)).p("_VT;\n").pln().flush();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -97,7 +97,7 @@ public class HeaderWriter{
   * @param index the index of the class we are writing
   */
   private void writeAlias(int index){
-    fileout.p("typedef __").p(roots[index].getString(1)).p("* ").p(roots[index].getString(1));
+    fileout.p("typedef __").p(name(index)).p("* ").p(name(index));
     fileout.p(";\n").pln().flush();
   }
  
@@ -110,7 +110,7 @@ public class HeaderWriter{
   */
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(int index){
-    fileout.p("struct __").p(roots[index].getString(1)).p(" {\n");
+    fileout.p("struct __").p(name(index)).p(" {\n");
     fileout.incr();
 
       writeVPtr(index);
@@ -119,8 +119,6 @@ public class HeaderWriter{
       plnFlush();
       
       writeConstructor(index);
-      plnFlush();
-      writeObjectInheritedMethods(index);
       plnFlush();
       writeMethods(index);
       plnFlush();
@@ -135,7 +133,7 @@ public class HeaderWriter{
 
   
   private void writeVPtr(int index){
-    indentOut().p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
+    indentOut().p("__").p(name(index)).p("_VT* __vptr;\n").flush();
   }
  
   /** 
@@ -144,7 +142,7 @@ public class HeaderWriter{
    * @param index the index of the class we are writing.
    */ 
   private void writeConstructor(int index){
-    indentOut().p("__").p(roots[index].getString(1)).p("(");
+    indentOut().p("__").p(name(index)).p("(");
 
     // Now for parameters:
     // Iterate through initializing types and fields. Use Type.
@@ -175,13 +173,6 @@ public class HeaderWriter{
     
   }
   
-  private void writeObjectInheritedMethods(int i) {
-    indentOut().p("static int32_t hashCode(").p(name(i)).p(");\n");
-    indentOut().p("static bool equals(").p(name(i)).p(", Object);\n");
-    indentOut().p("static Class getClass(").p(name(i)).p(");\n");
-    indentOut().p("static String toString(").p(name(i)).p(");\n").flush();
-  }
-
   private void writeMethods(int index){
     
   }
@@ -191,7 +182,7 @@ public class HeaderWriter{
   }
   
   private void writeVTable(int index){
-    indentOut().p("static ").p(roots[index].getString(1)).pln("_VT __vtable;").flush();
+    indentOut().p("static ").p(name(index)).pln("_VT __vtable;").flush();
   }
 
 
@@ -205,9 +196,10 @@ public class HeaderWriter{
   * @param i the index of the class we are writing
   */
   private void writeVTStruct(int i) {
-    fileout.p("struct __").p(roots[i].getString(1)).p("_VT {\n");
+    fileout.p("struct __").p(name(i)).p("_VT {\n");
     fileout.incr();
 
+      // initialize __isa
       indentOut().p("Class __isa;");  
       plnFlush();
       writeObjectInheritedVTMethods(i);
@@ -217,9 +209,10 @@ public class HeaderWriter{
       writeVTMethods(i);
       plnFlush();
       
-      indentOut().p("__").p(name(i)).p("_VT()");
+      writeVTConstructor(i);
       fileout.incr();
         plnFlush();
+        // set __isa to the Class
         indentOut().p(": __isa(__").p(name(i)).p("::__class()),");
         plnFlush();
         writeObjectInheritedVTAddresses(i);
@@ -253,22 +246,26 @@ public class HeaderWriter{
    * @param i the index of the class we are writing */
   // TODO: this
   private void writeVTMethods(int i) {
-
+  
   }
 
-  /** Write out all the inherited Object VT addresses
+  /** Write out the VT Constructor 
+   * @param i the index of the class we are writing */
+  private void writeVTConstructor(int i) {
+    indentOut().p("__").p(name(i)).p("_VT()");
+  }
+
+  /** Write out all the inherited Object VT method addresses
    * @param i the index of the class we are writing */
   // TODO: not sure if this is exactly what we want
   private void writeObjectInheritedVTAddresses(int i) {
     indentOut().p("hashCode((int32_t(*)(").p(name(i)).p("))&__Object::hashCode),\n");
-    // class must override equals()
-    indentOut().p("equals(&__").p(name(i)).p("::equals),\n");
-    indentOut().p("getClass(Class(*)(").p(name(i)).p(")&__Object::getClass),\n");
-    // class must override toString()
-    indentOut().p("toString(&__").p(name(i)).p("::toString)\n").flush();
+    indentOut().p("equals((bool(*)(").p(name(i)).p(",Object))&__Object::equals),\n");
+    indentOut().p("getClass((Class(*)(").p(name(i)).p("))&__Object::getClass),\n");
+    indentOut().p("toString((String(*)(").p(name(i)).p("))&__Object::toString)\n").flush();
   }
 
-  /** Write out all the inherited VT addresses of the class' superclass(es)
+  /** Write out all the inherited VT addresses of the class' superclass(es)' methods
    * @param i the index of the class we are writing */
   // TODO: this
   private void writeInheritedVTAddresses(int i) {
