@@ -92,7 +92,7 @@ public class InheritanceManager {
      type = GNode.create("Type", GNode.create("QualifiedIdentifier", "String"), null);
      formalParameters = GNode.create("FormalParameters"); // No args to hashcode other than self
      GNode toString = GNode.create("MethodDeclaration", modifiers, null, type, "toString", formalParameters, null, null, null);
-     ObjectMethods.add(getClass);
+     ObjectMethods.add(toString);
   }
   
   /** Convert the class declaration from a Java AST to a Qimpp C++ AST with inherited methods at the beginning etc. 

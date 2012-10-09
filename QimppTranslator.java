@@ -50,7 +50,7 @@ public class QimppTranslator extends Tool {
   /** Create a new translator. */
   public QimppTranslator() {
     try {
-      fileout = new Printer(new PrintWriter("out.cc"));
+      fileout = new Printer(new PrintWriter("testfiles/out.cc"));
     } catch(Exception e) {
       System.err.println("Couldn't open file to write out!");
       System.exit(1); 
@@ -101,15 +101,15 @@ public class QimppTranslator extends Tool {
       }
     
       public void visitNewClassExpression(GNode n) {
-          if (n.getGeneric(2) != null) {
-              if (n.getGeneric(2).getString(0).equals("Object")) {
-                  fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
+      	if (n.getGeneric(2) != null) {
+          if (n.getGeneric(2).getString(0).equals("Object")) {
+          	fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
                   .flush();                
-              }
+            }
           }
           visit(n);
           fileout.p(")").flush();
-      }
+      	}	
       
       public void visitDeclarators(GNode n) {
         fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
@@ -117,11 +117,11 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitFieldDeclaration(GNode n) {
-          if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
-            fileout.p("Object ").flush();
-            visit(n);
-            fileout.pln(";").flush();
-          }
+        if (n.getGeneric(1).getGeneric(0).getString(0).equals("Object")) {
+          fileout.p("Object ").flush();
+          visit(n);
+          fileout.pln(";").flush();
+        }
       }
     
       public void visitMethodDeclaration(GNode n) {
@@ -136,27 +136,28 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitCallExpression(GNode n) {
-          if (n.getString(2) != null && n.getString(2).equals("println")) {
-              fileout.indent().p("std::cout << ").flush();
-              GNode args = n.getGeneric(3);
-              GNode string_literal = args.getGeneric(0);
-              String str = string_literal.getString(0);
-              fileout.p(str).p(";").pln().flush();
+				if (n.getString(2) != null && n.getString(2).equals("println")) {
+        	fileout.indent().p("std::cout << ").flush();
+          GNode args = n.getGeneric(3);
+          GNode string_literal = args.getGeneric(0);
+					String str = string_literal.getString(0);
+          fileout.p(str).p(";").pln().flush();
         }
         visit(n);
       }
-        public void visitClassDeclaration(GNode n) {
-          // Send the class declaration to our header file - this is a hack, as we actually need to collect all the 
-          // classes, and then send them to print out
-          InheritanceManager i = new InheritanceManager();
-          GNode qimppFormattedClassDeclaration = i.getQimppClassDeclaration(n);
+        
+			public void visitClassDeclaration(GNode n) {
+        // Send the class declaration to our header file - this is a hack, as we actually need to collect all the 
+        // classes, and then send them to print out
+        InheritanceManager i = new InheritanceManager();
+        GNode qimppFormattedClassDeclaration = i.getQimppClassDeclaration(n);
           
-          HeaderWriter w = new HeaderWriter();
-          GNode[] classesForHeader = {qimppFormattedClassDeclaration};
-          w.generateHeader(classesForHeader);
+        HeaderWriter w = new HeaderWriter();
+        GNode[] classesForHeader = {qimppFormattedClassDeclaration};
+        w.generateHeader(classesForHeader);
           
-          visit(n);
-        }
+        visit(n);
+      }
 
       public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
@@ -173,17 +174,5 @@ public class QimppTranslator extends Tool {
   public static void main(String[] args) {
     new QimppTranslator().run(args);
   }
-
-
-  /**
-   * What we're trying to go for:
-
-    #include <iostream>
-
-    void main() {
-        cout << "Hello World!";
-    }
-    
-    **/
 
 }

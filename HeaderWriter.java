@@ -42,7 +42,7 @@ public class HeaderWriter{
   * ClassBody is contained in roots[index].getGeneric(2)
   * Use .indent() to indent when needed. The Printer doesn't do it automatically. 
   * Use .incr() to increase indentation, and .decr() to decrease intentation.
-  
+	* ATTN: must call .incr() before you can call .indent()! Otherwise .indent() will do nothing 
   * TODO: Packages
   * 
   *@param roots The QimppClassDeclaration nodes for the classes we want to create a header for
@@ -50,7 +50,7 @@ public class HeaderWriter{
   public HeaderWriter(){
 
     try {
-      fileout = new Printer(new PrintWriter("defined_classes.h"));
+      fileout = new Printer(new PrintWriter("testfiles/out.h"));
       
     } catch(Exception e) {
       System.err.println("Couldn't open file to write out!");
@@ -60,28 +60,34 @@ public class HeaderWriter{
   
   /** Write out the header */
   public void generateHeader(GNode[] roots){
-    // Store all of the GNodes required to write the header in roots
+    writeDependencies();
+		// Store all of the GNodes required to write the header in roots
     this.roots = roots;
   
     for (int i = 0; i < roots.length; i++){
       writeTypeDeclaration(i);
       writeAlias(i);    
-    }   
+    	writeStruct(i);
+			writeVTStruct(i);
+		}   
     
-    for (int i = 0; i < roots.length; i++){
-      writeStruct(i);
-    }
   }
   
-  /** Write out the internal names of the structs and vtables for each class 
+	/** Write out the dependencies for the header */
+  //TODO: this method should probably do more. Not sure ATM.
+	private void writeDependencies() {
+		fileout.p("#pragma once").pln();
+		fileout.p("#include <stdint.h>").pln().pln().flush();
+	}
+	
+	/** Write out the internal names of the structs and vtables for each class 
   *
   * @param index the index of the class we are writing
   */
-  private void writeTypeDeclaration(int index){
-    fileout.incr();
+	private void writeTypeDeclaration(int index){
     // ClassDeclaration field 1 is the name of the class
     fileout.p("struct __").p(roots[index].getString(1)).p(";\n");
-    fileout.p("struct __").p(roots[index].getString(1)).p("_VT;\n").flush();
+    fileout.p("struct __").p(roots[index].getString(1)).p("_VT;\n").pln().flush();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -91,15 +97,17 @@ public class HeaderWriter{
   */
   private void writeAlias(int index){
     fileout.p("typedef __").p(roots[index].getString(1)).p("* ").p(roots[index].getString(1));
-    fileout.p(";\n").flush();
+    fileout.p(";\n").pln().flush();
   }
   
-  /** Write out the struct definition for a given class, with all its newly defined methods */
+  /** Write out the struct definition for a given class, with all its newly defined methods 
+  * @param index the index of the class we are writing
+	*/
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(int index){
-    fileout.p("struct __").p(roots[index].getString(1)).p("{\n");
-    fileout.incr();
-    
+    fileout.p("struct __").p(roots[index].getString(1)).p(" {\n");
+   	fileout.incr();
+
       writeVptr(index);
       plnFlush();
       writeFields(index);
@@ -113,15 +121,25 @@ public class HeaderWriter{
       plnFlush();
       writeVtable(index);
     
-    fileout.decr();
+   	fileout.decr(); 
     
-    //TODO: write struct __[Class]_VT
-    
-    fileout.p("};\n").flush();
+    fileout.p("};\n").pln().flush();
   }
+
+	/** Write out the struct definition of a class's VTable 
+  * @param index the index of the class we are writing
+	*/
+	// TODO: flesh this out
+	private void writeVTStruct(int index) {
+		fileout.p("struct __").p(roots[index].getString(1)).p("_VT {\n");
+		fileout.incr();	
+			indentOut().p("Class __isa;\n");	
+		
+		fileout.p("};\n").flush();
+	}
   
   private void writeVptr(int index){
-    fileout.indent().p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
+    indentOut().p("__").p(roots[index].getString(1)).p("_VT* __vptr;\n").flush();
   }
  
 	/** 
@@ -176,7 +194,7 @@ public class HeaderWriter{
   private Printer indentOut(){
     return fileout.indent();
   }
-  
+
   private Printer plnFlush(){
     return fileout.pln().flush();
   }
