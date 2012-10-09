@@ -101,15 +101,15 @@ public class QimppTranslator extends Tool {
       }
     
       public void visitNewClassExpression(GNode n) {
-      	if (n.getGeneric(2) != null) {
+        if (n.getGeneric(2) != null) {
           if (n.getGeneric(2).getString(0).equals("Object")) {
-          	fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
+            fileout.p("new __").p(n.getGeneric(2).getString(0)).p("(")
                   .flush();                
             }
           }
           visit(n);
           fileout.p(")").flush();
-      	}	
+        }  
       
       public void visitDeclarators(GNode n) {
         fileout.p(n.getGeneric(0).getString(0)).p(" = ").flush();
@@ -136,17 +136,17 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitCallExpression(GNode n) {
-				if (n.getString(2) != null && n.getString(2).equals("println")) {
-        	fileout.indent().p("std::cout << ").flush();
+        if (n.getString(2) != null && n.getString(2).equals("println")) {
+          fileout.indent().p("std::cout << ").flush();
           GNode args = n.getGeneric(3);
           GNode string_literal = args.getGeneric(0);
-					String str = string_literal.getString(0);
+          String str = string_literal.getString(0);
           fileout.p(str).p(";").pln().flush();
         }
         visit(n);
       }
         
-			public void visitClassDeclaration(GNode n) {
+      public void visitClassDeclaration(GNode n) {
         // Send the class declaration to our header file - this is a hack, as we actually need to collect all the 
         // classes, and then send them to print out
         InheritanceManager i = new InheritanceManager();
