@@ -96,7 +96,9 @@ public class InheritanceManager {
   }
   
   /** Convert the class declaration from a Java AST to a Qimpp C++ AST with inherited methods at the beginning etc. 
-  * The structure is (Modifiers, ClassName[String], ClassBody). ClassBody contains InheritedMethods, MethodDeclarations, and FieldDeclarations 
+  *
+  *  The structure is (Modifiers, ClassName[String], ClassBody). ClassBody contains InheritedMethods, MethodDeclarations,
+  *  and FieldDeclarations 
   */
   public GNode getQimppClassDeclaration(GNode classDeclaration){
     GNode qClassDec = GNode.create("QimppClassDeclaration");
@@ -108,7 +110,8 @@ public class InheritanceManager {
     // Add all the inherited methods first, so the vtable is ordered correctly
     // We may have to change the structure of InheritedMethod once we do inheritance
     for (int i = 0; i < ObjectMethods.size(); i++){
-      qimppClassBody.add(GNode.create("InheritedMethod").add(ObjectMethods.getNode(i)).add(GNode.create("ParentName", "Object")));
+      qimppClassBody.add(GNode.create("InheritedMethod").add(ObjectMethods.getNode(i))
+              .add(GNode.create("ParentName", "Object")));
     }
     
     // We're going to be naive and check only for matches in the function name for 

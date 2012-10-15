@@ -227,6 +227,7 @@ public class HeaderWriter{
   }
 
   /** Write out all the inherited methods of Object, since every class extends Object
+   *
    * @param i the index of the class we are writing */
   private void writeObjectInheritedVTMethods(int i) {
     indentOut().p("int32_t (*hashCode)(").p(name(i)).p(");\n");
@@ -281,7 +282,7 @@ public class HeaderWriter{
 
 
 // =======================
-// OTHER SHIT
+// OTHER SHIT (OTHERWISE KNOWN AS UTILITY METHODS)
 // =======================
 
   private String name(int index) {

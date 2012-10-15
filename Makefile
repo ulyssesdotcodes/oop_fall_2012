@@ -52,6 +52,7 @@ SOURCE = \
 	HeaderWriter.java \
 	ImplementationWriter.java \
 	InheritanceManager.java \
+	InheritanceTreeManager.java \
 	Type.java
 
 JNI_SOURCE =
