@@ -50,8 +50,22 @@ namespace java {
     typedef __Object* Object;
     typedef __Class* Class;
     typedef __String* String;
+  }
+}
 
-    // ======================================================================
+// ==========================================================================
+
+namespace __rt {
+
+  // The function returning the canonical null value.
+  java::lang::Object null();
+
+}
+
+// ==========================================================================
+
+namespace java {
+  namespace lang {
 
     // The data layout for java.lang.Object.
     struct __Object {
@@ -144,14 +158,22 @@ namespace java {
       __Class_VT* __vptr;
       String name;
       Class parent;
+      Class component;
+      bool primitive;
 
       // The constructor.
-      __Class(String name, Class parent);
+      __Class(String name,
+              Class parent,
+              Class component = (Class)__rt::null(),
+              bool primitive = false);
 
       // The instance methods of java.lang.Class.
       static String toString(Class);
       static String getName(Class);
       static Class getSuperclass(Class);
+      static bool isPrimitive(Class);
+      static bool isArray(Class);
+      static Class getComponentType(Class);
       static bool isInstance(Class, Object);
 
       // The function returning the class object representing
@@ -171,6 +193,9 @@ namespace java {
       String (*toString)(Class);
       String (*getName)(Class);
       Class (*getSuperclass)(Class);
+      bool (*isPrimitive)(Class);
+      bool (*isArray)(Class);
+      Class (*getComponentType)(Class);
       bool (*isInstance)(Class, Object);
 
       __Class_VT()
@@ -181,10 +206,56 @@ namespace java {
         toString(&__Class::toString),
         getName(&__Class::getName),
         getSuperclass(&__Class::getSuperclass),
+        isPrimitive(&__Class::isPrimitive),
+        isArray(&__Class::isArray),
+        getComponentType(&__Class::getComponentType),
         isInstance(&__Class::isInstance) {
       }
     };
 
+    // ======================================================================
+
+    // The completey incomplete data layout for java.lang.Integer.
+    struct __Integer {
+
+      // The class instance representing the primitive type int.
+      static Class TYPE();
+
+    };
+
+    // ======================================================================
+
+    // For simplicity, we use C++ inheritance for exceptions and throw
+    // them by value.  In other words, the translator does not support
+    // user-defined exceptions and simply relies on a few built-in
+    // classes.
+    class Throwable {
+    };
+
+    class Exception : public Throwable {
+    };
+
+    class RuntimeException : public Exception {
+    };
+
+    class NullPointerException : public RuntimeException {
+    };
+
+    class NegativeArraySizeException : public RuntimeException {
+    };
+
+    class ArrayStoreException : public RuntimeException {
+    };
+
+    class ClassCastException : public RuntimeException {
+    };
+
+    class IndexOutOfBoundsException : public RuntimeException {
+    };
+
+    class ArrayIndexOutOfBoundsException : public IndexOutOfBoundsException {
+    };
+    
   }
 }
 
@@ -192,14 +263,101 @@ namespace java {
 
 namespace __rt {
 
-  // The function returning the canonical null value.
-  java::lang::Object null();
+  // Forward declarations of data layout and vtable.
+  template <typename T>
+  struct Array;
+
+  template <typename T>
+  struct Array_VT;
+
+  // The data layout for arrays.
+  template <typename T>
+  struct Array {
+    Array_VT<T>* __vptr;
+    const int32_t length;
+    T* __data;
+
+    // The constructor (defined inline).
+    Array(const int32_t length)
+    : __vptr(&__vtable), length(length), __data(new T[length]()) {
+    }
+
+    // The function returning the class object representing the array.
+    static java::lang::Class __class();
+
+    // The vtable for the array.
+    static Array_VT<T> __vtable;
+  };
+
+  // The vtable for arrays.
+  template <typename T>
+  struct Array_VT {
+    typedef Array<T>* Reference;
+
+    java::lang::Class __isa;
+    int32_t (*hashCode)(Reference);
+    bool (*equals)(Reference, java::lang::Object);
+    java::lang::Class (*getClass)(Reference);
+    java::lang::String (*toString)(Reference);
+    
+    Array_VT()
+    : __isa(Array<T>::__class()),
+      hashCode((int32_t(*)(Reference))
+               &java::lang::__Object::hashCode),
+      equals((bool(*)(Reference,java::lang::Object))
+             &java::lang::__Object::equals),
+      getClass((java::lang::Class(*)(Reference))
+               &java::lang::__Object::getClass),
+      toString((java::lang::String(*)(Reference))
+               &java::lang::__Object::toString) {
+    }
+  };
+
+  // The vtable for arrays.  Note that this definition uses the default
+  // no-arg constructor.
+  template <typename T>
+  Array_VT<T> Array<T>::__vtable;
+
+  // But where is the definition of __class()???
+
+  // ========================================================================
 
   // Function for converting a C string lieral to a translated
   // Java string.
   inline java::lang::String literal(const char * s) {
     // C++ implicitly converts the C string to a std::string.
     return new java::lang::__String(s);
+  }
+
+  // ========================================================================
+
+  // Template function to check against null values.
+  template <typename T>
+  void checkNotNull(T o) {
+    if (null() == (java::lang::Object)o) {
+      throw java::lang::NullPointerException();
+    }
+  }
+
+  // Template function to check array index is within bounds.
+  template <typename T>
+  void checkIndex(Array<T>* array, int32_t index) {
+    if (0 > index || index >= array->length) {
+      throw java::lang::ArrayIndexOutOfBoundsException();
+    }
+  }
+
+  // Template function to check array stores.
+  template <typename T, typename U>
+  void checkStore(Array<T>* array, U object) {
+    if (null() != (java::lang::Object)object) {
+      java::lang::Class t1 = array->__vptr->getClass(array);
+      java::lang::Class t2 = t1->__vptr->getComponentType(t1);
+
+      if (! t2->__vptr->isInstance(t2, (java::lang::Object)object)) {
+        throw java::lang::ArrayStoreException();
+      }
+    }
   }
 
 }
