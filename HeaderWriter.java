@@ -62,7 +62,52 @@ public class HeaderWriter{
   }
   
   /** Write out the header */
-  public void generateHeader(GNode[] roots){
+  public void generateHeader(Node n){
+    new Visitor() {
+      public void visitCompilationUnit(GNode n){
+        visit(n);
+      }
+
+      public void visitDeclarations(GNode n){
+        //nothing needs to be done.
+        visit(n);
+      }
+	  
+      public void visitDeclaration(GNode n){
+        writeTypeDeclaration(n);
+      }
+
+      public void visitClasses(GNode n){
+        //nothing needs to be done
+        visit(n);
+      }
+
+      public void visitClassDeclaration(GNode n){
+        visit(n);
+      }
+
+      public void visitFields(GNode n){
+        visit(n);
+      }
+
+      public void visitFieldDeclaration(GNode n){
+        visit(n);
+      }
+
+      public void visitImplementedMethods(GNode n){
+        visit(n);
+      }
+
+      public void visitMethodDeclaration(GNode n){
+        visit(n);
+      }
+
+      public void visit(GNode n){
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      }
+    }.dispatch(n);
+      
+      /*
     writeDependencies();
     // Store all of the GNodes required to write the header in roots
     this.roots = roots;
@@ -73,7 +118,7 @@ public class HeaderWriter{
       writeAlias(i);    
       writeStruct(i);
       writeVTStruct(i);
-    }   
+      }   */
     
   }
   
@@ -100,8 +145,8 @@ public class HeaderWriter{
   *
   * @param index the index of the class we are writing
   */
-  private void writeAlias(int index){
-    fileout.p("typedef __").p(name(index)).p("* ").p(name(index));
+  private void writeAlias(GNode node){
+      fileout.p("typedef __").p(name(node)).p("* ").p(name(node));
     fileout.p(";\n").pln().flush();
   }
  
@@ -113,22 +158,21 @@ public class HeaderWriter{
   * @param index the index of the class we are writing
   */
   // Using java_lang.h as a basis, NOT skeleton.h
-  private void writeStruct(int index){
-    fileout.p("struct __").p(name(index)).p(" {\n");
+  private void writeStruct(GNode node){
+    fileout.p("struct __").p(name(node)).p(" {\n");
     fileout.incr();
 
-      writeVPtr(index);
+      writeVPtr(node);
       plnFlush();
-      writeFields(index);
+      writeFields(2);
+      plnFlush();      
+      writeConstructor(node);
       plnFlush();
-      
-      writeConstructor(index);
+      writeMethods(node);
       plnFlush();
-      writeMethods(index);
+      writeClass();
       plnFlush();
-      writeClass(index);
-      plnFlush();
-      writeVTable(index);
+      writeVTable(node);
     
     fileout.decr(); 
     
@@ -136,8 +180,8 @@ public class HeaderWriter{
   }
 
   
-  private void writeVPtr(int index){
-    indentOut().p("__").p(name(index)).p("_VT* __vptr;\n").flush();
+  private void writeVPtr(GNode node){
+    indentOut().p("__").p(name(node)).p("_VT* __vptr;\n").flush();
   }
  
   /** 
@@ -145,8 +189,8 @@ public class HeaderWriter{
    *
    * @param index the index of the class we are writing.
    */ 
-  private void writeConstructor(int index){
-    indentOut().p("__").p(name(index)).p("(");
+  private void writeConstructor(GNode node){
+    indentOut().p("__").p(name(node)).p("(");
 
     // Now for parameters:
     // Iterate through initializing types and fields. Use Type.
@@ -177,16 +221,16 @@ public class HeaderWriter{
     
   }
   
-  private void writeMethods(int index){
+  private void writeMethods(GNode node){
     
   }
   
-  private void writeClass(int index){
+  private void writeClass(){
     indentOut().pln("static Class __class();").flush(); 
   }
   
-  private void writeVTable(int index){
-    indentOut().p("static ").p(name(index)).pln("_VT __vtable;").flush();
+  private void writeVTable(GNode node){
+    indentOut().p("static ").p(name(node)).pln("_VT __vtable;").flush();
   }
 
 
@@ -199,31 +243,31 @@ public class HeaderWriter{
   /** Write out the struct definition of a class's VTable 
   * @param i the index of the class we are writing
   */
-  private void writeVTStruct(int i) {
-    fileout.p("struct __").p(name(i)).p("_VT {\n");
+  private void writeVTStruct(GNode node) {
+    fileout.p("struct __").p(name(node)).p("_VT {\n");
     fileout.incr();
 
       // initialize __isa
       indentOut().p("Class __isa;");  
       plnFlush();
-      writeObjectInheritedVTMethods(i);
+      writeObjectInheritedVTMethods(node);
       plnFlush();
-      writeInheritedVTMethods(i);
+      writeInheritedVTMethods(node);
       plnFlush();
-      writeVTMethods(i);
+      writeVTMethods(node);
       plnFlush();
       
-      writeVTConstructor(i);
+      writeVTConstructor(node);
       fileout.incr();
         plnFlush();
         // set __isa to the Class
-        indentOut().p(": __isa(__").p(name(i)).p("::__class()),");
+        indentOut().p(": __isa(__").p(name(node)).p("::__class()),");
         plnFlush();
-        writeObjectInheritedVTAddresses(i);
+        writeObjectInheritedVTAddresses(node);
         plnFlush();
-        writeInheritedVTAddresses(i);
+        writeInheritedVTAddresses(node);
         plnFlush();
-        writeVTAddresses(i);
+        writeVTAddresses(node);
         fileout.p(" {\n");  
       fileout.decr();
       indentOut().p("}\n");
@@ -233,54 +277,54 @@ public class HeaderWriter{
   /** Write out all the inherited methods of Object, since every class extends Object
    *
    * @param i the index of the class we are writing */
-  private void writeObjectInheritedVTMethods(int i) {
-    indentOut().p("int32_t (*hashCode)(").p(name(i)).p(");\n");
-    indentOut().p("bool (*equals)(").p(name(i)).p(", Object);\n");
-    indentOut().p("Class (*getClass)(").p(name(i)).p(");\n");
-    indentOut().p("String (*toString)(").p(name(i)).p(");\n").flush();
+  private void writeObjectInheritedVTMethods(GNode node) {
+    indentOut().p("int32_t (*hashCode)(").p(name(node)).p(");\n");
+    indentOut().p("bool (*equals)(").p(name(node)).p(", Object);\n");
+    indentOut().p("Class (*getClass)(").p(name(node)).p(");\n");
+    indentOut().p("String (*toString)(").p(name(node)).p(");\n").flush();
   }
 
   /** Write out all the inherited methods of its superclass(es)
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeInheritedVTMethods(int i) {
+  private void writeInheritedVTMethods(GNode node) {
 
   }
 
   /** Write out all the classe's own methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeVTMethods(int i) {
+  private void writeVTMethods(GNode node) {
   
   }
 
   /** Write out the VT Constructor 
    * @param i the index of the class we are writing */
-  private void writeVTConstructor(int i) {
-    indentOut().p("__").p(name(i)).p("_VT()");
+  private void writeVTConstructor(GNode node) {
+    indentOut().p("__").p(name(node)).p("_VT()");
   }
 
   /** Write out all the inherited Object VT method addresses
    * @param i the index of the class we are writing */
   // TODO: not sure if this is exactly what we want
-  private void writeObjectInheritedVTAddresses(int i) {
-    indentOut().p("hashCode((int32_t(*)(").p(name(i)).p("))&__Object::hashCode),\n");
-    indentOut().p("equals((bool(*)(").p(name(i)).p(",Object))&__Object::equals),\n");
-    indentOut().p("getClass((Class(*)(").p(name(i)).p("))&__Object::getClass),\n");
-    indentOut().p("toString((String(*)(").p(name(i)).p("))&__Object::toString)\n").flush();
+  private void writeObjectInheritedVTAddresses(GNode node) {
+    indentOut().p("hashCode((int32_t(*)(").p(name(node)).p("))&__Object::hashCode),\n");
+    indentOut().p("equals((bool(*)(").p(name(node)).p(",Object))&__Object::equals),\n");
+    indentOut().p("getClass((Class(*)(").p(name(node)).p("))&__Object::getClass),\n");
+    indentOut().p("toString((String(*)(").p(name(node)).p("))&__Object::toString)\n").flush();
   }
 
   /** Write out all the inherited VT addresses of the class' superclass(es)' methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeInheritedVTAddresses(int i) {
+  private void writeInheritedVTAddresses(GNode node) {
 
   }
 
   /** Write out all the VT addresses of the class' own methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeVTAddresses(int i) {
+  private void writeVTAddresses(GNode node) {
 
   }
 
@@ -289,8 +333,8 @@ public class HeaderWriter{
 // OTHER SHIT (OTHERWISE KNOWN AS UTILITY METHODS)
 // =======================
 
-  private String name(int index) {
-    return roots[index].getString(1);
+  private String name(GNode n) {
+    return n.getString(1);
   }
   
   private Printer indentOut(){
