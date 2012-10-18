@@ -51,6 +51,7 @@ SOURCE = \
 	QimppTranslator.java \
 	HeaderWriter.java \
 	ImplementationPrinter.java \
+	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	Type.java

@@ -47,6 +47,9 @@ public class HeaderWriter{
   * 
   *@param roots The QimppClassDeclaration nodes for the classes we want to create a header for
   */
+  
+  // TODO: Need to change the HeaderWriter to take a GNode, instead of an array of GNodes
+  
   public HeaderWriter(){
 
     try {
@@ -65,7 +68,8 @@ public class HeaderWriter{
     this.roots = roots;
   
     for (int i = 0; i < roots.length; i++){
-      writeTypeDeclaration(i);
+      // ONLY COMMENTED OUT FOR TESTING PURPOSES
+      //writeTypeDeclaration(i);
       writeAlias(i);    
       writeStruct(i);
       writeVTStruct(i);
@@ -85,10 +89,10 @@ public class HeaderWriter{
   *
   * @param index the index of the class we are writing
   */
-  private void writeTypeDeclaration(int index){
+  public void writeTypeDeclaration(GNode node){
     // ClassDeclaration field 1 is the name of the class
-    fileout.p("struct __").p(name(index)).p(";\n");
-    fileout.p("struct __").p(name(index)).p("_VT;\n").pln().flush();
+    fileout.p("struct __").p(node.getString(1)).p(";\n");
+    fileout.p("struct __").p(node.getString(1)).p("_VT;\n").pln().flush();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and

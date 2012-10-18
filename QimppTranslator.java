@@ -149,6 +149,7 @@ public class QimppTranslator extends Tool {
       public void visitClassDeclaration(GNode n) {
         // Send the class declaration to our header file - this is a hack, as we actually need to collect all the 
         // classes, and then send them to print out
+        // TODO: Change this soon!!!
         InheritanceManager i = new InheritanceManager();
         GNode qimppFormattedClassDeclaration = i.getQimppClassDeclaration(n);
           
