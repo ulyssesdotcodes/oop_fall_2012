@@ -54,7 +54,8 @@ SOURCE = \
 	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
-	Type.java
+	Type.java \
+	CPPAST.java
 
 JNI_SOURCE =
 

@@ -50,10 +50,11 @@ public class CPPAST {
   public CPPAST(){
       compilationUnit = GNode.create("CompilationUnit");
       GNode structs = GNode.create("Structs");
-      GNode classes = GNode.create("Classes");
       compilationUnit.addNode(structs);
+      GNode classes = GNode.create("Classes");
       compilationUnit.addNode(classes);
       classesMap = new HashMap<String, GNode>();
+      System.out.println("Created new CPPAST");
   }
   
   /*Methods to add:
@@ -72,18 +73,30 @@ public class CPPAST {
    *void printAST() - prints the AST for debugging
   */
   
-  GNode addClass(String name){
+  GNode addClass(String name, String parent){
+    System.out.println("Adding class " + name);
+  
     //Add to Structs
     compilationUnit.getGeneric(0).addNode(GNode.create("Struct")).add(name);
     
     //Add to Classes with Name node, Fields node, ImplementedMethods node, and InheritedMethods node
     GNode classNode = GNode.create("ClassDeclaration");
     classNode.add(name);
+    if(parent.length() > 0){
+      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(parent);
+    } else {
+      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add("java::lang::__Object");
+    }
+    classNode.addNode(GNode.create("Constructors"));
     classNode.addNode(GNode.create("Fields"));
     classNode.addNode(GNode.create("ImplementedMethods"));
     classNode.addNode(GNode.create("InheritedMethods"));
     compilationUnit.getGeneric(1).addNode(classNode);
     return classNode;
+  }
+  
+  GNode addClass(String name){
+    return addClass(name, "");
   }
   
   //Adding, getting, and removing fields
@@ -92,40 +105,62 @@ public class CPPAST {
     //Get the fields node
     GNode fieldNode = GNode.create("FieldDeclaration");
     fieldNode.add(name);
-    fieldNode.addNode(GNode.create("Type")).add(type);
-    classNode.getGeneric(1).addNode(fieldNode);
+    fieldNode.addNode(GNode.create("Type")).getNode(fieldNode.size()-1).add(type);
+    classNode.getGeneric(3).addNode(fieldNode);
     return fieldNode;
   }
   
+  GNode addConstructor(GNode classNode){
+    GNode constructorNode = GNode.create("ConstructorDeclaration");
+    constructorNode.add(null);
+    constructorNode.addNode(GNode.create("Block"));
+    classNode.getGeneric(2).addNode(constructorNode);
+    return constructorNode;
+  }
+
+  void addConstructorInstruction(GNode instruction, GNode constructor) {
+    constructor.getGeneric(1).addNode(instruction);
+  }
+  
+  GNode addConstructorParameter(String paramType, String param, GNode constructor) {
+    if(constructor.getGeneric(0) == null) constructor.add(0, GNode.create("Parameters"));
+    GNode formalParameter = GNode.create("FormalParameter");
+    formalParameter.add(param);
+    formalParameter.addNode(GNode.create("Type")).getNode(formalParameter.size()-1).add(paramType);
+    constructor.getGeneric(0).addNode(formalParameter);
+    return formalParameter;
+  }
+    
   GNode addMethod(String name, String returnType, GNode classNode) {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType").add(returnType));
+    methodNode.addNode(GNode.create("ReturnType").getNode(methodNode.size()-1).add(returnType));
     methodNode.addNode(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("Block"));
-    classNode.getGeneric(2).addNode(methodNode);
+    classNode.getGeneric(4).addNode(methodNode);
     return methodNode;
   }
   
   GNode addMethod(String name, String returnType, GNode classNode, String from) {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType").add(returnType));
+    methodNode.addNode(GNode.create("ReturnType").getNode(methodNode.size()-1).add(returnType));
     methodNode.add(GNode.create("FormalParameters"));
-    methodNode.addNode(GNode.create("From")).add(from);
-    classNode.getGeneric(3).addNode(methodNode);
+    methodNode.addNode(GNode.create("From")).getNode(methodNode.size()-1).add(from);
+    classNode.getGeneric(5).addNode(methodNode);
     return methodNode;
   }
   
-  GNode addMethodInstruction(GNode instruction, GNode method) {
-    return method.getGeneric(3).addNode(instruction);
+  void addMethodInstruction(GNode instruction, GNode method) {
+    method.getGeneric(3).addNode(instruction);
   }
   
   GNode addMethodParameter(String paramType, String param, GNode method) {
-    GNode formalParameter = method.get(2).addNode("FormalParameter");
-    formalParameter.add(name);
-    formalParameter.addNode("Type").add(paramType);
-    return formalPatameter;
+    GNode formalParameter = GNode.create("FormalParameter");
+    formalParameter.add(param);
+    formalParameter.addNode(GNode.create("Type")).getNode(formalParameter.size()-1).add(paramType);
+    method.getGeneric(2).addNode(formalParameter);
+    return formalParameter;
   }
   
   GNode getClass(String name) {
@@ -150,7 +185,7 @@ public class CPPAST {
   
   //Adding, getting, and removing methods  
   int getInheritedMethodIndex(String name, GNode classNode) {
-    GNode inheritedMethods = classNode.getGeneric(3);
+    GNode inheritedMethods = classNode.getGeneric(4);
     for(int i=0; i < inheritedMethods.size(); i++){
       if(getGNodeName(inheritedMethods.getGeneric(i)).equals(name))
         return i;
@@ -160,8 +195,8 @@ public class CPPAST {
   
   
   void removeInheritedMethod(String name, GNode classNode) {
-    int methodIndex = getMethodIndex(name, classNode);
-    if(methodIndex != -1) classNode.getGeneric(3).remove(fieldIndex);
+    int methodIndex = getInheritedMethodIndex(name, classNode);
+    if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
   }
   //Utility methods
   
