@@ -50,7 +50,7 @@ SOURCE = \
 	TranslatorTest.java \
 	QimppTranslator.java \
 	HeaderWriter.java \
-	ImplementationWriter.java \
+	ImplementationPrinter.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	Type.java
