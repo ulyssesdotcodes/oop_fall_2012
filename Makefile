@@ -54,7 +54,9 @@ SOURCE = \
 	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
-	Type.java
+	InheritanceTreeManagerTest.java \
+	Type.java \
+	TypeTest.java
 
 JNI_SOURCE =
 

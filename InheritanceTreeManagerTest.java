@@ -1,34 +1,106 @@
-package org.;
+package qimpp;
+
+import xtc.tree.Node;
+import xtc.tree.GNode;
+import xtc.tree.Visitor;
+import qimpp.InheritanceTreeManager;
 
 import static org.junit.Assert.assertEquals;
 import junit.framework.JUnit4TestAdapter;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
+
 /**
  * Tests for InheritanceTreeManager. Template. Not done yet
  *
  */
 public class InheritanceTreeManagerTest  {
-        protected int fValue1;
-        protected int fValue2;
+
+        InheritanceTreeManager treeManager;
 
         @Before public void setUp() {
-                fValue1= 2;
-                fValue2= 3;
+          System.out.println("Running setup");
+          treeManager = new InheritanceTreeManager(
+              GNode.create("ClassDeclaration"));
+          // Put in some example classes
+          GNode newClass = GNode.create("ClassDeclaration", "Point");
+
+          System.out.println("Inserting Point");
+          ArrayList<String> point = new ArrayList<String>();
+            point.add("qimpp");
+            point.add("Point");
+          treeManager.insertClass(point, null, newClass);
+
+          System.out.println("Inserting ColorPoint");
+          System.out.println(point.get(0) + " " + point.get(1));
+
+          System.out.println("Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
+
+          newClass = GNode.create("ClassDeclaration", "ColorPoint");
+          ArrayList<String> ColorPoint = new ArrayList<String>();
+            ColorPoint.add("qimpp");
+            ColorPoint.add("ColorPoint");
+          treeManager.insertClass(ColorPoint, null, newClass);
+          System.out.println("ColorPoint really in?: " + Boolean.toString(treeManager.dereference(ColorPoint) != null));
+        }
+
+        @Test public void testDereference() {
+          ArrayList<String> point = new ArrayList<String>();
+            point.add("qimpp");
+            point.add("Point");
+          GNode pointHopefully = treeManager.dereference(point);
+          assertTrue(pointHopefully != null);
+          System.out.println("Test:Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
+
+          pointHopefully = (GNode) treeManager.dereference(point).getProperty("ClassDeclaration");
+          assertTrue("Point".equals(pointHopefully.getString(0)));
+
+          // Test that classes in the same sub-namespace are
+          // inserted correctly
+          point = new ArrayList<String>( Arrays.asList("qimpp",
+                "ColorPoint") );
+          //System.out.println("Returned node name = " + treeManager.dereference(point).getName());
+          pointHopefully = (GNode) treeManager.dereference(point).getProperty("ClassDeclaration");
+          
+          assertTrue(pointHopefully.getString(0).equals("ColorPoint"));
+          // Test that getClassTreeNode(ArrayList<String>) aliases
+          // dereference
+          pointHopefully = treeManager.getClassTreeNode(point);
+          //assertTrue("Point".equals((GNode)pointHopefully.get(0)));
+
+        }
+
+        /** See that inheritance is properly preserved */
+        /*@Test public void testInheritance () {
+          ArrayList<String> point = new ArrayList<String>(
+             Arrays.asList("qimpp", "Point") );
+          GNode pointNode = treeManager.dereference(point);
+
+          ArrayList<String> colorPoint = new ArrayList<String>(
+              Arrays.asList("qimpp", "ColorPoint") );
+          GNode colorNode = treeManager.dereference(colorPoint);
+
+          assertTrue( treeManager.getParent(colorNode) == pointNode );
         }
          
         public static junit.framework.Test suite() {
-                 return new JUnit4TestAdapter(SimpleTest.class);
-        }
+                 return new JUnit4TestAdapter(InheritanceTreeManagerTest.class);
+        }*/
 
+        /*
         public int unused;
         @Test public void divideByZero() {
                 int zero= 0;
                 int result= 8/zero;
                 unused= result; // avoid warning for not using result
-        }
+        }*/
          
+        /*
         @Test public void testEquals() {
                 assertEquals(12, 12);
                 assertEquals(12L, 12L);
@@ -36,6 +108,18 @@ public class InheritanceTreeManagerTest  {
 
                 assertEquals("Size", 12, 13);
                 assertEquals("Capacity", 12.0, 11.99, 0.0);
+        }*/
+
+        @Test public void testDisambiguate(){
+            
+        }
+
+        @Test public void testGetClassTreeNode() {
+
+        }
+
+        @Test public void testGetParent() {
+
         }
 
 }
