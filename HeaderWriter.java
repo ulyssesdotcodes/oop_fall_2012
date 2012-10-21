@@ -19,9 +19,9 @@ import xtc.util.Tool;
 *   This class handles inheritance, function declarations, and vtable generation.
 *   @author QIMPP
 */
-public class HeaderWriter{
+public class HeaderWriter extends Visitor{
   
-  private Printer fileout;
+  private Printer printer;
   private GNode[] roots;
   
   /** Constructor. Opens a new file called defined_classes.h
@@ -50,20 +50,14 @@ public class HeaderWriter{
   
   // TODO: Need to change the HeaderWriter to take a GNode, instead of an array of GNodes
   
-  public HeaderWriter(){
-
-    try {
-      fileout = new Printer(new PrintWriter("testfiles/out.h"));
-      
-    } catch(Exception e) {
-      System.err.println("Couldn't open file to write out!");
-      System.exit(1);  
-    }
+  public HeaderWriter(Printer printer) {
+    this.printer = printer;
+    printer.register(this);  
   }
   
   /** Write out the header */
-  public void generateHeader(Node n){
-    new Visitor() {
+  // public void generateHeader(Node n){
+   // new Visitor() {
       public void visitCompilationUnit(GNode n){
         //pretty sure nothing needs to be done here
         visit(n);
@@ -77,7 +71,7 @@ public class HeaderWriter{
       public void visitDeclaration(GNode n){
         //right now, this is printing slightly out of order. change later?
         writeTypeDeclaration(n);
-	      writeAlias(n);
+	      //writeAlias(n);
       }
 
       public void visitClasses(GNode n){
@@ -110,7 +104,7 @@ public class HeaderWriter{
       public void visit(GNode n){
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
-    }.dispatch(n);
+   // }.dispatch(n);
       
       /*
     writeDependencies();
@@ -125,14 +119,14 @@ public class HeaderWriter{
       writeVTStruct(i);
       }   */
     
-  }
+  //}
   
   /** Write out the dependencies for the header */
   //TODO: this method should probably do more. Not sure ATM.
   private void writeDependencies() {
-    fileout.p("#pragma once").pln();
-    fileout.p("#include \"java_lang.h\"").pln(); 
-    fileout.p("#include <stdint.h>").pln().pln().flush();
+    printer.p("#pragma once").pln();
+    printer.p("#include \"java_lang.h\"").pln(); 
+    printer.p("#include <stdint.h>").pln().pln().flush();
   }
   
   /** Write out the internal names of the structs and vtables for each class 
@@ -141,8 +135,9 @@ public class HeaderWriter{
   */
   public void writeTypeDeclaration(GNode node){
     // ClassDeclaration field 1 is the name of the class
-    fileout.p("struct __").p(node.getString(1)).p(";\n");
-    fileout.p("struct __").p(node.getString(1)).p("_VT;\n").pln().flush();
+    
+    printer.p("struct __").p(name(node)).p(";\n");
+    printer.p("struct __").p(name(node)).p("_VT;\n").pln().flush();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -151,8 +146,8 @@ public class HeaderWriter{
   * @param node the node being examined
   */
   private void writeAlias(GNode node){
-      fileout.p("typedef __").p(name(node)).p("* ").p(name(node));
-    fileout.p(";\n").pln().flush();
+      printer.p("typedef __").p(name(node)).p("* ").p(name(node));
+    printer.p(";\n").pln().flush();
   }
  
 // ==================
@@ -165,8 +160,8 @@ public class HeaderWriter{
   */
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(GNode node){
-    fileout.p("struct __").p(name(node)).p(" {\n");
-    fileout.incr();
+    printer.p("struct __").p(name(node)).p(" {\n");
+    printer.incr();
 
       writeVPtr(node);
       plnFlush();
@@ -180,9 +175,9 @@ public class HeaderWriter{
 //      plnFlush();
 //      writeVTable(node);
     
-    fileout.decr(); 
+    printer.decr(); 
     
-    fileout.p("};\n").pln().flush();
+    printer.p("};\n").pln().flush();
   }
 
   
@@ -203,7 +198,7 @@ public class HeaderWriter{
 
     // For now, assuming only Object, therefore no parameters in constructor.
     
-    fileout.p(");").flush();
+    printer.p(");").flush();
   }
  
 
@@ -251,8 +246,8 @@ public class HeaderWriter{
   * @param i the index of the class we are writing
   */
   private void writeVTStruct(GNode node) {
-    fileout.p("struct __").p(name(node)).p("_VT {\n");
-    fileout.incr();
+    printer.p("struct __").p(name(node)).p("_VT {\n");
+    printer.incr();
 
       // initialize __isa
       indentOut().p("Class __isa;");  
@@ -265,7 +260,7 @@ public class HeaderWriter{
       plnFlush();
       
       writeVTConstructor(node);
-      fileout.incr();
+      printer.incr();
         plnFlush();
         // set __isa to the Class
         indentOut().p(": __isa(__").p(name(node)).p("::__class()),");
@@ -275,10 +270,10 @@ public class HeaderWriter{
         writeInheritedVTAddresses(node);
         plnFlush();
         writeVTAddresses(node);
-        fileout.p(" {\n");  
-      fileout.decr();
+        printer.p(" {\n");  
+      printer.decr();
       indentOut().p("}\n");
-    fileout.p("};\n").pln().flush();
+    printer.p("};\n").pln().flush();
   }
 
   /** Write out all the inherited methods of Object, since every class extends Object
@@ -341,14 +336,16 @@ public class HeaderWriter{
 // =======================
 
   private String name(GNode n) {
-    return n.getString(1);
+    String name = n.getString(1);
+    return name;
+      //.substring(1,name.length() - 1);
   }
   
   private Printer indentOut(){
-    return fileout.indent();
+    return printer.indent();
   }
 
   private Printer plnFlush(){
-    return fileout.pln().flush();
+    return printer.pln().flush();
   }
 }

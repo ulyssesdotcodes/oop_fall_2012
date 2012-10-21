@@ -3,6 +3,7 @@ package qimpp;
 import org.junit.*;
 import static org.junit.Assert.*;
 import java.util.*;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import qimpp.HeaderWriter;
 import xtc.*;
@@ -12,25 +13,33 @@ import xtc.tree.Visitor;
 import xtc.tree.Location;
 import xtc.tree.Printer; 
 import xtc.util.Tool;
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author QIMPP
  */
 public class HeaderWriterTest {
 	
-  public static Scanner in;  
-	HeaderWriter hw = new HeaderWriter();
-  File file = new File("testiles/out.h");
-	
+  ByteArrayOutputStream out = new ByteArrayOutputStream();
+  Printer printer = new Printer(out);  
+  
   @Test
 	public void writeTypeDeclarationTest() {
-    GNode foo	= GNode.create("Declaration", "Struct", "\"Foo\"", null);
-    GNode bar	= GNode.create("Declaration", "Struct", "\"Bar\"", null);
+    GNode foo	= GNode.create("Declaration", "Struct", "Foo", null);
+    GNode bar	= GNode.create("Declaration", "Struct", "Bar", null);
     GNode declarations = GNode.create("Declarations", foo, bar);
-    // System.out.println(declarations.toString());
-    hw.generateHeader(declarations);
+    new HeaderWriter(printer).dispatch(declarations);
+    try {
+      String output = out.toString("UTF8");
+      String compare = "struct __Foo;\nstruct __Foo_VT;\nstruct __Bar;\nstruct __Bar_VT;";
+      assert(output.equals(compare));
+    }
+    catch(UnsupportedEncodingException e) {
+      System.out.println("shit.");
+    }
   }
-  
+ 
+ 
   @Test
   public void writeStructTest() {
     GNode modifiers = GNode.create("Modifiers");
@@ -41,5 +50,5 @@ public class HeaderWriterTest {
     GNode cd = GNode.create("ClassDeclaration", modifiers, "Foo", constructor);
     System.out.println(cd.toString());
     //hw.generateHeader(cd);
-  }
+  } 
 }
