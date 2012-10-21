@@ -154,10 +154,6 @@ public class QimppTranslator extends Tool {
       public void visitMethodDeclaration(GNode n) {
         visit(n);
       }
-      
-      public void visitClassDeclaration(GNode n) {
-        visit(n);
-      }
 
       public void visitStringLiteral(GNode n){
         visit(n);
