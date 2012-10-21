@@ -65,25 +65,30 @@ public class HeaderWriter{
   public void generateHeader(Node n){
     new Visitor() {
       public void visitCompilationUnit(GNode n){
+        //pretty sure nothing needs to be done here
         visit(n);
       }
 
       public void visitDeclarations(GNode n){
-        //nothing needs to be done.
+        //nothing needs to be done within this node
         visit(n);
       }
 	  
       public void visitDeclaration(GNode n){
+        //right now, this is printing slightly out of order. change later?
         writeTypeDeclaration(n);
+	      writeAlias(n);
       }
 
       public void visitClasses(GNode n){
-        //nothing needs to be done
+        //nothing needs to be done within this node
         visit(n);
       }
 
       public void visitClassDeclaration(GNode n){
-        visit(n);
+	      writeStruct(n);
+	      //writeVTStruct(n); 
+        
       }
 
       public void visitFields(GNode n){
@@ -143,7 +148,7 @@ public class HeaderWriter{
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
   * the eyes 
   *
-  * @param index the index of the class we are writing
+  * @param node the node being examined
   */
   private void writeAlias(GNode node){
       fileout.p("typedef __").p(name(node)).p("* ").p(name(node));
@@ -155,7 +160,8 @@ public class HeaderWriter{
 // ===================
 
   /** Write out the struct definition for a given class, with all its newly defined methods 
-  * @param index the index of the class we are writing
+  *  
+  * @param node  the node being written
   */
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(GNode node){
@@ -164,15 +170,15 @@ public class HeaderWriter{
 
       writeVPtr(node);
       plnFlush();
-      writeFields(2);
-      plnFlush();      
+//      writeFields(node);
+//      plnFlush();      
       writeConstructor(node);
       plnFlush();
       writeMethods(node);
       plnFlush();
-      writeClass();
-      plnFlush();
-      writeVTable(node);
+//      writeClass();
+//      plnFlush();
+//      writeVTable(node);
     
     fileout.decr(); 
     
@@ -208,9 +214,9 @@ public class HeaderWriter{
    *
    * @param index The index of the class we are writing.
    */
-  private void writeFields(int index) {
+  private void writeFields(GNode node) {
     //Interate through the FieldDeclarations
-    for(Iterator<Object> iter = roots[index].getGeneric(2).iterator(); iter.hasNext();){
+   for(Iterator<Object> iter = node.getGeneric(2).iterator(); iter.hasNext();){
       Object objCurrent = iter.next();
       if(objCurrent == null || objCurrent instanceof String) continue;
       GNode current = (GNode) objCurrent;
@@ -221,8 +227,9 @@ public class HeaderWriter{
     
   }
   
+  
   private void writeMethods(GNode node){
-    
+    //
   }
   
   private void writeClass(){

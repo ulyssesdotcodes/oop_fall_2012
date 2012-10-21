@@ -30,4 +30,16 @@ public class HeaderWriterTest {
     // System.out.println(declarations.toString());
     hw.generateHeader(declarations);
   }
+  
+  @Test
+  public void writeStructTest() {
+    GNode modifiers = GNode.create("Modifiers");
+    GNode express = GNode.create("Expression", GNode.create("PrimaryIdentifier", "\"zebra\""), "\"=\"", GNode.create("StringLiteral", "\"In the room\""));
+    GNode expressionStatement = GNode.create("ExpressionStatement", express);
+    GNode block = GNode.create("Block", expressionStatement);
+    GNode constructor = GNode.create("Constructor", null, block);
+    GNode cd = GNode.create("ClassDeclaration", modifiers, "Foo", constructor);
+    System.out.println(cd.toString());
+    //hw.generateHeader(cd);
+  }
 }
