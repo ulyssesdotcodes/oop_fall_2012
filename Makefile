@@ -56,7 +56,8 @@ SOURCE = \
 	InheritanceTreeManager.java \
 	InheritanceTreeManagerTest.java \
 	Type.java \
-	TypeTest.java
+	TypeTest.java \
+	CPPAST.java
 
 JNI_SOURCE =
 

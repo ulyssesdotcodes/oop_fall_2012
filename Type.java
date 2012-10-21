@@ -67,4 +67,13 @@ class Type {
 		}.dispatch(n);
 		*/
 	}
+	
+	static String primitiveType(String type){
+	  return primitives.get(type);
+	}
+	
+	static String qualifiedIdentifier(String type){
+	  if(type.equals("String")) return "java::lang::String";
+	  else return type;
+	}
 }
