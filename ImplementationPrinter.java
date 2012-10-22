@@ -21,11 +21,6 @@ import xtc.tree.Visitor;
 
 public class ImplementationPrinter extends Visitor {
 
-	/** 
-	 * The flag for whether to line up declarations and statements with
-	 * their source locations.
-	 */
-	protected final boolean lineUp;
 
 	protected final Printer printer;
 
@@ -33,15 +28,6 @@ public class ImplementationPrinter extends Visitor {
 	 * The current class in the traversal.
 	 */
 	protected String currentClass;
-
-	/**
-	 * Create a new C++ printer.
-	 *
-	 * @param printer The printer.
-	 */
-	public ImplementationPrinter(Printer printer) {
-		this(printer, false);
-	}
 
 
 	/** 
@@ -51,9 +37,8 @@ public class ImplementationPrinter extends Visitor {
 	 * @param lineUp Flag for whether to line up declarations and statements
 	 *   with their source locations.
 	 */
-	public ImplementationPrinter(Printer printer, boolean lineUp) {
+	public ImplementationPrinter(Printer printer) {
 		this.printer = printer;
-		this.lineUp  = lineUp;
 		printer.register(this);
 	}
 
