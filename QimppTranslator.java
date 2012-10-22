@@ -45,7 +45,7 @@ import xtc.util.Tool;
  */
 public class QimppTranslator extends Tool {
   
-  GNode currentClass, currentMethod;
+  GNode currentClass, currentMethod, currentConstructor;
   CPPAST cppast;
       
   /** Create a new translator. */
@@ -94,8 +94,13 @@ public class QimppTranslator extends Tool {
   public void process(Node node) {
     new Visitor() {
 
-      public void visitBlock(GNode n) {
-        visit(n);
+      public GNode visitBlock(GNode n) {
+        GNode block = GNode.create("Block");
+        for(int i = 0; i < n.size(); i++){
+          GNode expressionStatement = n.getGeneric(i);
+          block.addNode(expressionStatement);
+        }
+        return block;
       }
 
       public void visitCallExpression(GNode n) {
@@ -118,8 +123,9 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitConstructorDeclaration(GNode n) {
-        GNode constructor = cppast.addConstructor(currentClass);
-        cppast.addConstructorInstruction(n.getGeneric(5).getGeneric(0), constructor);
+        currentConstructor = cppast.addConstructor(currentClass);
+        if(n.getGeneric(4) != null) cppast.setConstructorParameters(visitFormalParameters(n.getGeneric(4)), currentConstructor);
+        if(n.getGeneric(5) != null) cppast.setConstructorInstructions(visitBlock(n.getGeneric(5)), currentConstructor);
       }
 
       public String visitDeclarator(GNode n) {
@@ -132,7 +138,7 @@ public class QimppTranslator extends Tool {
 
       public void visitExpression(GNode n){
         visit(n);
-      }        
+      }
                       
       public void visitFieldDeclaration(GNode n) {
         String type = visitType(n.getGeneric(1));
@@ -143,8 +149,16 @@ public class QimppTranslator extends Tool {
         }
       }
  
-      public void visitFormalParameters(GNode n){
-        visit(n);
+      public GNode visitFormalParameters(GNode n){
+        GNode parameters = GNode.create("FormalParameters");
+        for(int i = 0; i < n.size(); i++){
+          GNode currentFormalParam = n.getGeneric(i);
+          GNode parameter = GNode.create("FormalParameter");
+          parameter.add(currentFormalParam.getString(3));
+          parameter.addNode(GNode.create("Type").getGeneric(1).add(visitType(currentFormalParam.getGeneric(2))));
+          parameters.addNode(parameter);
+        }
+        return parameters;
       }
 
       public void visitNewClassExpression(GNode n) {
@@ -152,7 +166,9 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitMethodDeclaration(GNode n) {
-        visit(n);
+        currentMethod = cppast.addMethod(n.getString(3), visitType(n.getGeneric(2)), currentClass);
+        cppast.setMethodParameters(visitFormalParameters(n.getGeneric(4)), currentMethod);
+        cppast.setMethodInstructions(visitBlock(n.getGeneric(7)), currentMethod);
       }
 
       public void visitStringLiteral(GNode n){

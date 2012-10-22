@@ -44,17 +44,30 @@ import xtc.util.Tool;
  * @version $Revision$
  */
 public class CPPAST {
-  GNode compilationUnit;
+  GNode compilationUnit, directives, declarations, classes;
   HashMap<String, GNode> classesMap; 
   
   public CPPAST(){
       compilationUnit = GNode.create("CompilationUnit");
-      GNode structs = GNode.create("Structs");
-      compilationUnit.addNode(structs);
-      GNode classes = GNode.create("Classes");
+      compilationUnit.addNode(createDefaultDirectives());
+      declarations = GNode.create("Declarations");
+      compilationUnit.addNode(declarations);
+      classes = GNode.create("Classes");
       compilationUnit.addNode(classes);
       classesMap = new HashMap<String, GNode>();
       System.out.println("Created new CPPAST");
+  }
+  
+  GNode createDefaultDirectives(){
+    directives = GNode.create("Directives");
+    directives.addNode(GNode.create("Pragma")).getGeneric(directives.size()-1).add("once");
+   
+    GNode includeDirectives = GNode.create("IncludeDirectives");
+    includeDirectives.addNode(GNode.create("QuotedForm")).getGeneric(includeDirectives.size()-1).add("java_lang");
+    includeDirectives.addNode(GNode.create("AngleBracketForm")).getGeneric(includeDirectives.size()-1).add("stdint");
+    
+    directives.addNode(includeDirectives);
+    return directives;
   }
   
   /*Methods to add:
@@ -77,7 +90,11 @@ public class CPPAST {
     System.out.println("Adding class " + name);
   
     //Add to Structs
-    compilationUnit.getGeneric(0).addNode(GNode.create("Struct")).add(name);
+    GNode declaration = GNode.create("Declaration");
+    declaration.addNode(GNode.create("Struct"));
+    declaration.add(name);
+    declaration.add(2, null);
+    declarations.addNode(declaration);
     
     //Add to Classes with Name node, Fields node, ImplementedMethods node, and InheritedMethods node
     GNode classNode = GNode.create("ClassDeclaration");
@@ -91,7 +108,7 @@ public class CPPAST {
     classNode.addNode(GNode.create("Fields"));
     classNode.addNode(GNode.create("ImplementedMethods"));
     classNode.addNode(GNode.create("InheritedMethods"));
-    compilationUnit.getGeneric(1).addNode(classNode);
+    classes.addNode(classNode);
     return classNode;
   }
   
@@ -130,11 +147,21 @@ public class CPPAST {
     constructor.getGeneric(0).addNode(formalParameter);
     return formalParameter;
   }
+  
+  void setConstructorParameters(GNode parameters, GNode constructor){
+    constructor.remove(2);
+    constructor.add(2, parameters);
+  }
+  
+  void setConstructorInstructions(GNode block, GNode constructor){
+    constructor.remove(1);
+    constructor.add(1, block);
+  }
     
   GNode addMethod(String name, String returnType, GNode classNode) {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType").getNode(methodNode.size()-1).add(returnType));
+    methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType);
     methodNode.addNode(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("Block"));
     classNode.getGeneric(4).addNode(methodNode);
@@ -155,12 +182,22 @@ public class CPPAST {
     method.getGeneric(3).addNode(instruction);
   }
   
+  void setMethodInstructions(GNode block, GNode method) {
+    method.remove(3);
+    method.add(3, block);
+  }
+  
   GNode addMethodParameter(String paramType, String param, GNode method) {
     GNode formalParameter = GNode.create("FormalParameter");
     formalParameter.add(param);
     formalParameter.addNode(GNode.create("Type")).getNode(formalParameter.size()-1).add(paramType);
     method.getGeneric(2).addNode(formalParameter);
     return formalParameter;
+  }
+  
+  void setMethodParameters(GNode parameters, GNode method){
+    method.remove(2);
+    method.add(2, parameters);
   }
   
   GNode getClass(String name) {

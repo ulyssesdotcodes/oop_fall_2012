@@ -50,12 +50,12 @@ SOURCE = \
 	TranslatorTest.java \
 	QimppTranslator.java \
 	HeaderWriter.java \
-	ImplementationPrinter.java \
 	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	Type.java \
-	CPPAST.java
+	CPPAST.java \
+	ImplementationPrinter.java 
 
 JNI_SOURCE =
 
