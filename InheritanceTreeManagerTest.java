@@ -24,29 +24,46 @@ public class InheritanceTreeManagerTest  {
         InheritanceTreeManager treeManager;
 
         @Before public void setUp() {
-          System.out.println("Running setup");
+
+          //
+          // Insert some initial values into the inheritance
+          // tree
+          //
+
+          //System.out.println("Running setup");
           treeManager = new InheritanceTreeManager(
               GNode.create("ClassDeclaration"));
           // Put in some example classes
           GNode newClass = GNode.create("ClassDeclaration", "Point");
 
-          System.out.println("Inserting Point");
+          //System.out.println("Inserting Point");
           ArrayList<String> point = new ArrayList<String>();
             point.add("qimpp");
             point.add("Point");
           treeManager.insertClass(point, null, newClass);
 
-          System.out.println("Inserting ColorPoint");
-          System.out.println(point.get(0) + " " + point.get(1));
+          //System.out.println("Inserting ColorPoint");
+          //System.out.println(point.get(0) + " " + point.get(1));
 
-          System.out.println("Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
+          //System.out.println("Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
 
           newClass = GNode.create("ClassDeclaration", "ColorPoint");
           ArrayList<String> ColorPoint = new ArrayList<String>();
             ColorPoint.add("qimpp");
             ColorPoint.add("ColorPoint");
+          treeManager.insertClass(ColorPoint, point, newClass);
+          //System.out.println("ColorPoint really in?: " + Boolean.toString(treeManager.dereference(ColorPoint) != null));
+
+          //
+          // Test that classes with the same name in different
+          // packages are distinct
+          //
+          newClass = GNode.create("ClassDeclaration", "OtherColorPoint");
+          ColorPoint = new ArrayList<String>( 
+              Arrays.asList("org", "fake", "ColorPoint") );
           treeManager.insertClass(ColorPoint, null, newClass);
-          System.out.println("ColorPoint really in?: " + Boolean.toString(treeManager.dereference(ColorPoint) != null));
+
+          System.out.println(treeManager.toString());
         }
 
         @Test public void testDereference() {
@@ -55,7 +72,7 @@ public class InheritanceTreeManagerTest  {
             point.add("Point");
           GNode pointHopefully = treeManager.dereference(point);
           assertTrue(pointHopefully != null);
-          System.out.println("Test:Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
+          //System.out.println("Test:Point really in?: " + Boolean.toString(treeManager.dereference(point) != null));
 
           pointHopefully = (GNode) treeManager.dereference(point).getProperty("ClassDeclaration");
           assertTrue("Point".equals(pointHopefully.getString(0)));
@@ -64,7 +81,7 @@ public class InheritanceTreeManagerTest  {
           // inserted correctly
           point = new ArrayList<String>( Arrays.asList("qimpp",
                 "ColorPoint") );
-          //System.out.println("Returned node name = " + treeManager.dereference(point).getName());
+          ////System.out.println("Returned node name = " + treeManager.dereference(point).getName());
           pointHopefully = (GNode) treeManager.dereference(point).getProperty("ClassDeclaration");
           
           assertTrue(pointHopefully.getString(0).equals("ColorPoint"));
@@ -76,7 +93,7 @@ public class InheritanceTreeManagerTest  {
         }
 
         /** See that inheritance is properly preserved */
-        /*@Test public void testInheritance () {
+        @Test public void testInheritance () {
           ArrayList<String> point = new ArrayList<String>(
              Arrays.asList("qimpp", "Point") );
           GNode pointNode = treeManager.dereference(point);
@@ -85,12 +102,31 @@ public class InheritanceTreeManagerTest  {
               Arrays.asList("qimpp", "ColorPoint") );
           GNode colorNode = treeManager.dereference(colorPoint);
 
+          assertTrue( colorNode != null );
+          assertTrue( pointNode != null );
+          GNode g = (GNode)(treeManager.getParent(colorNode).getProperty("ClassDeclaration"));
+          System.out.println("\n" + g.getString(0));
+
           assertTrue( treeManager.getParent(colorNode) == pointNode );
+
+          //
+          // Test distinction between package names
+          //
+
+          ArrayList<String> otherColor =
+            new ArrayList<String>( Arrays.asList("org", "fake",
+                  "ColorPoint"));
+          GNode otherColorNode = treeManager.dereference(otherColor);
+
+          assertTrue( otherColorNode != null );
+          assertTrue( treeManager.getParent( otherColorNode )
+                        != treeManager.getParent(colorNode) );
+          assertTrue( otherColorNode != colorNode );
         }
          
         public static junit.framework.Test suite() {
                  return new JUnit4TestAdapter(InheritanceTreeManagerTest.class);
-        }*/
+        }
 
         /*
         public int unused;
