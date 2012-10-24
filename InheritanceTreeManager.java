@@ -157,6 +157,13 @@ public class InheritanceTreeManager {
    * */
   public GNode dereference(final ArrayList<String> className){
     // Traverse with state variables
+    System.err.println(this);
+    System.err.print("finding ");
+    for (String s: className){
+      System.err.print(s);
+    }
+    System.err.println();
+    
     foundNode = null;
     dereferenceDepth = 0;
     deepestDereference = 0;
