@@ -27,7 +27,7 @@ public class HeaderWriter extends Visitor {
   private ArrayList<GNode> fields;
   private boolean inherited;
   private boolean implemented;
-
+  //private String current_class;
   /** Constructor. Opens a new file called defined_classes.h
   *
   * The GNode passed in should contain a modified tree created by InheritanceManager.
@@ -60,12 +60,15 @@ public class HeaderWriter extends Visitor {
     implemented_methods = new ArrayList<GNode>();
     fields = new ArrayList<GNode>();
     inherited = false;
-    implemented = false; 
+    implemented = false;
+    //current_class = "";
     printer.register(this);  
   }
   
-  /** Write out the header */
-      
+ // ===================
+ //  VISITOR
+ // ==================
+
   public void visitCompilationUnit(GNode n){
     writeDependencies(); 
     visit(n);
@@ -85,24 +88,16 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitClassDeclaration(GNode n){
+    //current_class = name(n); 
     visit(n);
 
     writeStruct(n);
-    printer.incr();
-      writeVPtr(n);
-      writeFields();
-      writeConstructor(n);
-      writeMethods();
-      writeClass();
-      writeVTable(); 
-    printer.decr();
-    printer.p("};\n").pln();
-    
     writeVTStruct(n);
 
     inherited_methods.clear();
     implemented_methods.clear();
     fields.clear();
+    //current_class = "";
   }
 
   public void visitFields(GNode n){
@@ -135,7 +130,11 @@ public class HeaderWriter extends Visitor {
   public void visit(GNode n){
     for (Object o : n) if (o instanceof Node) dispatch((Node)o);
   }
-      
+
+// ================================
+// WRITE DEPENDENCIES + DECLARATIONS
+// ================================
+
   /** Write out the dependencies for the header */
   //TODO: this method should probably do more. Not sure ATM.
   private void writeDependencies() {
@@ -165,8 +164,8 @@ public class HeaderWriter extends Visitor {
     printer.p(";\n").pln();
   }
  
-// ==================
-// STRUCT STUFF //
+// ===================
+//  WRITE STRUCT
 // ===================
 
   /** Write out the struct definition for a given class, with all its newly defined methods 
@@ -174,8 +173,18 @@ public class HeaderWriter extends Visitor {
   * @param node  the node being written
   */
   // Using java_lang.h as a basis, NOT skeleton.h
-  private void writeStruct(GNode node){
-    printer.p("struct __").p(name(node)).p(" {\n");
+  private void writeStruct(GNode n){
+    printer.p("struct __").p(name(n)).p(" {\n");
+    printer.incr();
+      writeVPtr(n);
+      writeFields();
+      writeConstructor(n);
+      writeMethods(n);
+      writeClass();
+      writeVTable(n); 
+    printer.decr();
+    printer.p("};\n").pln();
+
   }
   
   private void writeVPtr(GNode node){
@@ -220,22 +229,33 @@ public class HeaderWriter extends Visitor {
   }
   
   
-  private void writeMethods(GNode node){
-    //
+  private void writeMethods(GNode n){
+    String current_class = name(n);
+    for (GNode m : implemented_methods) {
+      writeMethod(m, current_class);
+    } 
+  }
+
+  private void writeMethod(GNode n, String current_class){
+    intdentOut().printer.p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
+     .p("(").p(current_class);
+    if (!n.getGeneric(2).get(0) == null) 
+      printer.p(", <formal params>");
+    printer.p(");\n");
   }
   
   private void writeClass(){
     indentOut().pln("static Class __class();"); 
   }
   
-  private void writeVTable(GNode node){
-    indentOut().p("static ").p(name(node)).pln("_VT __vtable;");
+  private void writeVTable(n){
+    indentOut().p("static ").p(name(n)).pln("_VT __vtable;");
   }
 
 
 
 // =======================
-// VTABLE STRUCT STUFF
+// WRITE VTABLE STRUCT 
 // ======================
 
 
@@ -244,8 +264,8 @@ public class HeaderWriter extends Visitor {
   */
   private void writeVTStruct(GNode node) {
     printer.p("struct __").p(name(node)).p("_VT {\n");
+  
     printer.incr();
-
       // initialize __isa
       indentOut().p("Class __isa;");  
       writeObjectInheritedVTMethods(node);
@@ -259,9 +279,10 @@ public class HeaderWriter extends Visitor {
         writeObjectInheritedVTAddresses(node);
         writeInheritedVTAddresses(node);
         writeVTAddresses(node);
-        printer.p(" {\n");  
+        printer.p("{\n");  
       printer.decr();
       indentOut().p("}\n");
+    printer.decr();
     printer.p("};\n").pln();
   }
 
@@ -278,15 +299,29 @@ public class HeaderWriter extends Visitor {
   /** Write out all the inherited methods of its superclass(es)
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeInheritedVTMethods(GNode node) {
-
+  private void writeInheritedVTMethods(GNode n) {
+    String current_class = name(n);
+    for (GNode m : inherited_methods) {
+      writeVTMethod(m, current_class);
+    }
   }
 
   /** Write out all the classe's own methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeVTMethods(GNode node) {
-  
+  private void writeVTMethods(GNode n) {
+    String current_class = name(n);
+    for (GNode m : implemented_methods) {
+      writeiVTMethod(m, current_class);
+    } 
+  }
+
+  private void writeVTMethod(GNode n, String current_class){
+    intdentOut().printer.p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
+     .p(")(").p(current_class);
+    if (!n.getGeneric(2).get(0) == null) 
+      printer.p(", <formal params>");
+    printer.p(");\n");
   }
 
   /** Write out the VT Constructor 
@@ -308,20 +343,41 @@ public class HeaderWriter extends Visitor {
   /** Write out all the inherited VT addresses of the class' superclass(es)' methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeInheritedVTAddresses(GNode node) {
-
+  private void writeInheritedVTAddresses(GNode n) {
+    String current_class = name(n);
+    for (GNode m : inherited_methods) {
+      writeInheritedVTAddress(m, current_class);
+    }   
   }
 
   /** Write out all the VT addresses of the class' own methods
    * @param i the index of the class we are writing */
   // TODO: this
   private void writeVTAddresses(GNode node) {
+    String current_class = name(n);
+    for (GNode m : implemented_methods) {
+      writeVTAddress(m, current_class);
+    }
+  }
 
+  private void writeInheritedVTAddress(GNode n, String current_class) {
+    indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0)
+      .p("(*)(").p(current_class)
+    if (n.getGeneric(2).get(0) != null)
+      printer.p(", <formal params>");
+    // following line gets From field from method node
+    printer.p("))&").p(n.getGeneric(3).getString(0)).p("::").p(n.getString(0))
+      .p(",\n");
+  }
+
+  private void writeVTAddress(GNode n, String current_class) {
+    indentOut().p(n.getString(0)).p("(&__").p(current_class).p("::")
+      .p(n.getString(0)).p("\n");
   }
 
 
 // =======================
-// OTHER SHIT (OTHERWISE KNOWN AS UTILITY METHODS)
+// UTILITY METHODS
 // =======================
 
   private String name(GNode n) {
