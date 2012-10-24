@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 import xtc.lang.JavaFiveParser;
 
@@ -52,6 +54,7 @@ public class QimppTranslator extends Tool {
     
   GNode currentClass, currentMethod, currentConstructor;
   CPPAST cppast;
+  InheritanceTreeManager treeManager;
       
   /** Create a new translator. */
   public QimppTranslator() {
@@ -92,6 +95,7 @@ public class QimppTranslator extends Tool {
   }
   
   public void run(String[] args){
+    treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
     super.run(args);
     cppast.printAST();
   }
@@ -141,6 +145,10 @@ public class QimppTranslator extends Tool {
       public String visitDeclarator(GNode n) {
         //A declarator just needs to return the name of it right now
         return n.getString(0);
+      }
+      
+      public GNode visitExtension(GNode n){
+        return GNode.create("todoExtension");
       }
 
       public GNode visitExpressionStatement(GNode n) {
@@ -204,10 +212,38 @@ public class QimppTranslator extends Tool {
       public String visitType(GNode n) {
         //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
         GNode identifier = n.getGeneric(0);
+        String typename = identifier.getString(0);
+        
         if(identifier.hasName("PrimitiveIdentifier")){
-          return Type.primitiveType(identifier.getString(0));
+          return Type.primitiveType(typename);
+          
+          // Fix this later in treeManager
+        } else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
+          return typename;
+       
         } else {
-          return Type.qualifiedIdentifier(identifier.getString(0));
+          
+          String[] qualified = typename.split(".");
+          // disambiguate() - figure out the fully qualified name
+          // Later we'll keep track of already-imported types,
+          // and we'll automatically skip those or expand them
+          // as necessary
+          // For now we'll support only explicitly qualified name: "qimpp.Foo" ["qimpp", "Foo"]
+          GNode classTreeNode = treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
+          if (classTreeNode == null){
+              
+              try{
+                process(typename.replace(".", "/"));
+              }
+
+              catch (Exception e){
+                System.err.println("Cannot parse " + typename);
+                System.exit(1);
+              }
+              // Fail and crash with error if the file cannot be located
+
+          }
+          return Type.qualifiedIdentifier(typename);
         }
       }
       
