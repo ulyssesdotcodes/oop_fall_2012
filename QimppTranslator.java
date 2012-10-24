@@ -97,7 +97,7 @@ public class QimppTranslator extends Tool {
   public void run(String[] args){
     treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
     super.run(args);
-    cppast.printAST();
+    //cppast.printAST();
   }
 
   public void process(Node node) {
@@ -131,6 +131,11 @@ public class QimppTranslator extends Tool {
         visit(n);
         //Print the AST after we're done for debugging
         cppast.printAST();
+        try{
+          new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
+        } catch (Exception e) {
+          System.out.println("Uh oh... " + e);
+        }
       }
       
       public void visitConstructorDeclaration(GNode n) {
@@ -222,7 +227,8 @@ public class QimppTranslator extends Tool {
           return typename;
        
         } else {
-          
+          return typename;
+          /*
           String[] qualified = typename.split(".");
           // disambiguate() - figure out the fully qualified name
           // Later we'll keep track of already-imported types,
@@ -244,6 +250,7 @@ public class QimppTranslator extends Tool {
 
           }
           return Type.qualifiedIdentifier(typename);
+          */
         }
       }
       

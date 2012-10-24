@@ -44,7 +44,7 @@ import xtc.util.Tool;
  * @version $Revision$
  */
 public class CPPAST {
-  GNode compilationUnit, directives, declarations, classes;
+  public GNode compilationUnit, directives, declarations, classes;
   HashMap<String, GNode> classesMap; 
   
   public CPPAST(){
@@ -91,8 +91,8 @@ public class CPPAST {
   
     //Add to Structs
     GNode declaration = GNode.create("Declaration");
-    declaration.addNode(GNode.create("Struct"));
     declaration.add(name);
+    declaration.addNode(GNode.create("Struct"));
     declaration.add(2, null);
     declarations.addNode(declaration);
     

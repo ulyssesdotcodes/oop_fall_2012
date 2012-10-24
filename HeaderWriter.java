@@ -72,6 +72,7 @@ public class HeaderWriter extends Visitor {
   public void visitCompilationUnit(GNode n){
     writeDependencies(); 
     visit(n);
+    printer.flush();
   }
 
   public void visitDeclarations(GNode n){
@@ -90,7 +91,8 @@ public class HeaderWriter extends Visitor {
   public void visitClassDeclaration(GNode n){
     //current_class = name(n); 
     visit(n);
-
+    
+    System.out.println("Everything else happened.");
     writeStruct(n);
     writeVTStruct(n);
 
@@ -128,6 +130,7 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visit(GNode n){
+    System.out.println("Visiting " + n.getName());
     for (Object o : n) if (o instanceof Node) dispatch((Node)o);
   }
 
@@ -174,6 +177,7 @@ public class HeaderWriter extends Visitor {
   */
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(GNode n){
+    try{
     printer.p("struct __").p(name(n)).p(" {\n");
     printer.incr();
       writeVPtr(n);
@@ -185,7 +189,7 @@ public class HeaderWriter extends Visitor {
       writeVTable(n); 
     printer.decr();
     printer.p("};\n").pln();
-
+    }catch(Exception e) { e.printStackTrace(); }
   }
   
   private void writeVPtr(GNode node){
@@ -240,7 +244,7 @@ public class HeaderWriter extends Visitor {
   private void writeMethod(GNode n, String current_class){
     indentOut().p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
      .p("(").p(current_class);
-    if (n.getGeneric(2).get(0) != null) 
+    if (n.getGeneric(2) != null) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -320,7 +324,7 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethod(GNode n, String current_class){
     indentOut().p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
      .p(")(").p(current_class);
-    if (n.getGeneric(2).get(0) != null) 
+    if (n.getGeneric(2) != null) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -364,7 +368,7 @@ public class HeaderWriter extends Visitor {
   private void writeInheritedVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0))
       .p("(*)(").p(current_class);
-    if (n.getGeneric(2).get(0) != null)
+    if (n.getGeneric(2) != null)
       printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(n.getGeneric(3).getString(0)).p("::").p(n.getString(0))
@@ -382,7 +386,7 @@ public class HeaderWriter extends Visitor {
 // =======================
 
   private String name(GNode n) {
-    String name = n.getString(1);
+    String name = n.getString(0);
     return name;
       //.substring(1,name.length() - 1);
   }
