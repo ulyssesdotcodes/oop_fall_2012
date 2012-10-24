@@ -53,6 +53,7 @@ public class QimppTranslator extends Tool {
   
     
   GNode currentClass, currentMethod, currentConstructor;
+  String currentClassName;
   CPPAST cppast;
   InheritanceTreeManager treeManager;
       
@@ -96,6 +97,9 @@ public class QimppTranslator extends Tool {
   
   public void run(String[] args){
     treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
+    // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
+    currentClassName = args[args.length - 1];
+    
     super.run(args);
     //cppast.printAST();
   }
@@ -198,12 +202,12 @@ public class QimppTranslator extends Tool {
         return parameters;
       }
 
-      public void visitNewClassExpression(GNode n) {
+      public void visitNewClassExpression(GNode n) {       
         visit(n);
       }  
 
       public void visitMethodDeclaration(GNode n) {
-        //Add a new method with name equiv to this methoddec, dispatched type in the current class
+        //Add a new method with name equiv to this method dec, dispatched type in the current class
         currentMethod = cppast.addMethod(n.getString(3), (String)dispatch(n.getGeneric(2)), currentClass);
         //Add the method params gotten by dispatching the formalParameters node
         cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
@@ -228,9 +232,11 @@ public class QimppTranslator extends Tool {
           return typename;
        
         } else {
-          return typename;
-          /*
-          String[] qualified = typename.split(".");
+          
+          System.err.println("Split: " + typename.split("\\.").length);
+          System.err.println("Adding typename: " + typename);
+          String[] qualified = typename.split("\\.");
+
           // disambiguate() - figure out the fully qualified name
           // Later we'll keep track of already-imported types,
           // and we'll automatically skip those or expand them
@@ -240,18 +246,17 @@ public class QimppTranslator extends Tool {
           if (classTreeNode == null){
               
               try{
-                process(typename.replace(".", "/"));
+                process(typename.replace(".", "/")+".java");
               }
 
               catch (Exception e){
-                System.err.println("Cannot parse " + typename);
+                System.err.println("Cannot parse " + typename + " " + e);
                 System.exit(1);
               }
               // Fail and crash with error if the file cannot be located
 
           }
           return Type.qualifiedIdentifier(typename);
-          */
         }
       }
       
