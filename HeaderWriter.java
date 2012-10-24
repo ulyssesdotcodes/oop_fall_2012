@@ -177,7 +177,8 @@ public class HeaderWriter extends Visitor {
     printer.p("struct __").p(name(n)).p(" {\n");
     printer.incr();
       writeVPtr(n);
-      writeFields();
+      //TODO:change writeFields
+      writeFields(n);
       writeConstructor(n);
       writeMethods(n);
       writeClass();
@@ -237,9 +238,9 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeMethod(GNode n, String current_class){
-    intdentOut().printer.p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
+    indentOut().p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
      .p("(").p(current_class);
-    if (!n.getGeneric(2).get(0) == null) 
+    if (n.getGeneric(2).get(0) != null) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -248,7 +249,7 @@ public class HeaderWriter extends Visitor {
     indentOut().pln("static Class __class();"); 
   }
   
-  private void writeVTable(n){
+  private void writeVTable(GNode n){
     indentOut().p("static ").p(name(n)).pln("_VT __vtable;");
   }
 
@@ -312,14 +313,14 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethods(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
-      writeiVTMethod(m, current_class);
+      writeVTMethod(m, current_class);
     } 
   }
 
   private void writeVTMethod(GNode n, String current_class){
-    intdentOut().printer.p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
+    indentOut().p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
      .p(")(").p(current_class);
-    if (!n.getGeneric(2).get(0) == null) 
+    if (n.getGeneric(2).get(0) != null) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -353,7 +354,7 @@ public class HeaderWriter extends Visitor {
   /** Write out all the VT addresses of the class' own methods
    * @param i the index of the class we are writing */
   // TODO: this
-  private void writeVTAddresses(GNode node) {
+  private void writeVTAddresses(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
       writeVTAddress(m, current_class);
@@ -361,8 +362,8 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeInheritedVTAddress(GNode n, String current_class) {
-    indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0)
-      .p("(*)(").p(current_class)
+    indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0))
+      .p("(*)(").p(current_class);
     if (n.getGeneric(2).get(0) != null)
       printer.p(", <formal params>");
     // following line gets From field from method node
