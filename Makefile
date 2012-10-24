@@ -74,3 +74,7 @@ JAR_EXTRAS = \
 ifdef JAVA_DEV_ROOT
 include $(JAVA_DEV_ROOT)/Makerules
 endif
+
+
+testall:
+	java org.junit.runner.JUnitCore qimpp.InheritanceTreeManagerTest
