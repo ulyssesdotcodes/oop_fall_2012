@@ -207,6 +207,17 @@ public class InheritanceTreeManager {
 
     return foundNode;
   }
+  
+  public void reparent(ArrayList<String> child, ArrayList<String> parent){
+    GNode childNode = dereference(child);
+    GNode parentNode = dereference(parent);
+    
+    if ( null == childNode || null == parentNode ) {
+      throw new RuntimeException("Failed to reparent");
+    } 
+    
+    childNode.setProperty(PARENT_CLASS, parentNode);
+  }
 
   private String getClassTreeNodeName(GNode n){
     return n.getStringProperty(CLASS_NAME);

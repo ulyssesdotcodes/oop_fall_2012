@@ -54,6 +54,7 @@ public class QimppTranslator extends Tool {
     
   GNode currentClass, currentMethod, currentConstructor;
   String currentClassName;
+  String parentName;
   CPPAST cppast;
   InheritanceTreeManager treeManager;
       
@@ -126,12 +127,22 @@ public class QimppTranslator extends Tool {
       }
         
       public void visitClassDeclaration(GNode n) {
+        
         //Add the current class to the cppast, and set it as the current class global variable.
         currentClass = cppast.addClass(n.getString(1));
+        
+        //add the current class to the inheritance tree, but parent it to Object for now
+        String[] qualified = n.getString(1).split("\\.");
+        treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualified)), null, currentClass);
+        
         visit(n);
       }
       
       public void visitCompilationUnit(GNode n) {
+        
+        
+        
+        
         visit(n);
         //Print the AST after we're done for debugging
         cppast.printAST();
@@ -158,7 +169,16 @@ public class QimppTranslator extends Tool {
       }
       
       public GNode visitExtension(GNode n){
-        return GNode.create("todoExtension");
+        
+        // Assume the name of the parent is fully qualified
+        visit(n);
+        
+        //add the current class to the inheritance tree, but parent it to Object for now
+        ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
+        ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
+        treeManager.reparent(childQualified, parentQualified);
+        
+        return null; 
       }
 
       public GNode visitExpressionStatement(GNode n) {
@@ -236,6 +256,12 @@ public class QimppTranslator extends Tool {
           System.err.println("Split: " + typename.split("\\.").length);
           System.err.println("Adding typename: " + typename);
           String[] qualified = typename.split("\\.");
+          
+          // Reset currentClassName when we come back
+          String temp = currentClassName;
+          currentClassName = typename;
+          
+          parentName = typename;
 
           // disambiguate() - figure out the fully qualified name
           // Later we'll keep track of already-imported types,
@@ -256,6 +282,8 @@ public class QimppTranslator extends Tool {
               // Fail and crash with error if the file cannot be located
 
           }
+          
+          currentClassName = temp;
           return Type.qualifiedIdentifier(typename);
         }
       }
