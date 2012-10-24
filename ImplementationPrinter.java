@@ -94,18 +94,30 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitClassDeclaration(GNode n) {
-		this.currentClass = n.getString(CLASS_NAME);
+		this.currentClass = n.getString(2);
+
+		// .class
+		printer.p("java::lang::Class __").p(this.currentClass)
+			.pln("::__class() {")
+			.p("return new java::lang::__Class(__rt::literal(")
+			.p(this.currentClass).p("), ");
+		visit(n.getGeneric(1));
+		printer.p("::__class());").pln("}");
 
 		// vtable
-		printer.p("__")
-		// FIXME
+		printer.p("__").p(this.currentClass).p("_VT ")
+			.p("__").p(this.currentClass).pln("::__vtable;");
 
 		// class constructor
-		printer.p("__").p(n.getString(CLASS_NAME).p("::__")
-				.p(n.getString(CLASS_NAME)
-				.pln("() : __vptr(&__vtable) {");
+		printer.p("__").p(this.currentClass).p("::__")
+			.p(this.currentClass)
+			.pln("() : __vptr(&__vtable) {");
 		visit(n);
 		printer.pln("}");
+	}
+
+	public void visitParent(GNode n) {
+		printer.p(n.getString(0));
 	}
 
 	public void visitImplementedMethods(GNode n) {
@@ -115,7 +127,7 @@ public class ImplementationPrinter extends Visitor {
 	/** Only visited in implemented methods */
 	public void visitMethodDeclaration(GNode n) {
 		visit(n.getGeneric(0)); // return type
-		printer.p(" __").p(currentClass).p("::");
+		printer.p(" __").p(this.currentClass).p("::");
 		printer.p("::").p(n.getString(1)); // method name
 		visit(n.getGeneric(2)); // parameters
 		printer.p(" {");
@@ -137,17 +149,22 @@ public class ImplementationPrinter extends Visitor {
 		printer.p(n.getString(0));
 	}
 
+	public void visitInstance(GNode n) {
+		printer.p("__this->");
+		visit(n);
+	}
+
 	public void visitStringLiteral(GNode n) {
-		printer.p("__rt::literal(").p(n.getString(0))p(')');
+		printer.p("__rt::literal(").p(n.getString(0)).p(')');
 	}
 
 	public void visitFormalParameters(GNode n) {
-		printer.p('(').p(currentClass).p(" __this");
-		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) }
+		printer.p('(').p(this.currentClass).p(" __this");
+		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
 			if (iter.hasNext()) {
 				printer.p(", ");
 			}
-			printer.p((Node)iter.next());
+			printer.p(((Node)iter.next()).getString(0));
 		}
 		printer.p(')');
 	}
@@ -157,12 +174,8 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitFormalParameter(GNode n) {
-		visit(n.getGeneric(0));
-		printer.p(' ').p(n.getString(1));
-	}
-
-	public void visitTypedefSpecifier(GNode n) {
-
+		visit(n.getGeneric(1));
+		printer.p(' ').p(n.getString(0));
 	}
 
 	public void visitBreakStatement(GNode n) {
@@ -180,6 +193,18 @@ public class ImplementationPrinter extends Visitor {
 			visit(n.getNode(0));
 		}
 		printer.pln(';');
+	}
+
+	public void visitStringConcatExpression(GNode n) {
+		printer.p("new java::lang::__String(");
+		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+			visit((Node)iter.next());
+			printer.p("->data");
+			if (iter.hasNext()) {
+				printer.p(" + ");
+			}
+		}
+
 	}
 
 	public void visit(Node n) {

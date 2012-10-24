@@ -53,7 +53,9 @@ SOURCE = \
 	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
+	InheritanceTreeManagerTest.java \
 	Type.java \
+	TypeTest.java \
 	CPPAST.java \
 	ImplementationPrinter.java 
 
