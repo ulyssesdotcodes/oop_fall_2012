@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.PrintWriter;
 import java.util.Iterator;
-
+import java.util.ArrayList;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
@@ -19,11 +19,15 @@ import xtc.util.Tool;
 *   This class handles inheritance, function declarations, and vtable generation.
 *   @author QIMPP
 */
-public class HeaderWriter extends Visitor{
+public class HeaderWriter extends Visitor {
   
   private Printer printer;
-  private GNode[] roots;
-  
+  private ArrayList<GNode> inherited_methods;
+  private ArrayList<GNode> implemented_methods;
+  private ArrayList<GNode> fields;
+  private boolean inherited;
+  private boolean implemented;
+
   /** Constructor. Opens a new file called defined_classes.h
   *
   * The GNode passed in should contain a modified tree created by InheritanceManager.
@@ -52,81 +56,92 @@ public class HeaderWriter extends Visitor{
   
   public HeaderWriter(Printer printer) {
     this.printer = printer;
+    inherited_methods = new ArrayList<GNode>();
+    implemented_methods = new ArrayList<GNode>();
+    fields = new ArrayList<GNode>();
+    inherited = false;
+    implemented = false; 
     printer.register(this);  
   }
   
   /** Write out the header */
-  // public void generateHeader(Node n){
-   // new Visitor() {
-      public void visitCompilationUnit(GNode n){
-        //pretty sure nothing needs to be done here
-        visit(n);
-      }
-
-      public void visitDeclarations(GNode n){
-        //nothing needs to be done within this node
-        visit(n);
-      }
-	  
-      public void visitDeclaration(GNode n){
-        //right now, this is printing slightly out of order. change later?
-        writeTypeDeclaration(n);
-	      //writeAlias(n);
-      }
-
-      public void visitClasses(GNode n){
-        //nothing needs to be done within this node
-        visit(n);
-      }
-
-      public void visitClassDeclaration(GNode n){
-	      writeStruct(n);
-	      //writeVTStruct(n); 
-        
-      }
-
-      public void visitFields(GNode n){
-        visit(n);
-      }
-
-      public void visitFieldDeclaration(GNode n){
-        visit(n);
-      }
-
-      public void visitImplementedMethods(GNode n){
-        visit(n);
-      }
-
-      public void visitMethodDeclaration(GNode n){
-        visit(n);
-      }
-
-      public void visit(GNode n){
-        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-      }
-   // }.dispatch(n);
       
-      /*
-    writeDependencies();
-    // Store all of the GNodes required to write the header in roots
-    this.roots = roots;
-  
-    for (int i = 0; i < roots.length; i++){
-      // ONLY COMMENTED OUT FOR TESTING PURPOSES
-      //writeTypeDeclaration(i);
-      writeAlias(i);    
-      writeStruct(i);
-      writeVTStruct(i);
-      }   */
+  public void visitCompilationUnit(GNode n){
+    writeDependencies(); 
+    visit(n);
+  }
+
+  public void visitDeclarations(GNode n){
+    visit(n);
+  }
+
+  public void visitDeclaration(GNode n){
+    writeTypeDeclaration(n);
+    writeAlias(n);
+  }
+
+  public void visitClasses(GNode n){
+    visit(n);
+  }
+
+  public void visitClassDeclaration(GNode n){
+    visit(n);
+
+    writeStruct(n);
+    printer.incr();
+      writeVPtr(n);
+      writeFields();
+      writeConstructor(n);
+      writeMethods();
+      writeClass();
+      writeVTable(); 
+    printer.decr();
+    printer.p("};\n").pln();
     
-  //}
-  
+    writeVTStruct(n);
+
+    inherited_methods.clear();
+    implemented_methods.clear();
+    fields.clear();
+  }
+
+  public void visitFields(GNode n){
+    visit(n);
+  }
+
+  public void visitFieldDeclaration(GNode n){
+    fields.add(n); 
+  }
+
+  public void visitInheritedMethods(GNode n){
+    inherited = true;
+    visit(n);
+    inherited = false;
+  }
+
+  public void visitImplementedMethods(GNode n){
+    implemented = true;
+    visit(n);
+    implemented = false;
+  }
+
+  public void visitMethodDeclaration(GNode n){
+    if (inherited)
+      inherited_methods.add(n);
+    else if (implemented)
+      implemented_methods.add(n);
+  }
+
+  public void visit(GNode n){
+    for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+  }
+      
   /** Write out the dependencies for the header */
   //TODO: this method should probably do more. Not sure ATM.
   private void writeDependencies() {
     printer.p("#pragma once").pln();
     printer.p("#include \"java_lang.h\"").pln(); 
-    printer.p("#include <stdint.h>").pln().pln().flush();
+    printer.p("#include <stdint.h>").pln().pln();
   }
   
   /** Write out the internal names of the structs and vtables for each class 
@@ -137,7 +152,7 @@ public class HeaderWriter extends Visitor{
     // ClassDeclaration field 1 is the name of the class
     
     printer.p("struct __").p(name(node)).p(";\n");
-    printer.p("struct __").p(name(node)).p("_VT;\n").pln().flush();
+    printer.p("struct __").p(name(node)).p("_VT;\n").pln();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -147,7 +162,7 @@ public class HeaderWriter extends Visitor{
   */
   private void writeAlias(GNode node){
       printer.p("typedef __").p(name(node)).p("* ").p(name(node));
-    printer.p(";\n").pln().flush();
+    printer.p(";\n").pln();
   }
  
 // ==================
@@ -161,28 +176,10 @@ public class HeaderWriter extends Visitor{
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(GNode node){
     printer.p("struct __").p(name(node)).p(" {\n");
-    printer.incr();
-
-      writeVPtr(node);
-      plnFlush();
-//      writeFields(node);
-//      plnFlush();      
-      writeConstructor(node);
-      plnFlush();
-      writeMethods(node);
-      plnFlush();
-//      writeClass();
-//      plnFlush();
-//      writeVTable(node);
-    
-    printer.decr(); 
-    
-    printer.p("};\n").pln().flush();
   }
-
   
   private void writeVPtr(GNode node){
-    indentOut().p("__").p(name(node)).p("_VT* __vptr;\n").flush();
+    indentOut().p("__").p(name(node)).p("_VT* __vptr;\n");
   }
  
   /** 
@@ -198,7 +195,7 @@ public class HeaderWriter extends Visitor{
 
     // For now, assuming only Object, therefore no parameters in constructor.
     
-    printer.p(");").flush();
+    printer.p(");\n");
   }
  
 
@@ -228,11 +225,11 @@ public class HeaderWriter extends Visitor{
   }
   
   private void writeClass(){
-    indentOut().pln("static Class __class();").flush(); 
+    indentOut().pln("static Class __class();"); 
   }
   
   private void writeVTable(GNode node){
-    indentOut().p("static ").p(name(node)).pln("_VT __vtable;").flush();
+    indentOut().p("static ").p(name(node)).pln("_VT __vtable;");
   }
 
 
@@ -251,29 +248,21 @@ public class HeaderWriter extends Visitor{
 
       // initialize __isa
       indentOut().p("Class __isa;");  
-      plnFlush();
       writeObjectInheritedVTMethods(node);
-      plnFlush();
       writeInheritedVTMethods(node);
-      plnFlush();
       writeVTMethods(node);
-      plnFlush();
       
       writeVTConstructor(node);
       printer.incr();
-        plnFlush();
         // set __isa to the Class
         indentOut().p(": __isa(__").p(name(node)).p("::__class()),");
-        plnFlush();
         writeObjectInheritedVTAddresses(node);
-        plnFlush();
         writeInheritedVTAddresses(node);
-        plnFlush();
         writeVTAddresses(node);
         printer.p(" {\n");  
       printer.decr();
       indentOut().p("}\n");
-    printer.p("};\n").pln().flush();
+    printer.p("};\n").pln();
   }
 
   /** Write out all the inherited methods of Object, since every class extends Object
@@ -283,7 +272,7 @@ public class HeaderWriter extends Visitor{
     indentOut().p("int32_t (*hashCode)(").p(name(node)).p(");\n");
     indentOut().p("bool (*equals)(").p(name(node)).p(", Object);\n");
     indentOut().p("Class (*getClass)(").p(name(node)).p(");\n");
-    indentOut().p("String (*toString)(").p(name(node)).p(");\n").flush();
+    indentOut().p("String (*toString)(").p(name(node)).p(");\n");
   }
 
   /** Write out all the inherited methods of its superclass(es)
@@ -313,7 +302,7 @@ public class HeaderWriter extends Visitor{
     indentOut().p("hashCode((int32_t(*)(").p(name(node)).p("))&__Object::hashCode),\n");
     indentOut().p("equals((bool(*)(").p(name(node)).p(",Object))&__Object::equals),\n");
     indentOut().p("getClass((Class(*)(").p(name(node)).p("))&__Object::getClass),\n");
-    indentOut().p("toString((String(*)(").p(name(node)).p("))&__Object::toString)\n").flush();
+    indentOut().p("toString((String(*)(").p(name(node)).p("))&__Object::toString)\n");
   }
 
   /** Write out all the inherited VT addresses of the class' superclass(es)' methods
@@ -345,7 +334,4 @@ public class HeaderWriter extends Visitor{
     return printer.indent();
   }
 
-  private Printer plnFlush(){
-    return printer.pln().flush();
-  }
 }
