@@ -92,7 +92,6 @@ public class HeaderWriter extends Visitor {
     //current_class = name(n); 
     visit(n);
     
-    System.out.println("Everything else happened.");
     writeStruct(n);
     writeVTStruct(n);
 
