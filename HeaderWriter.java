@@ -92,7 +92,6 @@ public class HeaderWriter extends Visitor {
     //current_class = name(n); 
     visit(n);
     
-    System.out.println("Everything else happened.");
     writeStruct(n);
     writeVTStruct(n);
 
@@ -244,7 +243,7 @@ public class HeaderWriter extends Visitor {
   private void writeMethod(GNode n, String current_class){
     indentOut().p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
      .p("(").p(current_class);
-    if (n.getGeneric(2) != null) 
+    if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -272,16 +271,16 @@ public class HeaderWriter extends Visitor {
   
     printer.incr();
       // initialize __isa
-      indentOut().p("Class __isa;");  
-      writeObjectInheritedVTMethods(node);
+      indentOut().p("Class __isa;\n");  
+      // writeObjectInheritedVTMethods(node);
       writeInheritedVTMethods(node);
       writeVTMethods(node);
       
       writeVTConstructor(node);
       printer.incr();
         // set __isa to the Class
-        indentOut().p(": __isa(__").p(name(node)).p("::__class()),");
-        writeObjectInheritedVTAddresses(node);
+        indentOut().p(": __isa(__").p(name(node)).p("::__class()),\n");
+        // writeObjectInheritedVTAddresses(node);
         writeInheritedVTAddresses(node);
         writeVTAddresses(node);
         printer.p("{\n");  
@@ -294,12 +293,13 @@ public class HeaderWriter extends Visitor {
   /** Write out all the inherited methods of Object, since every class extends Object
    *
    * @param i the index of the class we are writing */
+  /**
   private void writeObjectInheritedVTMethods(GNode node) {
     indentOut().p("int32_t (*hashCode)(").p(name(node)).p(");\n");
     indentOut().p("bool (*equals)(").p(name(node)).p(", Object);\n");
     indentOut().p("Class (*getClass)(").p(name(node)).p(");\n");
     indentOut().p("String (*toString)(").p(name(node)).p(");\n");
-  }
+  } */
 
   /** Write out all the inherited methods of its superclass(es)
    * @param i the index of the class we are writing */
@@ -324,7 +324,7 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethod(GNode n, String current_class){
     indentOut().p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
      .p(")(").p(current_class);
-    if (n.getGeneric(2) != null) 
+    if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
     printer.p(");\n");
   }
@@ -332,18 +332,19 @@ public class HeaderWriter extends Visitor {
   /** Write out the VT Constructor 
    * @param i the index of the class we are writing */
   private void writeVTConstructor(GNode node) {
-    indentOut().p("__").p(name(node)).p("_VT()");
+    indentOut().p("__").p(name(node)).p("_VT()\n");
   }
 
   /** Write out all the inherited Object VT method addresses
    * @param i the index of the class we are writing */
   // TODO: not sure if this is exactly what we want
+  /**
   private void writeObjectInheritedVTAddresses(GNode node) {
     indentOut().p("hashCode((int32_t(*)(").p(name(node)).p("))&__Object::hashCode),\n");
     indentOut().p("equals((bool(*)(").p(name(node)).p(",Object))&__Object::equals),\n");
     indentOut().p("getClass((Class(*)(").p(name(node)).p("))&__Object::getClass),\n");
     indentOut().p("toString((String(*)(").p(name(node)).p("))&__Object::toString)\n");
-  }
+  } */
 
   /** Write out all the inherited VT addresses of the class' superclass(es)' methods
    * @param i the index of the class we are writing */
@@ -368,7 +369,7 @@ public class HeaderWriter extends Visitor {
   private void writeInheritedVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0))
       .p("(*)(").p(current_class);
-    if (n.getGeneric(2) != null)
+    if (n.getGeneric(2).size() != 0)
       printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(n.getGeneric(3).getString(0)).p("::").p(n.getString(0))
@@ -377,7 +378,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("(&__").p(current_class).p("::")
-      .p(n.getString(0)).p("\n");
+      .p(n.getString(0)).p("),\n");
   }
 
 
@@ -388,7 +389,6 @@ public class HeaderWriter extends Visitor {
   private String name(GNode n) {
     String name = n.getString(0);
     return name;
-      //.substring(1,name.length() - 1);
   }
   
   private Printer indentOut(){
