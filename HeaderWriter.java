@@ -178,13 +178,17 @@ public class HeaderWriter extends Visitor {
   private void writeStruct(GNode n){
     try{
     printer.p("struct __").p(name(n)).p(" {\n");
+    printer.pln();
     printer.incr();
       writeVPtr(n);
-      //TODO:change writeFields
-      writeFields(n);
+      writeFields();
+      printer.pln();
       writeConstructor(n);
+      printer.pln();
       writeMethods(n);
+      printer.pln();
       writeClass();
+      printer.pln();
       writeVTable(n); 
     printer.decr();
     printer.p("};\n").pln();
@@ -219,20 +223,26 @@ public class HeaderWriter extends Visitor {
    *
    * @param index The index of the class we are writing.
    */
-  private void writeFields(GNode node) {
+  private void writeFields() {
     //Interate through the FieldDeclarations
-   for(Iterator<Object> iter = node.getGeneric(2).iterator(); iter.hasNext();){
+    for (GNode f : fields) {
+      writeField(f);
+    }
+    /** 
+    for(Iterator<Object> iter = node.getGeneric(2).iterator(); iter.hasNext();){
       Object objCurrent = iter.next();
       if(objCurrent == null || objCurrent instanceof String) continue;
       GNode current = (GNode) objCurrent;
       if(current.hasName("FieldDeclaration"))
         //For now just get the first field declared
         indentOut().p(Type.translate(current)).p(" ").p(current.getGeneric(2).getGeneric(0).getString(0)).p(";").pln();
-    }
-    
+    } */
   }
   
-  
+  private void writeField(GNode n) {
+    indentOut().p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0)).p(";\n"); 
+  }
+
   private void writeMethods(GNode n){
     String current_class = name(n);
     for (GNode m : implemented_methods) {
@@ -241,8 +251,10 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeMethod(GNode n, String current_class){
-    indentOut().p("static ").p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0))
-     .p("(").p(current_class);
+    indentOut().p("static ");
+    if (n.getGeneric(1).size() != 0)
+      printer.p(n.getGeneric(1).getString(0)).p(" ");
+    printer.p(n.getString(0)).p("(").p(current_class);
     if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
     printer.p(");\n");
@@ -268,19 +280,18 @@ public class HeaderWriter extends Visitor {
   */
   private void writeVTStruct(GNode node) {
     printer.p("struct __").p(name(node)).p("_VT {\n");
-  
+    printer.pln(); 
     printer.incr();
       // initialize __isa
       indentOut().p("Class __isa;\n");  
-      // writeObjectInheritedVTMethods(node);
       writeInheritedVTMethods(node);
       writeVTMethods(node);
       
+      printer.pln();
       writeVTConstructor(node);
-      printer.incr();
-        // set __isa to the Class
-        indentOut().p(": __isa(__").p(name(node)).p("::__class()),\n");
+      indentOut().p(": __isa(__").p(name(node)).p("::__class()),\n");
         // writeObjectInheritedVTAddresses(node);
+        printer.incr();
         writeInheritedVTAddresses(node);
         writeVTAddresses(node);
         printer.p("{\n");  
@@ -322,8 +333,10 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeVTMethod(GNode n, String current_class){
-    indentOut().p(n.getGeneric(1).getString(0)).p(" (*").p(n.getString(0))
-     .p(")(").p(current_class);
+    indentOut();
+    if (n.getGeneric(1).size() != 0)  
+      printer.p(n.getGeneric(1).getString(0)).p(" ");
+    printer.p("(*").p(n.getString(0)).p(")(").p(current_class);
     if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
     printer.p(");\n");
@@ -352,6 +365,8 @@ public class HeaderWriter extends Visitor {
   private void writeInheritedVTAddresses(GNode n) {
     String current_class = name(n);
     for (GNode m : inherited_methods) {
+      if (inherited_methods.indexOf(m) != 0)
+        printer.p(",\n");
       writeInheritedVTAddress(m, current_class);
     }   
   }
@@ -362,23 +377,26 @@ public class HeaderWriter extends Visitor {
   private void writeVTAddresses(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
+      printer.p(",\n");
       writeVTAddress(m, current_class);
     }
   }
 
   private void writeInheritedVTAddress(GNode n, String current_class) {
-    indentOut().p(n.getString(0)).p("((").p(n.getGeneric(2).getString(0))
-      .p("(*)(").p(current_class);
+    indentOut().p(n.getString(0)).p("((");
+    if (n.getGeneric(1).size() != 0)
+      printer.p(n.getGeneric(1).getString(0));
+    printer.p("(*)(").p(current_class);
     if (n.getGeneric(2).size() != 0)
       printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(n.getGeneric(3).getString(0)).p("::").p(n.getString(0))
-      .p(",\n");
+      .p(")");
   }
 
   private void writeVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("(&__").p(current_class).p("::")
-      .p(n.getString(0)).p("),\n");
+      .p(n.getString(0)).p(")");
   }
 
 
