@@ -1,6 +1,6 @@
 /*
 Type(
-  QualifiedIdentifier(  
+  --QualifiedIdentifier(  
     "java",
     "lang",
     "String"

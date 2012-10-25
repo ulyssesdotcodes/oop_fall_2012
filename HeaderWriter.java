@@ -89,16 +89,18 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitClassDeclaration(GNode n){
-    //current_class = name(n); 
-    visit(n);
-    
-    writeStruct(n);
-    writeVTStruct(n);
+    //current_class = name(n);
+    try{ 
+      visit(n);
+      
+      writeStruct(n);
+      writeVTStruct(n);
 
-    inherited_methods.clear();
-    implemented_methods.clear();
-    fields.clear();
-    //current_class = "";
+      inherited_methods.clear();
+      implemented_methods.clear();
+      fields.clear();
+      //current_class = "";
+    } catch ( Exception e) { e.printStackTrace(); }
   }
 
   public void visitFields(GNode n){
@@ -241,12 +243,18 @@ public class HeaderWriter extends Visitor {
     } */
   }
   
+  private String getTypeDirect(GNode n, boolean isPointer){
+    GNode newNode = GNode.create("FakeNodeName", "Fake", n);
+    return getType(newNode, isPointer);
+  }
+  
   private String getType(GNode n, boolean isPointer) {
-    GNode type = n.getGeneric(1);
-    if (name(type).equals("PrimitiveType")) {
+    System.out.println(n);
+    GNode type = n.getGeneric(1).getGeneric(0);
+    if (type.getName().equals("PrimitiveType")) {
       return type.getString(0);
     }
-    else if (name(type).equals("QualifiedIdentifier")) {
+    else if (type.getName().equals("QualifiedIdentifier")) {
       if (type.size() == 1 && isPointer == false)
         return "__" + type.getString(0);
       String ret = "";
@@ -259,6 +267,15 @@ public class HeaderWriter extends Visitor {
           ret += "::" + type.getString(type.indexOf(id));
       }
       return ret;
+    }
+    
+    // HACK
+    else if (type.getName().equals("Type")){
+      return getTypeDirect(type, isPointer);
+    }
+    
+    else {
+      System.err.println("getType on : " + n.toString());
     }
     return "NOT A REAL TYPE";
   }
@@ -411,7 +428,7 @@ public class HeaderWriter extends Visitor {
     if (n.getGeneric(2).size() != 0)
       printer.p(", <formal params>");
     // following line gets From field from method node
-    printer.p("))&").p(n.getGeneric(3).getString(0)).p("::").p(n.getString(0))
+    printer.p("))&").p(getTypeDirect(n.getGeneric(3).getGeneric(0), false))
       .p(")");
   }
 
@@ -426,6 +443,7 @@ public class HeaderWriter extends Visitor {
 // =======================
 
   private String name(GNode n) {
+    System.out.println("Name of what? :" + n.toString());
     String name = n.getString(0);
     return name;
   }

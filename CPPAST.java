@@ -102,7 +102,7 @@ public class CPPAST {
     if(parent != null){
       classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(parent);
     } else {
-      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(parent);
+      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(generateObjectType());
     }
     classNode.addNode(GNode.create("Constructors"));
     classNode.addNode(GNode.create("Fields"));
@@ -206,6 +206,7 @@ public class CPPAST {
   void addAllInheritedMethods(GNode implementedMethods, GNode inheritedMethods, GNode currentClass){
     for(int i = 0; i < implementedMethods.size(); i++){
       implementedMethods.getGeneric(i).remove(3);
+      //System.err.println("CurrentClass: " + currentClass);
       implementedMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
       currentClass.getGeneric(5).addNode(implementedMethods.getGeneric(i));
     }
@@ -249,7 +250,7 @@ public class CPPAST {
   
   //Adding, getting, and removing methods  
   int getInheritedMethodIndex(String name, GNode classNode) {
-    GNode inheritedMethods = classNode.getGeneric(4);
+    GNode inheritedMethods = classNode.getGeneric(5);
     for(int i=0; i < inheritedMethods.size(); i++){
       if(getGNodeName(inheritedMethods.getGeneric(i)).equals(name))
         return i;
@@ -258,9 +259,51 @@ public class CPPAST {
   }
   
   
-  void removeInheritedMethod(String name, GNode classNode) {
+  void removeInheritedMethod(GNode methodDeclaration, GNode classNode) {
+    final String name = methodDeclaration.getString(3);
     int methodIndex = getInheritedMethodIndex(name, classNode);
     if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
+    
+    System.out.println("RemoveInheritedMethod " + classNode);
+    
+    new Visitor () {
+      
+      public void visitInheritedMethods( GNode n ) {
+      
+        System.out.println("Removing extras: " + " methodName " + name);
+        for (Object o : n){
+          Boolean matches = false;
+          if (o instanceof Node){ 
+            matches = (Boolean)dispatch((Node)o);
+            System.out.println("Matches: "  + matches );
+          }
+          if ( matches == true ) {
+            n.remove(n.indexOf(o));
+            System.out.println("REMOVED " + name);
+          }
+        }
+      }
+      
+      
+      public Boolean visitMethodDeclaration ( GNode n ) {
+        System.out.println("*** " + name + " " + n.getString(0));
+        if (n.getString(0).equals(name)){
+          return true;
+        }
+        
+        else {
+          return false;
+        }
+      }
+      
+      public void visit(Node n) {
+        //System.out.println("We're hitting this");
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      }
+      
+    }.dispatch(classNode);
+    
+    
   }
   
   //Utility methods

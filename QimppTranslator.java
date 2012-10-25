@@ -158,7 +158,8 @@ public class QimppTranslator extends Tool {
           new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
           new ImplementationPrinter(new Printer(new PrintWriter("out.cc"))).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
-          System.out.println("Uh oh... " + e);
+          //System.out.println("Uh oh... " + e);
+          e.printStackTrace();
         }
       }
       
@@ -181,6 +182,8 @@ public class QimppTranslator extends Tool {
         // Assume the name of the parent is fully qualified
         visit(n);
         
+        currentClass.getGeneric(1).getGeneric(0).remove(0);
+        currentClass.getGeneric(1).getGeneric(0).addNode((new Disambiguator()).disambiguate(parentClassNode.getString(0)));
         cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), parentClassNode.getGeneric(5), currentClass);
         parentClassNode = currentClass;
         //add the current class to the inheritance tree, but parent it to Object for now
@@ -239,12 +242,15 @@ public class QimppTranslator extends Tool {
       public void visitMethodDeclaration(GNode n) {
       //TODO: math names and remove
       try{
-        //Add a new method with name equiv to this method dec, dispatched type in the current class
+        
         currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
         //Add the method params gotten by dispatching the formalParameters node
         cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
         //Add the method block gotten by dispatching the block node
         cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
+        
+        //Add a new method with name equiv to this method dec, dispatched type in the current classF
+        cppast.removeInheritedMethod(n, currentClass);
         } catch(Exception e) { e.printStackTrace(); }
       }
 
@@ -254,7 +260,7 @@ public class QimppTranslator extends Tool {
         
       public GNode visitVoidType(GNode n){
         GNode type = GNode.create("Type");
-        type.addNode(GNode.create("PrimitiveIdentifier")).getGeneric(1).add("void");
+        type.addNode(GNode.create("PrimitiveIdentifier")).getGeneric(0).add("void");
         return type;
       }
         

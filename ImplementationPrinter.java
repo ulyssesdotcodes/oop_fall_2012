@@ -84,6 +84,7 @@ public class ImplementationPrinter extends Visitor {
 		//visit(n.getGeneric(3));
 		
 		visit(n.getGeneric(4));
+		printer.flush();
 	}
 	
 	public void visitConstructorDeclaration(GNode n){
@@ -99,7 +100,7 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitParent(GNode n) {
-		printer.p(n.getString(0));
+		visit(n);
 	}
 
 	public void visitImplementedMethods(GNode n) {
@@ -122,12 +123,13 @@ public class ImplementationPrinter extends Visitor {
 		dispatch(n.getGeneric(3)); // block
     printer.decr();
 		printer.pln("}");
+		printer.flush();
 	}
 	
 	public void visitReturnType(GNode n) {
     try {
       if (n.get(0) != null) {
-        printer.p(n.getString(0));
+        visit(n);
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -135,7 +137,7 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitFrom(GNode n) {
-		printer.p(n.getString(0));
+		visit(n);
 	}
 
 	public void visitExpression(GNode n) {
