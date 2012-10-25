@@ -37,41 +37,22 @@ class Type {
     put("char", "char");
   }};
 
-  static String translate(GNode fieldDec) {
-    
-    GNode fieldType = fieldDec.getGeneric(1).getGeneric(0);
-    
-    //Convert the variable type if it's primitive, otherwise just output it
-    
-    System.out.println(fieldType);
-    if(fieldType.hasName("PrimitiveType"))
-      return primitives.get(fieldType.getString(0));
-    else
-      return fieldType.getString(0);
-    
-    /* OLD
-    return (String)new Visitor() {
-      // if visiting primitive type
-      String visitPrimitiveType(GNode n) {
-        return (String) primitives.get(n.getString(0));
-      }
-
-      // if visiting qualified identifier
-      String visitQualifiedIdentifier(GNode n) {
-        return n.getString(0);
-      }
-
-      public String visit(Node n) {
-           for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-      }
-    }.dispatch(n);
-    */
-  }
-  
+  /**
+   * Get C++ equivalent of primative type.
+   *
+   * @param type Name of primitive type.
+   * @returns C++ equivalent of primative type.
+   */
   static String primitiveType(String type){
     return primitives.get(type);
   }
-  
+ 
+  /**
+   * Get C++ qualified identifier.
+   *
+   * @param type Name of qualified type.
+   * @returns C++ equivalent of qualified type.
+   */
   static String qualifiedIdentifier(String type){
     if(type.equals("String")) return "java::lang::String";
     else return type;
