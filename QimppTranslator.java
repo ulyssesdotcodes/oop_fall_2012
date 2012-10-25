@@ -118,17 +118,17 @@ public class QimppTranslator extends Tool {
         return block;
       }
 
-      public void visitCallExpression(GNode n) {
+      public GNode visitCallExpression(GNode n) {
         // if this is a system call
-        if (n.getGeneric(0).getGeneric(0).getGeneric(0).getString(0).equals("System")) {
+        if (n.getGeneric(0).getGeneric(0).getString(0).equals("System")) {
           // if this is system.out
-          if (n.getGeneric(0).getGeneric(0).getString(1).equals("out")) {
+          if (n.getGeneric(0).getString(1).equals("out")) {
             // if this is system.out.print
-            if (n.getGeneric(0).getString(2).equals("print")) {
-              cppast.addPrintExpression(null, n.getGeneric(3)); 
+            if (n.getString(2).equals("print")) {
+              return cppast.addPrintExpression(null, n.getGeneric(3)); 
             }
           }
-        } 
+        }
         visit(n);
       }
 
