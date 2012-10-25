@@ -260,6 +260,7 @@ public class HeaderWriter extends Visitor {
       }
       return ret;
     }
+    return "NOT A REAL TYPE";
   }
 
   private void writeField(GNode n) {
