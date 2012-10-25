@@ -8,10 +8,11 @@ Type(
 )
 */
 
-import xtc.util.Node;
-import xtc.util.GNode;
+package qimpp;
 
-public class Disambiguator(){
+import xtc.tree.GNode;
+
+public class Disambiguator{
   public static String QUALIFIED_IDENTIFIER = "QualifiedIdentifier";
 
 
@@ -27,7 +28,7 @@ public class Disambiguator(){
     } else {
       String[] nameSplit = name.split("\\."); 
       for (int i = 0; i < nameSplit.length; i++){
-        GNode.add(nameSplit[i]);
+        fullyQualifiedIdentifier.add(nameSplit[i]);
       }
     }
     

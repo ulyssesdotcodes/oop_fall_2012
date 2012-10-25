@@ -118,11 +118,11 @@ public class CPPAST {
   
   //Adding, getting, and removing fields
   
-  GNode addField(String name, String type, GNode classNode){
+  GNode addField(String name, GNode type, GNode classNode){
     //Get the fields node
     GNode fieldNode = GNode.create("FieldDeclaration");
     fieldNode.add(name);
-    fieldNode.addNode(GNode.create("Type")).getNode(fieldNode.size()-1).add(type);
+    fieldNode.addNode(type);
     classNode.getGeneric(3).addNode(fieldNode);
     return fieldNode;
   }
@@ -139,11 +139,11 @@ public class CPPAST {
     constructor.getGeneric(1).addNode(instruction);
   }
   
-  GNode addConstructorParameter(String paramType, String param, GNode constructor) {
+  GNode addConstructorParameter(GNode paramType, String param, GNode constructor) {
     if(constructor.getGeneric(0) == null) constructor.add(0, GNode.create("Parameters"));
     GNode formalParameter = GNode.create("FormalParameter");
     formalParameter.add(param);
-    formalParameter.addNode(GNode.create("Type")).getNode(formalParameter.size()-1).add(paramType);
+    formalParameter.addNode(paramType);
     constructor.getGeneric(0).addNode(formalParameter);
     return formalParameter;
   }
@@ -158,20 +158,23 @@ public class CPPAST {
     constructor.add(1, block);
   }
     
-  GNode addMethod(String name, String returnType, GNode classNode) {
+  GNode addMethod(String name, GNode returnType, GNode classNode) {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType);
+    methodNode.addNode(GNode.create("ReturnType"));
+    System.out.println(returnType);
+    methodNode.getGeneric(1).add(returnType.getGeneric(0));
+    System.out.println(methodNode.getGeneric(1));
     methodNode.addNode(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("Block"));
     classNode.getGeneric(4).addNode(methodNode);
     return methodNode;
   }
   
-  GNode addMethod(String name, String returnType, GNode classNode, String from) {
+  GNode addMethod(String name, GNode returnType, GNode classNode, String from) {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType").getNode(methodNode.size()-1).add(returnType));
+    methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType.getGeneric(0));
     methodNode.add(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("From")).getNode(methodNode.size()-1).add(from);
     classNode.getGeneric(5).addNode(methodNode);
@@ -187,10 +190,10 @@ public class CPPAST {
     method.add(3, block);
   }
   
-  GNode addMethodParameter(String paramType, String param, GNode method) {
+  GNode addMethodParameter(GNode paramType, String param, GNode method) {
     GNode formalParameter = GNode.create("FormalParameter");
     formalParameter.add(param);
-    formalParameter.addNode(GNode.create("Type")).getNode(formalParameter.size()-1).add(paramType);
+    formalParameter.addNode(paramType);
     method.getGeneric(2).addNode(formalParameter);
     return formalParameter;
   }
@@ -251,14 +254,5 @@ public class CPPAST {
   public void printAST(){
     Printer p = new Printer(System.out);
     p.format(compilationUnit).flush();
-  }
-  
-  public static void main(String args[]){
-    CPPAST testAST = new CPPAST();
-    
-    GNode node1 = testAST.addClass("node1");
-    testAST.addField("afield", "int", node1);
-    testAST.addClass("node2");
-    testAST.printAST();
   }
 }
