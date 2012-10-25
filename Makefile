@@ -46,6 +46,7 @@ PACKAGE     = qimpp
 PACKAGE_LOC = qimpp
 
 SOURCE = \
+	QimppTranslator \
 	Translator.java \
 	TranslatorTest.java \
 	HeaderWriter.java \
