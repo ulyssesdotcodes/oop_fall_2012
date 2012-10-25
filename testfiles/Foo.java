@@ -10,7 +10,7 @@ public class Foo {
     return "FOO";
   }
 
-  public String AllTheAnimals(){
+  public String allTheAnimals(){
     return zebra;
   }
 

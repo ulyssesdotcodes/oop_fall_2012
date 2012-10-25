@@ -7,7 +7,7 @@ public class Bar extends Foo {
     this.zebra = "Away";
   }
             
-  public String AllTheAnimals(){
+  public String allTheAnimals(){
     return zebra + elephant;
   }
 

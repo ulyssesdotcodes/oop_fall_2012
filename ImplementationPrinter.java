@@ -1,5 +1,3 @@
-
-
 package qimpp;
 
 import java.util.Iterator;
@@ -43,8 +41,11 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitCompilationUnit(GNode n) {
-		printer.pln("#include \"out.h\"\n");
-		visit(n);
+		printer.p("#include \"out.h\"\n");
+		printer.p("#include <iostream>\n");
+    printer.p("#include <sstream>\n");
+    printer.pln();
+    visit(n);
 		writeMainMethod();
 		printer.flush();
 	}
@@ -68,23 +69,26 @@ public class ImplementationPrinter extends Visitor {
 
 		// .class
 		printer.p("java::lang::Class __").p(this.currentClass)
-			.pln("::__class() {").incr();
+			.pln("::__class() {");
+    printer.incr();
     indentOut()
       .p("return new java::lang::__Class(__rt::literal(\"")
 			.p(this.currentClass).p("\"), ");
 		dispatch(n.getGeneric(1));
-		printer.pln("::__class());").pln("}");
+		printer.pln("::__class());").pln("}\n");
 
 		// vtable
 		printer.p("__").p(this.currentClass).p("_VT ")
-			.p("__").p(this.currentClass).pln("::__vtable;");
-
+			.p("__").p(this.currentClass).pln("::__vtable;\n");
+    
+    printer.decr();
 		visit(n.getGeneric(2));
 		
 		//visit(n.getGeneric(3));
 		
 		visit(n.getGeneric(4));
 		printer.flush();
+    printer.pln();
 	}
 	
 	public void visitConstructorDeclaration(GNode n){
@@ -97,6 +101,7 @@ public class ImplementationPrinter extends Visitor {
 	  dispatch(n.getGeneric(1));
     printer.decr();
 		printer.pln("}");
+    printer.pln();
 	}
 
 	public void visitParent(GNode n) {
@@ -122,7 +127,7 @@ public class ImplementationPrinter extends Visitor {
     indentOut();
 		dispatch(n.getGeneric(3)); // block
     printer.decr();
-		printer.pln("}");
+		printer.pln("}\n");
 		printer.flush();
 	}
 	
@@ -141,7 +146,8 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitExpression(GNode n) {
-		dispatch(n.getGeneric(0));
+		
+    dispatch(n.getGeneric(0));
 		printer.p(' ').p(n.getString(1)).p(' ');
 		dispatch(n.getGeneric(2));
 		printer.pln(";");
@@ -194,11 +200,11 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitBreakStatement(GNode n) {
-		printer.pln("break;");
+		printer.pln("break;\n");
 	}
 
 	public void visitContinueStatement(GNode n) {
-		printer.pln("continue;");
+		printer.pln("continue;\n");
 	}
 
 	public void visitReturnStatement(GNode n) {
@@ -207,13 +213,13 @@ public class ImplementationPrinter extends Visitor {
 			printer.p(' ');
 			dispatch(n.getNode(0));
 		}
-		printer.pln(';');
+		printer.p(";\n");
 	}
 
   public void visitPrintExpression(GNode n) {
     printer.p("cout <<");
     visit(n);
-    printer.pln(";");
+    printer.pln(";\n");
   }
 
   public void visitOption(GNode n) {
@@ -240,11 +246,12 @@ public class ImplementationPrinter extends Visitor {
 	}
 
   public void writeMainMethod() {
-    printer.p("int main() {").incr();
+    printer.p("int main() {\n\n");
+    printer.incr();
     indentOut();
     visit(mainMethod);
-    printer.decr().pln("return 0;");
-    printer.pln("}");
+    printer.decr().pln("return 0;\n");
+    printer.pln("\n}");
   }
 
   /** Utility methods **/
