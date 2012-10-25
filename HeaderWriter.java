@@ -122,10 +122,12 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitMethodDeclaration(GNode n){
-    if (inherited)
-      inherited_methods.add(n);
-    else if (implemented)
-      implemented_methods.add(n);
+    if (!name(n).equals("main")) {
+      if (inherited)
+        inherited_methods.add(n);
+      else if (implemented)
+        implemented_methods.add(n);
+    }
   }
 
   public void visit(GNode n){
