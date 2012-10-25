@@ -44,26 +44,10 @@ public class ImplementationPrinter extends Visitor {
 
 
 	public void visitCompilationUnit(GNode n) {
+		printer.pln("#include \"out.h\"");
 		visit(n);
 		printer.pln("int main() {}");
 		printer.flush();
-	}
-
-	public void visitPragmaDirective(GNode n) {
-		printer.p("#pragma ").pln(n.getString(0));
-	}
-
-	public void visitIncludeDirectives(GNode n) {
-		visit(n);
-		printer.pln();
-	}
-
-	public void visitQuotedForm(GNode n) {
-		printer.p("#include \"").p(n.getString(0)).pln("\"");
-	}
-
-	public void visitAngleBracketForm(GNode n) {
-		printer.p("#include <").p(n.getString(0)).pln(">");
 	}
 
 	public void visitDefineDirective(GNode n) {
@@ -85,20 +69,28 @@ public class ImplementationPrinter extends Visitor {
 		// .class
 		printer.p("java::lang::Class __").p(this.currentClass)
 			.pln("::__class() {")
-			.p("return new java::lang::__Class(__rt::literal(")
-			.p(this.currentClass).p("), ");
-		visit(n.getGeneric(2));
+			.p("return new java::lang::__Class(__rt::literal(\"")
+			.p(this.currentClass).p("\"), ");
+		dispatch(n.getGeneric(1));
 		printer.p("::__class());").pln("}");
 
 		// vtable
 		printer.p("__").p(this.currentClass).p("_VT ")
 			.p("__").p(this.currentClass).pln("::__vtable;");
 
-		// class constructor
-		printer.p("__").p(this.currentClass).p("::__")
+		visit(n.getGeneric(2));
+		
+		//visit(n.getGeneric(3));
+		
+		visit(n.getGeneric(4));
+	}
+	
+	public void visitConstructorDeclaration(GNode n){
+	  // class constructor
+	  printer.p("__").p(this.currentClass).p("::__")
 			.p(this.currentClass)
 			.pln("() : __vptr(&__vtable) {");
-		visit(n);
+	  dispatch(n.getGeneric(1));
 		printer.pln("}");
 	}
 
@@ -112,22 +104,27 @@ public class ImplementationPrinter extends Visitor {
 
 	/** Only visited in implemented methods */
 	public void visitMethodDeclaration(GNode n) {
-		visit(n.getGeneric(1)); // return type
-		printer.p(" __").p(this.currentClass).p("::");
+		dispatch(n.getGeneric(1)); // return type
+		printer.p(" __").p(this.currentClass);
 		printer.p("::").p(n.getString(0)); // method name
-		visit(n.getGeneric(2)); // parameters
+		dispatch(n.getGeneric(2)); // parameters
 		printer.p(" {");
-		visit(n.getGeneric(3)); // block
+		dispatch(n.getGeneric(3)); // block
+		printer.p("}");
+	}
+	
+	public void visitReturnType(GNode n){
+	  printer.p(n.getString(0));
 	}
 
 	public void visitFrom(GNode n) {
-		printer.p(n.getString(0));	
+		printer.p(n.getString(0));
 	}
 
 	public void visitExpression(GNode n) {
-		visit(n.getGeneric(0));
+		dispatch(n.getGeneric(0));
 		printer.p(' ').p(n.getString(1)).p(' ');
-		visit(n.getGeneric(2));
+		dispatch(n.getGeneric(2));
 		printer.pln(";");
 	}
 
@@ -160,7 +157,7 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitFormalParameter(GNode n) {
-		visit(n.getGeneric(1));
+		dispatch(n.getGeneric(1));
 		printer.p(' ').p(n.getString(0));
 	}
 
@@ -176,7 +173,7 @@ public class ImplementationPrinter extends Visitor {
 		printer.p("return");
 		if (null != n.getNode(0)) {
 			printer.p(' ');
-			visit(n.getNode(0));
+			dispatch(n.getNode(0));
 		}
 		printer.pln(';');
 	}
@@ -184,7 +181,7 @@ public class ImplementationPrinter extends Visitor {
 	public void visitStringConcatExpression(GNode n) {
 		printer.p("new java::lang::__String(");
 		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
-			visit((Node)iter.next());
+			dispatch((Node)iter.next());
 			printer.p("->data");
 			if (iter.hasNext()) {
 				printer.p(" + ");
@@ -192,8 +189,6 @@ public class ImplementationPrinter extends Visitor {
 		}
 
 	}
-	
-	
 
 	public void visit(Node n) {
 		for (Object o : n) if (o instanceof Node) dispatch((Node)o);

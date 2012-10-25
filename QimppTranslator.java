@@ -225,7 +225,7 @@ public class QimppTranslator extends Tool {
           
           // Fix this later in treeManager
         } else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
-          return typename;
+          return "java::lang::" + typename;
        
         } else {
           return typename;
