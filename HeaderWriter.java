@@ -296,8 +296,19 @@ public class HeaderWriter extends Visitor {
     indentOut().p("static ");
     printer.p(getType(n, true)).p(" ");
     printer.p(n.getString(0)).p("(").p(current_class);
-    if (n.getGeneric(2).size() != 0) 
-      printer.p(", <formal params>");
+    // visit params 
+    new Visitor() {
+  
+      public void visitFormalParameter(GNode n) {
+        printer.p(", ").p(getType(n, true));
+      }
+
+      public void visit(GNode n) {
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      } 
+
+    }.dispatch(n);
+
     printer.p(");\n");
   }
   
@@ -376,8 +387,21 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethod(GNode n, String current_class){
     indentOut().p(getType(n, true)).p(" ");
     printer.p("(*").p(n.getString(0)).p(")(").p(current_class);
-    if (n.getGeneric(2).size() != 0) 
-      printer.p(", <formal params>");
+    // if (n.getGeneric(2).size() != 0) 
+     // printer.p(", <formal params>");
+    
+    new Visitor() {
+  
+      public void visitFormalParameter(GNode n) {
+        printer.p(", ").p(getType(n, true));
+      }
+
+      public void visit(GNode n) {
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      } 
+
+    }.dispatch(n);
+    
     printer.p(");\n");
   }
 
@@ -425,8 +449,21 @@ public class HeaderWriter extends Visitor {
     indentOut().p(n.getString(0)).p("((");
     printer.p(getType(n, false));
     printer.p("(*)(").p(current_class);
-    if (n.getGeneric(2).size() != 0)
-      printer.p(", <formal params>");
+    //if (n.getGeneric(2).size() != 0)
+      
+    new Visitor() {
+  
+      public void visitFormalParameter(GNode n) {
+        printer.p(", ").p(getType(n, true));
+      }
+
+      public void visit(GNode n) {
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      } 
+
+    }.dispatch(n);
+  
+      //printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(getTypeDirect(n.getGeneric(3).getGeneric(0), false))
       .p(")");
