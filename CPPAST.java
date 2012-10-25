@@ -195,6 +195,13 @@ public class CPPAST {
     return formalParameter;
   }
   
+  void addPrintExpression(String option, GNode args) {
+    GNode print = GNode.create("PrintExpression");
+    print.add("cout");
+    print.add(GNode.create("Option", option));
+    print.add(args);
+  }
+  
   void setMethodParameters(GNode parameters, GNode method){
     method.remove(2);
     method.add(2, parameters);
