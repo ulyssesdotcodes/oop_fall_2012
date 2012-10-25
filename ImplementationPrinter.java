@@ -22,7 +22,7 @@ import xtc.tree.Visitor;
 public class ImplementationPrinter extends Visitor {
 
 
-	protected final Printer printer;
+  protected final Printer printer;
 
 	/**
 	 * The current class in the traversal.

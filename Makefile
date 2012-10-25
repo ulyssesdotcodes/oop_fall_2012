@@ -48,16 +48,16 @@ PACKAGE_LOC = qimpp
 SOURCE = \
 	Translator.java \
 	TranslatorTest.java \
-	QimppTranslator.java \
 	HeaderWriter.java \
+	ImplementationPrinter.java \
+	ImplementationPrinterTest.java \
 	HeaderWriterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	InheritanceTreeManagerTest.java \
 	Type.java \
 	TypeTest.java \
-	CPPAST.java \
-	ImplementationPrinter.java 
+	CPPAST.java 
 
 JNI_SOURCE =
 

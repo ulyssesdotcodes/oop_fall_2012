@@ -53,6 +53,8 @@ public class QimppTranslator extends Tool {
   
     
   GNode currentClass, currentMethod, currentConstructor;
+  String currentClassName;
+  String parentName;
   CPPAST cppast;
   InheritanceTreeManager treeManager;
       
@@ -96,6 +98,9 @@ public class QimppTranslator extends Tool {
   
   public void run(String[] args){
     treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
+    // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
+    currentClassName = args[args.length - 1];
+    
     super.run(args);
     //cppast.printAST();
   }
@@ -122,12 +127,22 @@ public class QimppTranslator extends Tool {
       }
         
       public void visitClassDeclaration(GNode n) {
+        
         //Add the current class to the cppast, and set it as the current class global variable.
         currentClass = cppast.addClass(n.getString(1));
+        
+        //add the current class to the inheritance tree, but parent it to Object for now
+        String[] qualified = n.getString(1).split("\\.");
+        treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualified)), null, currentClass);
+        
         visit(n);
       }
       
       public void visitCompilationUnit(GNode n) {
+        
+        
+        
+        
         visit(n);
         //Print the AST after we're done for debugging
         cppast.printAST();
@@ -154,7 +169,16 @@ public class QimppTranslator extends Tool {
       }
       
       public GNode visitExtension(GNode n){
-        return GNode.create("todoExtension");
+        
+        // Assume the name of the parent is fully qualified
+        visit(n);
+        
+        //add the current class to the inheritance tree, but parent it to Object for now
+        ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
+        ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
+        treeManager.reparent(childQualified, parentQualified);
+        
+        return null; 
       }
 
       public GNode visitExpressionStatement(GNode n) {
@@ -198,12 +222,12 @@ public class QimppTranslator extends Tool {
         return parameters;
       }
 
-      public void visitNewClassExpression(GNode n) {
+      public void visitNewClassExpression(GNode n) {       
         visit(n);
       }  
 
       public void visitMethodDeclaration(GNode n) {
-        //Add a new method with name equiv to this methoddec, dispatched type in the current class
+        //Add a new method with name equiv to this method dec, dispatched type in the current class
         currentMethod = cppast.addMethod(n.getString(3), (String)dispatch(n.getGeneric(2)), currentClass);
         //Add the method params gotten by dispatching the formalParameters node
         cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
@@ -228,9 +252,19 @@ public class QimppTranslator extends Tool {
           return "java::lang::" + typename;
        
         } else {
-          return typename;
-          /*
-          String[] qualified = typename.split(".");
+          
+          System.err.println("Split: " + typename.split("\\.").length);
+          System.err.println("Adding typename: " + typename);
+          String[] qualified = typename.split("\\.");
+          
+          // Reset currentClassName when we come back
+          String tempClassName = currentClassName;
+          currentClassName = typename;
+          
+          GNode tempClass = currentClass;
+          
+          parentName = typename;
+
           // disambiguate() - figure out the fully qualified name
           // Later we'll keep track of already-imported types,
           // and we'll automatically skip those or expand them
@@ -240,18 +274,21 @@ public class QimppTranslator extends Tool {
           if (classTreeNode == null){
               
               try{
-                process(typename.replace(".", "/"));
+                process(typename.replace(".", "/")+".java");
               }
 
               catch (Exception e){
-                System.err.println("Cannot parse " + typename);
+                System.err.println("Cannot parse " + typename + " " + e);
                 System.exit(1);
               }
               // Fail and crash with error if the file cannot be located
 
           }
+          
+          currentClassName = tempClassName;
+          currentClass = tempClass;
+          
           return Type.qualifiedIdentifier(typename);
-          */
         }
       }
       
@@ -260,6 +297,7 @@ public class QimppTranslator extends Tool {
       }
  
       public void visit(Node n) {
+        System.err.println("We are currently running " + currentClassName);
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
       

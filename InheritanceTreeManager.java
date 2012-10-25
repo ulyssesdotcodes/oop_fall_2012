@@ -157,6 +157,13 @@ public class InheritanceTreeManager {
    * */
   public GNode dereference(final ArrayList<String> className){
     // Traverse with state variables
+    System.err.println(this);
+    System.err.print("finding ");
+    for (String s: className){
+      System.err.print(s);
+    }
+    System.err.println();
+    
     foundNode = null;
     dereferenceDepth = 0;
     deepestDereference = 0;
@@ -199,6 +206,17 @@ public class InheritanceTreeManager {
     ////System.out.println("RootClassNode: " + Boolean.toString(rootClassNode == null));
 
     return foundNode;
+  }
+  
+  public void reparent(ArrayList<String> child, ArrayList<String> parent){
+    GNode childNode = dereference(child);
+    GNode parentNode = dereference(parent);
+    
+    if ( null == childNode || null == parentNode ) {
+      throw new RuntimeException("Failed to reparent");
+    } 
+    
+    childNode.setProperty(PARENT_CLASS, parentNode);
   }
 
   private String getClassTreeNodeName(GNode n){
