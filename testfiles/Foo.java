@@ -13,4 +13,8 @@ public class Foo {
   public String AllTheAnimals(){
     return zebra;
   }
+
+  public static void main(String[] args) {
+    System.out.print("hello");
+  }
 }

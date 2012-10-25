@@ -124,7 +124,13 @@ public class ImplementationPrinter extends Visitor {
 	}
 	
 	public void visitReturnType(GNode n){
-	  printer.p(n.getString(0));
+    try {
+      if (n.get(0) != null) {
+        printer.p(n.getString(0));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 	}
 
 	public void visitFrom(GNode n) {
@@ -215,14 +221,7 @@ PrintExpression(
   }
 
   public void visitArguments(GNode n) {
-    visit(n.getGeneric(0));
-		for (Iterator<?> iter = n.getGeneric(1).iterator(); iter.hasNext(); ) {
-			dispatch((Node)iter.next());
-			printer.p("->data");
-			if (iter.hasNext()) {
-				printer.p(" << ");
-			}
-		}
+    visit(n); // one string literal for now
   }
 
 	public void visitStringConcatExpression(GNode n) {
@@ -244,7 +243,7 @@ PrintExpression(
     printer.p("int main() {").incr();
     indentOut();
     visit(mainMethod);
-    printer.decr();
+    printer.decr().pln("return 0;");
     printer.pln("}");
   }
 
