@@ -214,7 +214,7 @@ public class CPPAST {
     }
   }
   
-  void addPrintExpression(String option, GNode args) {
+  GNode addPrintExpression(String option, GNode args) {
     GNode print = GNode.create("PrintExpression");
     print.add("cout");
     print.add(GNode.create("Option", option));
