@@ -258,8 +258,10 @@ public class QimppTranslator extends Tool {
           String[] qualified = typename.split("\\.");
           
           // Reset currentClassName when we come back
-          String temp = currentClassName;
+          String tempClassName = currentClassName;
           currentClassName = typename;
+          
+          GNode tempClass = currentClass;
           
           parentName = typename;
 
@@ -283,7 +285,9 @@ public class QimppTranslator extends Tool {
 
           }
           
-          currentClassName = temp;
+          currentClassName = tempClassName;
+          currentClass = tempClass;
+          
           return Type.qualifiedIdentifier(typename);
         }
       }
@@ -293,6 +297,7 @@ public class QimppTranslator extends Tool {
       }
  
       public void visit(Node n) {
+        System.err.println("We are currently running " + currentClassName);
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
       
