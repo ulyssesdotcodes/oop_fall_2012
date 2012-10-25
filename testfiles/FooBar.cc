@@ -1,5 +1,4 @@
-
-#include "FooBar.h"
+#include "out.h"
 #include <iostream>
 #include <sstream>
 
@@ -45,8 +44,9 @@ java::lang::Class __Bar::__class() {
 
 __Bar_VT __Bar::__vtable;
 
+
 int main() {
-  
+
   Bar bar = new __Bar();
   std::cout << bar->__vptr->toString(bar)->data << std::endl;
   std::cout << bar->__vptr->allTheAnimals(bar)->data << std::endl;

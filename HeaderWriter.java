@@ -85,7 +85,11 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitClasses(GNode n){
-    visit(n);
+    System.out.println("===in classes , size: " +  n.size());
+    for (int i = n.size() - 1 ; i >= 0; i--) {
+      System.out.println("===node : " + i);
+      dispatch(n.getGeneric(i));
+    }
   }
 
   public void visitClassDeclaration(GNode n){
@@ -313,11 +317,11 @@ public class HeaderWriter extends Visitor {
   }
   
   private void writeClass(){
-    indentOut().pln("static Class __class();"); 
+    indentOut().pln("static java::lang::Class __class();"); 
   }
   
   private void writeVTable(GNode n){
-    indentOut().p("static ").p(name(n)).pln("_VT __vtable;");
+    indentOut().p("static __").p(name(n)).pln("_VT __vtable;");
   }
 
 
@@ -335,7 +339,7 @@ public class HeaderWriter extends Visitor {
     printer.pln(); 
     printer.incr();
       // initialize __isa
-      indentOut().p("Class __isa;\n");  
+      indentOut().p("java::lang::Class __isa;\n");  
       writeInheritedVTMethods(node);
       writeVTMethods(node);
       
@@ -447,7 +451,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeInheritedVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("((");
-    printer.p(getType(n, false));
+    printer.p(getType(n, true));
     printer.p("(*)(").p(current_class);
     //if (n.getGeneric(2).size() != 0)
       
@@ -466,7 +470,7 @@ public class HeaderWriter extends Visitor {
       //printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(getTypeDirect(n.getGeneric(3).getGeneric(0), false))
-      .p(")");
+      .p("::").p(name(n)).p(")");
   }
 
   private void writeVTAddress(GNode n, String current_class) {
