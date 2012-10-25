@@ -241,9 +241,30 @@ public class HeaderWriter extends Visitor {
     } */
   }
   
+  private String getType(GNode n, boolean isPointer) {
+    GNode type = n.getGeneric(1);
+    if (name(type).equals("PrimitiveType")) {
+      return type.getString(0);
+    }
+    else if (name(type).equals("QualifiedIdentifier")) {
+      if (type.size() == 1 && isPointer == false)
+        return "__" + type.getString(0);
+      String ret = "";
+      for (Object id : type) {
+        if (type.indexOf(id) == 0) 
+          ret += type.getString(type.indexOf(id));
+        else if (type.indexOf(id) == type.size() - 1 && isPointer == false)
+          ret += "::__" + type.getString(type.indexOf(id));
+        else 
+          ret += "::" + type.getString(type.indexOf(id));
+      }
+      return ret;
+    }
+  }
+
   private void writeField(GNode n) {
-    System.out.println(n);
-    indentOut().p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0)).p(";\n"); 
+    String type = getType(n, true); 
+    indentOut().p(type).p(" ").p(n.getString(0)).p(";\n"); 
   }
 
   private void writeMethods(GNode n){
@@ -255,8 +276,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeMethod(GNode n, String current_class){
     indentOut().p("static ");
-    if (n.getGeneric(1).size() != 0)
-      printer.p(n.getGeneric(1).getString(0)).p(" ");
+    printer.p(getType(n, true)).p(" ");
     printer.p(n.getString(0)).p("(").p(current_class);
     if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
@@ -336,9 +356,7 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeVTMethod(GNode n, String current_class){
-    indentOut();
-    if (n.getGeneric(1).size() != 0)  
-      printer.p(n.getGeneric(1).getString(0)).p(" ");
+    indentOut().p(getType(n, true)).p(" ");
     printer.p("(*").p(n.getString(0)).p(")(").p(current_class);
     if (n.getGeneric(2).size() != 0) 
       printer.p(", <formal params>");
@@ -387,8 +405,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeInheritedVTAddress(GNode n, String current_class) {
     indentOut().p(n.getString(0)).p("((");
-    if (n.getGeneric(1).size() != 0)
-      printer.p(n.getGeneric(1).getString(0));
+    printer.p(getType(n, false));
     printer.p("(*)(").p(current_class);
     if (n.getGeneric(2).size() != 0)
       printer.p(", <formal params>");
