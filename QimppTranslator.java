@@ -130,6 +130,7 @@ public class QimppTranslator extends Tool {
           }
         }
         visit(n);
+        return null;
       }
 
       public void visitClassBody(GNode n){

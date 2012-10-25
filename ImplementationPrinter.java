@@ -49,6 +49,7 @@ public class ImplementationPrinter extends Visitor {
 		printer.flush();
 	}
 
+
 	public void visitDefineDirective(GNode n) {
 
 	}
@@ -123,7 +124,7 @@ public class ImplementationPrinter extends Visitor {
 		printer.pln("}");
 	}
 	
-	public void visitReturnType(GNode n){
+	public void visitReturnType(GNode n) {
     try {
       if (n.get(0) != null) {
         printer.p(n.getString(0));
@@ -169,8 +170,21 @@ public class ImplementationPrinter extends Visitor {
 	}
 
 	public void visitType(GNode n) {
-		printer.p(n.getString(0));
+		visit(n);
 	}
+
+  public void visitPrimitiveType(GNode n) {
+    printer.p(n.getString(0));
+  }
+
+  public void visitQualifiedIdentifier(GNode n) { 
+		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+			printer.p((String)iter.next());
+			if (iter.hasNext()) {
+				printer.p("::");
+			}
+		}
+  }
 
 	public void visitFormalParameter(GNode n) {
 		dispatch(n.getGeneric(1));
@@ -193,22 +207,6 @@ public class ImplementationPrinter extends Visitor {
 		}
 		printer.pln(';');
 	}
-
-  /*
- 
-PrintExpression(
-  Option(),
-  Arguments(
-    StringLiteral(
-      "\"hello\"",
-    ),
-    StringLiteral(
-      "\" World\"",
-    )
-  )
-)
- 
-  */
 
   public void visitPrintExpression(GNode n) {
     printer.p("cout <<");

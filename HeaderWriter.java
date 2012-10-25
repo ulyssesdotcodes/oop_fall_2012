@@ -242,6 +242,7 @@ public class HeaderWriter extends Visitor {
   }
   
   private void writeField(GNode n) {
+    System.out.println(n);
     indentOut().p(n.getGeneric(1).getString(0)).p(" ").p(n.getString(0)).p(";\n"); 
   }
 
