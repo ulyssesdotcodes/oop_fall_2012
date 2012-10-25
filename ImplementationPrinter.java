@@ -196,6 +196,9 @@ public class ImplementationPrinter extends Visitor {
 	
 
 	public void visit(Node n) {
-		for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+
+		for (Object o : n) if (o instanceof Node) {
+			dispatch((Node)o);
+		}
 	}
 }
