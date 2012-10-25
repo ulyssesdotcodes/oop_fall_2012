@@ -52,7 +52,7 @@ import xtc.util.Tool;
 public class QimppTranslator extends Tool {
   
     
-  GNode currentClass, currentMethod, currentConstructor;
+  GNode currentClass, currentMethod, currentConstructor, parentClassNode;
   String currentClassName;
   String parentName;
   CPPAST cppast;
@@ -141,6 +141,7 @@ public class QimppTranslator extends Tool {
         
         //Add the current class to the cppast, and set it as the current class global variable.
         currentClass = cppast.addClass(n.getString(1));
+        parentClassNode = currentClass;
         
         //add the current class to the inheritance tree, but parent it to Object for now
         String[] qualified = n.getString(1).split("\\.");
@@ -150,9 +151,6 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitCompilationUnit(GNode n) {
-        
-        
-        
         
         visit(n);
         //Print the AST after we're done for debugging
@@ -184,10 +182,14 @@ public class QimppTranslator extends Tool {
         // Assume the name of the parent is fully qualified
         visit(n);
         
+        cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), parentClassNode.getGeneric(5), currentClass);
+        parentClassNode = currentClass;
         //add the current class to the inheritance tree, but parent it to Object for now
         ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
         ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
         treeManager.reparent(childQualified, parentQualified);
+        
+        
         
         return null; 
       }
@@ -236,6 +238,7 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitMethodDeclaration(GNode n) {
+      //TODO: math names and remove
       try{
         //Add a new method with name equiv to this method dec, dispatched type in the current class
         currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);

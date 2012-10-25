@@ -245,7 +245,7 @@ public class InheritanceTreeManager {
    *  @throws RuntimeException with the message 
    *  "No such parent class [className]"
    *  */
-  public void insertClass(ArrayList<String> className, ArrayList<String> parentName, GNode classDeclaration){
+  public GNode insertClass(ArrayList<String> className, ArrayList<String> parentName, GNode classDeclaration){
     GNode classTreeNode = GNode.create(CLASS_TREE_NODE);
     if ( null == parentName ) {
       // If the parent isn't specified, set it to Object
@@ -275,6 +275,7 @@ public class InheritanceTreeManager {
 
     classTreeNode.setProperty("ClassDeclaration", classDeclaration);
     insertClass(className, classTreeNode);
+    return classTreeNode;
   } 
 
   /** Insert a tree node into the tree. Its name and parent should 

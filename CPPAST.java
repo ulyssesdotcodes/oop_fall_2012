@@ -86,7 +86,7 @@ public class CPPAST {
    *void printAST() - prints the AST for debugging
   */
   
-  GNode addClass(String name, String parent){
+  GNode addClass(String name, GNode parent){
     System.out.println("Adding class " + name);
   
     //Add to Structs
@@ -99,10 +99,10 @@ public class CPPAST {
     //Add to Classes with Name node, Fields node, ImplementedMethods node, and InheritedMethods node
     GNode classNode = GNode.create("ClassDeclaration");
     classNode.add(name);
-    if(parent.length() > 0){
+    if(parent != null){
       classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(parent);
     } else {
-      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add("java::lang::__Object");
+      classNode.addNode(GNode.create("Parent")).getNode(classNode.size()-1).add(parent);
     }
     classNode.addNode(GNode.create("Constructors"));
     classNode.addNode(GNode.create("Fields"));
@@ -113,7 +113,7 @@ public class CPPAST {
   }
   
   GNode addClass(String name){
-    return addClass(name, "");
+    return addClass(name, null);
   }
   
   //Adding, getting, and removing fields
@@ -159,6 +159,10 @@ public class CPPAST {
   }
     
   GNode addMethod(String name, GNode returnType, GNode classNode) {
+    if(classNode.getGeneric(5).size() == 0){
+      addAllInheritedMethods(GNode.create("ImplementedMethods"), generateObjectMethods(), classNode);
+    }
+  
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
     methodNode.addNode(GNode.create("ReturnType"));
@@ -198,7 +202,19 @@ public class CPPAST {
     return formalParameter;
   }
   
-  GNode addPrintExpression(String option, GNode args) {
+
+  void addAllInheritedMethods(GNode implementedMethods, GNode inheritedMethods, GNode currentClass){
+    for(int i = 0; i < implementedMethods.size(); i++){
+      implementedMethods.getGeneric(i).remove(3);
+      implementedMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
+      currentClass.getGeneric(5).addNode(implementedMethods.getGeneric(i));
+    }
+    for(int i = 0; i < inheritedMethods.size(); i++){
+      currentClass.getGeneric(5).addNode(inheritedMethods.getGeneric(i));
+    }
+  }
+  
+  void addPrintExpression(String option, GNode args) {
     GNode print = GNode.create("PrintExpression");
     print.add("cout");
     print.add(GNode.create("Option", option));
@@ -246,7 +262,52 @@ public class CPPAST {
     int methodIndex = getInheritedMethodIndex(name, classNode);
     if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
   }
+  
   //Utility methods
+  GNode generateObjectType(){
+    GNode qi = GNode.create("QualifiedIdentifier");
+    qi.add("java").add("lang").add("Object");
+    return (GNode)((GNode.create("Type")).add(qi));
+  }
+  
+  GNode generateObjectMethods(){
+    GNode objectMethods = GNode.create("ObjectMethods");
+    GNode objectType = generateObjectType();
+    
+    //Hashcode
+    GNode objectMethod = GNode.create("MethodDeclaration");
+    objectMethod.add("hashCode");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int32_t");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethods.add(objectMethod);
+    
+    //equals
+    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod.add("equals");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("bool");
+    objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
+    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethods.add(objectMethod);
+    
+    //getClass
+    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod.add("getClass");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("Class");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethods.add(objectMethod);
+    
+    //toString
+    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod.add("toString");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("String");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethods.add(objectMethod);
+    
+    return objectMethods;
+  }
   
   String getGNodeName(GNode n){
     return n.getString(0);
