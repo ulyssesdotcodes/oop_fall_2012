@@ -24,14 +24,14 @@ public class ImplementationPrinterTest {
   
   @Test
   public void writePrimaryIdentifier() {
-	GNode n = GNode.create("PrimaryIdentifier");
-	n.add("zebra");
-	ImplementationPrinter p = new ImplementationPrinter(printer);
-	assertTrue(p instanceof ImplementationPrinter);
-	p.dispatch(n);
+  GNode n = GNode.create("PrimaryIdentifier");
+  n.add("zebra");
+  ImplementationPrinter p = new ImplementationPrinter(printer);
+  assertTrue(p instanceof ImplementationPrinter);
+  p.dispatch(n);
     try {
       String output = out.toString("UTF8");
-	  assertTrue(1==1);
+    assertTrue(1==1);
     } catch(UnsupportedEncodingException e) {
       System.out.println("shit.");
     }
