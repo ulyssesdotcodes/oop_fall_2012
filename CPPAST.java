@@ -55,7 +55,7 @@ public class CPPAST {
       classes = GNode.create("Classes");
       compilationUnit.addNode(classes);
       classesMap = new HashMap<String, GNode>();
-      System.out.println("Created new CPPAST");
+      //System.out.println("Created new CPPAST");
   }
   
   GNode createDefaultDirectives(){
@@ -87,7 +87,7 @@ public class CPPAST {
   */
   
   GNode addClass(String name, GNode parent){
-    System.out.println("Adding class " + name);
+    //System.out.println("Adding class " + name);
   
     //Add to Structs
     GNode declaration = GNode.create("Declaration");
@@ -166,9 +166,9 @@ public class CPPAST {
     GNode methodNode = GNode.create("MethodDeclaration");
     methodNode.add(name);
     methodNode.addNode(GNode.create("ReturnType"));
-    System.out.println(returnType);
+    //System.out.println(returnType);
     methodNode.getGeneric(1).add(returnType.getGeneric(0));
-    System.out.println(methodNode.getGeneric(1));
+    //System.out.println(methodNode.getGeneric(1));
     methodNode.addNode(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("Block"));
     classNode.getGeneric(4).addNode(methodNode);
@@ -206,7 +206,7 @@ public class CPPAST {
   void addAllInheritedMethods(GNode implementedMethods, GNode inheritedMethods, GNode currentClass){
     for(int i = 0; i < implementedMethods.size(); i++){
       implementedMethods.getGeneric(i).remove(3);
-      //System.err.println("CurrentClass: " + currentClass);
+      ////System.err.println("CurrentClass: " + currentClass);
       implementedMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
       currentClass.getGeneric(5).addNode(implementedMethods.getGeneric(i));
     }
@@ -264,29 +264,29 @@ public class CPPAST {
     int methodIndex = getInheritedMethodIndex(name, classNode);
     if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
     
-    System.out.println("RemoveInheritedMethod " + classNode);
+    //System.out.println("RemoveInheritedMethod " + classNode);
     
     new Visitor () {
       
       public void visitInheritedMethods( GNode n ) {
       
-        System.out.println("Removing extras: " + " methodName " + name);
+        //System.out.println("Removing extras: " + " methodName " + name);
         for (Object o : n){
           Boolean matches = false;
           if (o instanceof Node){ 
             matches = (Boolean)dispatch((Node)o);
-            System.out.println("Matches: "  + matches );
+            //System.out.println("Matches: "  + matches );
           }
           if ( matches == true ) {
             n.remove(n.indexOf(o));
-            System.out.println("REMOVED " + name);
+            //System.out.println("REMOVED " + name);
           }
         }
       }
       
       
       public Boolean visitMethodDeclaration ( GNode n ) {
-        System.out.println("*** " + name + " " + n.getString(0));
+        //System.out.println("*** " + name + " " + n.getString(0));
         if (n.getString(0).equals(name)){
           return true;
         }
@@ -297,7 +297,7 @@ public class CPPAST {
       }
       
       public void visit(Node n) {
-        //System.out.println("We're hitting this");
+        ////System.out.println("We're hitting this");
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
       

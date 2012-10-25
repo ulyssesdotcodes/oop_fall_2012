@@ -281,8 +281,8 @@ public class QimppTranslator extends Tool {
           return type;
         } else {
           
-          System.err.println("Split: " + typename.split("\\.").length);
-          System.err.println("Adding typename: " + typename);
+          //System.err.println("Split: " + typename.split("\\.").length);
+          //System.err.println("Adding typename: " + typename);
           String[] qualified = typename.split("\\.");
           
           // Reset currentClassName when we come back
@@ -306,7 +306,7 @@ public class QimppTranslator extends Tool {
               }
 
               catch (Exception e){
-                System.err.println("Cannot parse " + typename + " " + e);
+                //System.err.println("Cannot parse " + typename + " " + e);
                 System.exit(1);
               }
               // Fail and crash with error if the file cannot be located
@@ -327,7 +327,8 @@ public class QimppTranslator extends Tool {
       }
  
       public void visit(Node n) {
-        System.err.println("We are currently running " + currentClassName);
+        //System.err.println("We are currently running " + currentClassName);
+        //
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
       
