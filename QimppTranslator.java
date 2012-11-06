@@ -153,9 +153,10 @@ public class QimppTranslator extends Tool {
         
         visit(n);
         //Print the AST after we're done for debugging
-        cppast.printAST();
+        //cppast.printAST();
         try{
           new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
+          cppast.printAST();
           new ImplementationPrinter(new Printer(new PrintWriter("out.cc"))).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
           //System.out.println("Uh oh... " + e);

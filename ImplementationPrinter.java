@@ -50,8 +50,7 @@ public class ImplementationPrinter extends Visitor {
     printer.p("#include <sstream>\n");
     printer.pln();
     visit(n);
-		printMainMethod();
-		printer.flush();
+    		printer.flush();
 	}
 
   /** Visit the specified define preprocessing directive node. */
@@ -126,22 +125,34 @@ public class ImplementationPrinter extends Visitor {
    * Only visited in implemented methods.
    */
 	public void visitMethodDeclaration(GNode n) {
-		if (n.getString(0).equals("main")) {
-      mainMethod = n;
-      return;
+    boolean inMain = false;
+
+  	if (n.getString(0).equals("main")) {
+        mainMethod = n;
+        inMain = true;
     }
+
     dispatch(n.getGeneric(1)); // return type
-		printer.p(" __").p(this.currentClass);
-		printer.p("::").p(n.getString(0)); // method name
-		dispatch(n.getGeneric(2)); // parameters
-		printer.pln(" {");
-    printer.incr();
-    indentOut();
-		dispatch(n.getGeneric(3)); // block
-    printer.decr();
-		printer.pln("}\n");
+
+    if (!inMain) {
+      printer.p(" __").p(this.currentClass);
+      printer.p("::").p(n.getString(0)); // method name  
+      dispatch(n.getGeneric(2)); // parameters
+    } else {
+      printer.p(" main(int argc, char** argv)"); // method name
+    }
+    dispatch(n.getGeneric(3)); // block
 		printer.flush();
 	}
+
+  public void visitBlock(GNode n) {
+    printer.pln(" {");
+    printer.incr();
+    indentOut();
+    visit(n); // block
+    printer.decr();
+    printer.pln("}\n");
+  }
 
   /** Visit the specified return type node. */  
 	public void visitReturnType(GNode n) {
@@ -276,14 +287,7 @@ public class ImplementationPrinter extends Visitor {
 		for (Object o : n) if (o instanceof Node) dispatch((Node)o);
 	}
 
-  /** Print the main method. */
-  public void printMainMethod() {
-    printer.p("int main() {").incr();
-    indentOut();
-    visit(mainMethod);
-    printer.decr().pln("return 0;\n");
-    printer.pln("\n}");
-  }
+
 
   /** Utility methods **/
 
