@@ -127,6 +127,11 @@ namespace java {
       return k;
     }
 
+    std::ostream& operator<<(std::ostream& out, String s) {
+      out << s->data;
+      return out;
+    }
+
     // The vtable for java.lang.String.  Note that this definition
     // invokes the default no-arg constructor for __String_VT.
     __String_VT __String::__vtable;

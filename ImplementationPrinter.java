@@ -68,6 +68,9 @@ public class ImplementationPrinter extends Visitor {
     // Do nothing for now.
 	}
 
+  //TODO: HACK
+  boolean inClassDeclaration = false;
+
   /** Visit the specified class declaration node. */
 	public void visitClassDeclaration(GNode n) {
 		this.currentClass = n.getString(0);
@@ -79,7 +82,10 @@ public class ImplementationPrinter extends Visitor {
     indentOut()
       .p("return new java::lang::__Class(__rt::literal(\"")
 			.p(this.currentClass).p("\"), ");
+    //TODO: HACK
+    inClassDeclaration = true;
 		dispatch(n.getGeneric(1));
+    inClassDeclaration = false;
 		printer.pln("::__class());").pln("}\n");
 
 		// vtable
@@ -96,18 +102,22 @@ public class ImplementationPrinter extends Visitor {
     printer.pln();
 	}
 
+  //TODO:HACK - We want a consistent syntax for "this" in constructor
+  boolean inConstructor = false;
+
   /** Visit the specified constructor declaration node. */  
 	public void visitConstructorDeclaration(GNode n){
 	  // class constructor
+    inConstructor = true;
 	  printer.p("__").p(this.currentClass).p("::__")
 			.p(this.currentClass)
-			.pln("() : __vptr(&__vtable) {");
+			.p("() : __vptr(&__vtable) ");
     printer.incr();
     indentOut();
 	  dispatch(n.getGeneric(1));
     printer.decr();
-		printer.pln("}");
     printer.pln();
+    inConstructor = false;
 	}
 
   /** Visit the specified parent class node. */
@@ -120,12 +130,14 @@ public class ImplementationPrinter extends Visitor {
 		visit(n);
 	}
 
+  boolean inMethod = false;
 	/** 
    * Visit the specified method declaration node.
    * Only visited in implemented methods.
    */
 	public void visitMethodDeclaration(GNode n) {
     boolean inMain = false;
+    inMethod = true;
 
   	if (n.getString(0).equals("main")) {
         mainMethod = n;
@@ -143,6 +155,8 @@ public class ImplementationPrinter extends Visitor {
     }
     dispatch(n.getGeneric(3)); // block
 		printer.flush();
+
+    inMethod = false;
 	}
 
   public void visitBlock(GNode n) {
@@ -154,8 +168,45 @@ public class ImplementationPrinter extends Visitor {
     printer.pln("}\n");
   }
 
+  //TODO: HACK
+  boolean inPrintStatement = false;
+
+  public void visitCallExpression(GNode n) {
+    if (
+        //n.getGeneric(0) != null && n.getString(0) != null &&
+        //n.getGeneric(0).getGeneric(0).getString(0).equals("String") && 
+        n.getString(2).equals("print")
+       )
+    {
+      printer.p("std::cout << ");
+      inPrintStatement = true;
+      visit(n);  
+      inPrintStatement = false;
+    }
+    else if (
+        //n.getGeneric(0) != null && n.getString(0) != null &&
+        //n.getGeneric(0).getGeneric(0).getString(0).equals("String") && 
+        n.getString(2).equals("println")
+       )
+    {
+      printer.p("std::cout << ");
+      inPrintStatement = true;
+      visit(n);
+      inPrintStatement = false;
+      printer.p(" << std::endl ");
+    }
+
+    else {
+      visit(n);
+    }
+    printer.flush();
+  }
+
+  boolean inReturnType = false;
+
   /** Visit the specified return type node. */  
 	public void visitReturnType(GNode n) {
+    inReturnType = true;
     try {
       if (n.get(0) != null) {
         visit(n);
@@ -163,6 +214,7 @@ public class ImplementationPrinter extends Visitor {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    inReturnType = false;
 	}
 
   /** Visit the specified from class node. */
@@ -176,12 +228,27 @@ public class ImplementationPrinter extends Visitor {
     dispatch(n.getGeneric(0));
 		printer.p(' ').p(n.getString(1)).p(' ');
 		dispatch(n.getGeneric(2));
-		printer.pln(";");
 	}
+
+  public void visitExpressionStatement(GNode n) {
+    visit(n);
+    printer.pln(";");
+  }
 
   /** Visit the specified primary identifier node. */
 	public void visitPrimaryIdentifier(GNode n) {
-		printer.p(n.getString(0));
+    //TODO:HACK
+    if ( inPrintStatement ) {
+      return;
+    }
+
+    else if ( !inConstructor ) {
+		  printer.p("__this->").p(n.getString(0));
+    }
+
+    else {
+      printer.p("this->").p(n.getString(0));
+    }
 	}
 
   /** Visit the specified instance node. */
@@ -220,12 +287,23 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified qualified identifier node. */
   public void visitQualifiedIdentifier(GNode n) { 
 		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
-			printer.p((String)iter.next());
+			String identifierName = (String)iter.next();
 			if (iter.hasNext()) {
+        printer.p(identifierName);
 				printer.p("::");
 			}
+      else {
+        //TODO: HACK
+        if ( (inMethod && !inReturnType) || (inClassDeclaration)) {
+          printer.p("__").p(identifierName);
+        }
+        else {
+          printer.p(identifierName);
+        }
+      }
 		}
   }
+ 
 
   /** Visit the specified formal parameter node. */
 	public void visitFormalParameter(GNode n) {

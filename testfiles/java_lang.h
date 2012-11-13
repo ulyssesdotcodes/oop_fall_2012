@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <iostream>
 
 // ==========================================================================
 
@@ -129,6 +130,8 @@ namespace java {
       // The vtable for java.lang.String.
       static __String_VT __vtable;
     };
+
+    std::ostream& operator<<(std::ostream& out, String);
 
     // The vtable layout for java.lang.String.
     struct __String_VT {
@@ -282,6 +285,21 @@ namespace __rt {
     : __vptr(&__vtable), length(length), __data(new T[length]()) {
     }
 
+    // Array access.
+    T& operator[](int32_t index) {
+      if (0 > index || index >= length) {
+        throw java::lang::ArrayIndexOutOfBoundsException();
+      }
+      return __data[index];
+    }
+
+    const T& operator[](int32_t index) const {
+      if (0 > index || index >= length) {
+        throw java::lang::ArrayIndexOutOfBoundsException();
+      }
+      return __data[index];
+    }
+
     // The function returning the class object representing the array.
     static java::lang::Class __class();
 
@@ -336,14 +354,6 @@ namespace __rt {
   void checkNotNull(T o) {
     if (null() == (java::lang::Object)o) {
       throw java::lang::NullPointerException();
-    }
-  }
-
-  // Template function to check array index is within bounds.
-  template <typename T>
-  void checkIndex(Array<T>* array, int32_t index) {
-    if (0 > index || index >= array->length) {
-      throw java::lang::ArrayIndexOutOfBoundsException();
     }
   }
 

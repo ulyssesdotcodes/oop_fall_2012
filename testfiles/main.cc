@@ -33,30 +33,35 @@ int main(void) {
   Object o = new __Object();
 
   std::cout << "o.toString() : "
-            << o->__vptr->toString(o)->data // o.toString()
+            << o->__vptr->toString(o) // o.toString()
             << std::endl;
 
   // Class k = o.getClass();
+  __rt::checkNotNull(o);
   Class k = o->__vptr->getClass(o);
 
+  __rt::checkNotNull(k);
   std::cout << "k.getName()  : "
-            << k->__vptr->getName(k)->data // k.getName()
+            << k->__vptr->getName(k) // k.getName()
             << std::endl
             << "k.toString() : "
-            << k->__vptr->toString(k)->data // k.toString()
+            << k->__vptr->toString(k) // k.toString()
             << std::endl;
 
   // Class l = k.getClass();
+  __rt::checkNotNull(k);
   Class l = k->__vptr->getClass(k);
 
+  __rt::checkNotNull(l);
   std::cout << "l.getName()  : "
-            << l->__vptr->getName(l)->data // l.getName()
+            << l->__vptr->getName(l) // l.getName()
             << std::endl
             << "l.toString() : "
-            << l->__vptr->toString(l)->data // l.toString()
+            << l->__vptr->toString(l) // l.toString()
             << std::endl;
 
   // if (k.equals(l)) { ... } else { ... }
+  __rt::checkNotNull(k);
   if (k->__vptr->equals(k, (Object)l)) {
     std::cout << "k.equals(l)" << std::endl;
   } else {
@@ -64,6 +69,8 @@ int main(void) {
   }
 
   // if (k.equals(l.getSuperclass())) { ... } else { ... }
+  __rt::checkNotNull(k);
+  __rt::checkNotNull(l);
   if (k->__vptr->equals(k, (Object)l->__vptr->getSuperclass(l))) {
     std::cout << "k.equals(l.getSuperclass())" << std::endl;
   } else {
@@ -71,6 +78,7 @@ int main(void) {
   }
 
   // if (k.isInstance(o)) { ... } else { ... }
+  __rt::checkNotNull(k);
   if (k->__vptr->isInstance(k, o)) {
     std::cout << "o instanceof k" << std::endl;
   } else {
@@ -78,6 +86,7 @@ int main(void) {
   }
 
   // if (l.isInstance(o)) { ... } else { ... }
+  __rt::checkNotNull(l);
   if (l->__vptr->isInstance(l, o)) {
     std::cout << "o instanceof l" << std::endl;
   } else {
@@ -85,7 +94,35 @@ int main(void) {
   }
 
   // HACK: Calling java.lang.Object.toString on k
-  std::cout << o->__vptr->toString((Object)k)->data << std::endl;
+  std::cout << o->__vptr->toString((Object)k) << std::endl;
+
+  // int[] a = new int[5];
+  __rt::Array<int32_t>* a = new __rt::Array<int32_t>(5);
+
+  // a[2]
+  __rt::checkNotNull(a);
+  std::cout << "a[2]  : " << (*a)[2] << std::endl;
+
+  // a[2] = 5;
+  __rt::checkNotNull(a);
+  (*a)[2] = 5;
+
+  // a[2]
+  __rt::checkNotNull(a);
+  std::cout << "a[2]  : " << (*a)[2] << std::endl;
+
+  // String[] ss = new String[5];
+  __rt::Array<String>* ss = new __rt::Array<String>(5);
+
+  // String s = "Hello";
+  String s = __rt::literal("Hello");
+
+  // ss[2] = "Hello";
+  __rt::checkNotNull(ss);
+  __rt::checkStore(ss, s);
+  (*ss)[2] = s;
+
+  std::cout << "ss[2] : " << (*ss)[2] << std::endl;
 
   // Done.
   std::cout << "--------------------------------------------------------------"
