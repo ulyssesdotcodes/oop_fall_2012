@@ -42,24 +42,16 @@
 #
 #***************************************************************************
 
-PACKAGE     = qimpp
-PACKAGE_LOC = qimpp
+PACKAGE     = qimpp.tests
+PACKAGE_LOC = qimpp/tests
 
 SOURCE = \
-	QimppTranslator.java \
-	Translator.java \
-	Grimm.java \
-	HeaderWriter.java \
-	ImplementationPrinter.java \
-	InheritanceManager.java \
-	InheritanceTreeManager.java \
-	Type.java \
-	CPPAST.java \
+	Test1.java \
+	Test2.java
 
 JNI_SOURCE =
 
 JAR_EXTRAS = \
-	junittests/junit-4.6.jar
 
 
 #***************************************************************************
@@ -73,5 +65,4 @@ include $(JAVA_DEV_ROOT)/Makerules
 endif
 
 
-testall:
-	java org.junit.runner.JUnitCore qimpp.InheritanceTreeManagerTest
+

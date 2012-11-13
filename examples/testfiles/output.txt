@@ -1,0 +1,279 @@
+Java to C++ Translator, v. 2.3.1, (C) 2012 qimpp
+Processing Foo.java ...
+Adding class Foo
+Visiting CompilationUnit
+Visiting Directives
+Visiting Pragma
+Visiting IncludeDirectives
+Visiting QuotedForm
+Visiting AngleBracketForm
+Visiting Declarations
+Name of what? :Declaration("Foo", Struct(), null)
+Name of what? :Declaration("Foo", Struct(), null)
+Name of what? :Declaration("Foo", Struct(), null)
+Name of what? :Declaration("Foo", Struct(), null)
+===in classes , size: 1
+===node : 0
+Visiting ClassDeclaration
+Visiting Parent
+Visiting Type
+Visiting QualifiedIdentifier
+Visiting Constructors
+Visiting ConstructorDeclaration
+Visiting Block
+Visiting ExpressionStatement
+Visiting Expression
+Visiting PrimaryIdentifier
+Visiting StringLiteral
+Visiting Fields
+Visiting ImplementedMethods
+Name of what? :MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\""))))
+Name of what? :MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra"))))
+Name of what? :MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))
+Visiting InheritedMethods
+Name of what? :MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+Name of what? :MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+Name of what? :MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\""))))
+MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra"))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))
+MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\""))))
+MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra"))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+FakeNodeName("Fake", Type(QualifiedIdentifier("java", "lang", "Object")))
+Name of what? :MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))
+FakeNodeName("Fake", Type(QualifiedIdentifier("java", "lang", "Object")))
+Name of what? :MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+FakeNodeName("Fake", Type(QualifiedIdentifier("java", "lang", "Object")))
+Name of what? :MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))
+Name of what? :ClassDeclaration("Foo", Parent(Type(QualifiedIdentifier("java", "lang", "Object"))), Constructors(ConstructorDeclaration(null, Block(ExpressionStatement(Expression(PrimaryIdentifier("zebra"), "=", StringLiteral("\"In the room\"")))))), Fields(FieldDeclaration("zebra", Type(QualifiedIdentifier("java", "lang", "String")))), ImplementedMethods(MethodDeclaration("toString", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(StringLiteral("\"FOO\"")))), MethodDeclaration("allTheAnimals", ReturnType(QualifiedIdentifier("java", "lang", "String")), FormalParameters(), Block(ReturnStatement(PrimaryIdentifier("zebra")))), MethodDeclaration("main", ReturnType(PrimitiveIdentifier("void")), FormalParameters(FormalParameter("args", Type(QualifiedIdentifier("java", "lang", "String")))), Block(ExpressionStatement(CallExpression(SelectionExpression(PrimaryIdentifier("System"), "out"), null, "print", Arguments(StringLiteral("\"hello\""))))))), InheritedMethods(MethodDeclaration("hashCode", ReturnType(PrimitiveType("int32_t")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("equals", ReturnType(PrimitiveType("bool")), FormalParameters(FormalParameter("obj", Type(QualifiedIdentifier("java", "lang", "Object")))), From(Type(QualifiedIdentifier("java", "lang", "Object")))), MethodDeclaration("getClass", ReturnType(QualifiedIdentifier("java", "lang", "Class")), FormalParameters(), From(Type(QualifiedIdentifier("java", "lang", "Object"))))))
+CompilationUnit(
+  Directives(
+    Pragma(
+      "once"
+    ),
+    IncludeDirectives(
+      QuotedForm(
+        "java_lang"
+      ),
+      AngleBracketForm(
+        "stdint"
+      )
+    )
+  ),
+  Declarations(
+    Declaration(
+      "Foo",
+      Struct(),
+      null
+    )
+  ),
+  Classes(
+    ClassDeclaration(
+      "Foo",
+      Parent(
+        Type(
+          QualifiedIdentifier(
+            "java",
+            "lang",
+            "Object"
+          )
+        )
+      ),
+      Constructors(
+        ConstructorDeclaration(
+          null,
+          Block(
+            ExpressionStatement(
+              Expression(
+                PrimaryIdentifier(
+                  "zebra"
+                ),
+                "=",
+                StringLiteral(
+                  "\"In the room\""
+                )
+              )
+            )
+          )
+        )
+      ),
+      Fields(
+        FieldDeclaration(
+          "zebra",
+          Type(
+            QualifiedIdentifier(
+              "java",
+              "lang",
+              "String"
+            )
+          )
+        )
+      ),
+      ImplementedMethods(
+        MethodDeclaration(
+          "toString",
+          ReturnType(
+            QualifiedIdentifier(
+              "java",
+              "lang",
+              "String"
+            )
+          ),
+          FormalParameters(),
+          Block(
+            ReturnStatement(
+              StringLiteral(
+                "\"FOO\""
+              )
+            )
+          )
+        ),
+        MethodDeclaration(
+          "allTheAnimals",
+          ReturnType(
+            QualifiedIdentifier(
+              "java",
+              "lang",
+              "String"
+            )
+          ),
+          FormalParameters(),
+          Block(
+            ReturnStatement(
+              PrimaryIdentifier(
+                "zebra"
+              )
+            )
+          )
+        ),
+        MethodDeclaration(
+          "main",
+          ReturnType(
+            PrimitiveIdentifier(
+              "void"
+            )
+          ),
+          FormalParameters(
+            FormalParameter(
+              "args",
+              Type(
+                QualifiedIdentifier(
+                  "java",
+                  "lang",
+                  "String"
+                )
+              )
+            )
+          ),
+          Block(
+            ExpressionStatement(
+              CallExpression(
+                SelectionExpression(
+                  PrimaryIdentifier(
+                    "System"
+                  ),
+                  "out"
+                ),
+                null,
+                "print",
+                Arguments(
+                  StringLiteral(
+                    "\"hello\""
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      InheritedMethods(
+        MethodDeclaration(
+          "hashCode",
+          ReturnType(
+            PrimitiveType(
+              "int32_t"
+            )
+          ),
+          FormalParameters(),
+          From(
+            Type(
+              QualifiedIdentifier(
+                "java",
+                "lang",
+                "Object"
+              )
+            )
+          )
+        ),
+        MethodDeclaration(
+          "equals",
+          ReturnType(
+            PrimitiveType(
+              "bool"
+            )
+          ),
+          FormalParameters(
+            FormalParameter(
+              "obj",
+              Type(
+                QualifiedIdentifier(
+                  "java",
+                  "lang",
+                  "Object"
+                )
+              )
+            )
+          ),
+          From(
+            Type(
+              QualifiedIdentifier(
+                "java",
+                "lang",
+                "Object"
+              )
+            )
+          )
+        ),
+        MethodDeclaration(
+          "getClass",
+          ReturnType(
+            QualifiedIdentifier(
+              "java",
+              "lang",
+              "Class"
+            )
+          ),
+          FormalParameters(),
+          From(
+            Type(
+              QualifiedIdentifier(
+                "java",
+                "lang",
+                "Object"
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
