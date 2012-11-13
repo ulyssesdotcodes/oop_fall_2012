@@ -47,7 +47,8 @@ PACKAGE_LOC = qimpp/tests
 
 SOURCE = \
 	Test1.java \
-	Test2.java
+	Test2.java \
+	Test3.java
 
 JNI_SOURCE =
 
