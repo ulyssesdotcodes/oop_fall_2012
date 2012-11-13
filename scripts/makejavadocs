@@ -1,0 +1,3 @@
+#!/bin/bash
+
+javadoc -private -d docs HeaderWriter.java ImplementationWriter.java InheritanceManager.java QimppTranslator.java Type.java
