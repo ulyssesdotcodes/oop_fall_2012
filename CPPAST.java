@@ -56,7 +56,9 @@ public class CPPAST {
       classes = GNode.create("Classes");
       compilationUnit.addNode(classes);
       classesMap = new HashMap<String, GNode>();
-      //System.out.println("Created new CPPAST");
+      
+      //setup HashMaps as needed
+      setupMaps();
   }
 
   /** Creates default directives in AST. */
@@ -499,9 +501,48 @@ public class CPPAST {
   String getGNodeName(GNode n){
     return n.getString(0);
   }
+ 
+  HashMap<String, Integer> GNodeNameToTypeLoc;
+  HashMap<String, Integer> GNodeNameToHasUnderscores;
+  HashMap<String, String> JavaPrimitiveTypeToCPP;
+
+  void setupMaps(){
+    GNodeNameToTypeLoc = new HashMap<String, Integer>();
+    GNodeNameToTypeLoc.put("Parent", 0);
+    GNodeNameToTypeLoc.put("FieldDeclaration", 1);
+    GNodeNameToTypeLoc.put("MethodDeclaration", 1);
+    GNodeNameToTypeLoc.put("FormalParameter", 1);
+
+    GNodeNameToHasUnderscores = new HashMap<String, Boolean>();
+    GNodeNameToHasUnderscores.put("Parent", true);
+    GNodeNameToHasUnderscores.put("FieldDeclaration", false);
+    GNodeNameToHasUnderscores.put("MethodDeclaration", false);
+    GNodeNameToHasUnderscores.put("FormalParameter", false);
+
+    JavaPrimitiveTypeToCPP = new HashMap<String, String>();
+    JavaPrimitiveTypeToCPP.put("long", "signed int65_t"); 
+    JavaPrimitiveTypeToCPP.put("int", "int32_t"); 
+    JavaPrimitiveTypeToCPP.put("short", "signed int16_t"); 
+    JavaPrimitiveTypeToCPP.put("byte", "signed int8_t"); 
+    JavaPrimitiveTypeToCPP.put("float", "float"); 
+    JavaPrimitiveTypeToCPP.put("double", "double"); 
+    JavaPrimitiveTypeToCPP.put("char", "char"); 
+  }
   
+  String getGNodeType(GNode n){
+    GNode typeNode = n.getGeneric(GNodeNameToTypeLoc.get(n.getName()));
+    GNode identifier = n.getGeneric(0);
+    if(identifier.getName().equals("PrimitiveIdentifier")){
+      return JavaPrimitiveTypeToCPP.get(identier.getGeneric(0));
+    } else if(identifier.getName().equals("QualifiedIdentifier")){
+      boolean hasUnderscore = GNodeNameToHasUnderscores.get(n.getName());
+    }
+    return typeNode.getName(); 
+  }
+
   public void printAST(){
     Printer p = new Printer(System.out);
     p.format(compilationUnit).flush();
   }
 }
+
