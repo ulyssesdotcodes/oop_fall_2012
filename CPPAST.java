@@ -222,6 +222,7 @@ public class CPPAST {
    * @returns method node.
    */
   GNode addMethod(String name, GNode returnType, GNode classNode) {
+    // If this is the first method we are adding, add Object's methods first
     if(classNode.getGeneric(5).size() == 0){
       addAllInheritedMethods(GNode.create("ImplementedMethods"), generateObjectMethods(), classNode);
     }
@@ -294,7 +295,8 @@ public class CPPAST {
     return formalParameter;
   }
   
-
+  //TODO:Refactor to simply wrap each methods in an "ImplementedMethod" and "InheritedMethod" node
+  //so we can have arbitrary ordering allowing for vtable-consistent overloads
   void addAllInheritedMethods(GNode implementedMethods, GNode inheritedMethods, GNode currentClass){
     for(int i = 0; i < implementedMethods.size(); i++){
       implementedMethods.getGeneric(i).remove(3);
@@ -305,6 +307,10 @@ public class CPPAST {
     for(int i = 0; i < inheritedMethods.size(); i++){
       currentClass.getGeneric(5).addNode(inheritedMethods.getGeneric(i));
     }
+  }
+
+  void addAllInheritedFields(GNode parentDefinedFields, GNode parentInheritedFields, GNode currentClass){
+    return; 
   }
   
 
@@ -397,48 +403,48 @@ public class CPPAST {
    * @param classNode Class node.
    */  
   void removeInheritedMethod(GNode methodDeclaration, GNode classNode) {
-  final String name = methodDeclaration.getString(3);
-  int methodIndex = getInheritedMethodIndex(name, classNode);
-  if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
-  
-  //System.out.println("RemoveInheritedMethod " + classNode);
-  
-  new Visitor () {
+    final String name = methodDeclaration.getString(3);
+    int methodIndex = getInheritedMethodIndex(name, classNode);
+    if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
     
-    public void visitInheritedMethods( GNode n ) {
+    //System.out.println("RemoveInheritedMethod " + classNode);
     
-      //System.out.println("Removing extras: " + " methodName " + name);
-      for (Object o : n){
-        Boolean matches = false;
-        if (o instanceof Node){ 
-          matches = (Boolean)dispatch((Node)o);
-          //System.out.println("Matches: "  + matches );
+    new Visitor () {
+      
+      public void visitInheritedMethods( GNode n ) {
+      
+        //System.out.println("Removing extras: " + " methodName " + name);
+        for (Object o : n){
+          Boolean matches = false;
+          if (o instanceof Node){ 
+            matches = (Boolean)dispatch((Node)o);
+            //System.out.println("Matches: "  + matches );
+          }
+          if ( matches == true ) {
+            n.remove(n.indexOf(o));
+            //System.out.println("REMOVED " + name);
+          }
         }
-        if ( matches == true ) {
-          n.remove(n.indexOf(o));
-          //System.out.println("REMOVED " + name);
-        }
-      }
-    }
-    
-    
-    public Boolean visitMethodDeclaration ( GNode n ) {
-      //System.out.println("*** " + name + " " + n.getString(0));
-      if (n.getString(0).equals(name)){
-        return true;
       }
       
-      else {
-        return false;
+      
+      public Boolean visitMethodDeclaration ( GNode n ) {
+        //System.out.println("*** " + name + " " + n.getString(0));
+        if (n.getString(0).equals(name)){
+          return true;
+        }
+        
+        else {
+          return false;
+        }
       }
-    }
-    
-    public void visit(Node n) {
-      ////System.out.println("We're hitting this");
-      for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-    }
-    
-  }.dispatch(classNode);
+      
+      public void visit(Node n) {
+        ////System.out.println("We're hitting this");
+        for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+      }
+      
+    }.dispatch(classNode);
   
   
 }
@@ -503,7 +509,7 @@ public class CPPAST {
   }
  
   HashMap<String, Integer> GNodeNameToTypeLoc;
-  HashMap<String, Integer> GNodeNameToHasUnderscores;
+  HashMap<String, Boolean> GNodeNameToHasUnderscores;
   HashMap<String, String> JavaPrimitiveTypeToCPP;
 
   void setupMaps(){
@@ -533,7 +539,7 @@ public class CPPAST {
     GNode typeNode = n.getGeneric(GNodeNameToTypeLoc.get(n.getName()));
     GNode identifier = n.getGeneric(0);
     if(identifier.getName().equals("PrimitiveIdentifier")){
-      return JavaPrimitiveTypeToCPP.get(identier.getGeneric(0));
+      return JavaPrimitiveTypeToCPP.get(identifier.getGeneric(0));
     } else if(identifier.getName().equals("QualifiedIdentifier")){
       boolean hasUnderscore = GNodeNameToHasUnderscores.get(n.getName());
     }

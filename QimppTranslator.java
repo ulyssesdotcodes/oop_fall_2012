@@ -185,8 +185,15 @@ public class QimppTranslator extends Tool {
         
         currentClass.getGeneric(1).getGeneric(0).remove(0);
         currentClass.getGeneric(1).getGeneric(0).addNode((new Disambiguator()).disambiguate(parentClassNode.getString(0)));
+        
+        // Add inherited mehthods and fields using the parent's class
+        // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
+        // should only be one argument to addAllInheritedMethods
         cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), parentClassNode.getGeneric(5), currentClass);
+
+        //cppast.addAllInheritedFields(parentClassNode.getGeneric(3), currentClass); 
         parentClassNode = currentClass;
+        
         //add the current class to the inheritance tree, but parent it to Object for now
         ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
         ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
