@@ -117,8 +117,7 @@ public class CPPAST {
     }
     classNode.addNode(GNode.create("Constructors"));
     classNode.addNode(GNode.create("Fields"));
-    classNode.addNode(GNode.create("ImplementedMethods"));
-    classNode.addNode(GNode.create("InheritedMethods"));
+    classNode.addNode(GNode.create("Methods"));
     classes.addNode(classNode);
     return classNode;
   }
@@ -223,19 +222,33 @@ public class CPPAST {
    */
   GNode addMethod(String name, GNode returnType, GNode classNode) {
     // If this is the first method we are adding, add Object's methods first
-    if(classNode.getGeneric(5).size() == 0){
-      addAllInheritedMethods(GNode.create("ImplementedMethods"), generateObjectMethods(), classNode);
+    if(classNode.getGeneric(4).size() == 0){
+      addAllInheritedMethods(generateObjectMethods(), classNode);
     }
   
-    GNode methodNode = GNode.create("MethodDeclaration");
+    GNode methodNode = GNode.create("ImplementedMethodDeclaration");
     methodNode.add(name);
-    methodNode.addNode(GNode.create("ReturnType"));
-    //System.out.println(returnType);
-    methodNode.getGeneric(1).add(returnType.getGeneric(0));
-    //System.out.println(methodNode.getGeneric(1));
-    methodNode.addNode(GNode.create("FormalParameters"));
+    methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType.getGeneric(0));
+    methodNode.add(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("Block"));
-    classNode.getGeneric(4).addNode(methodNode);
+    
+    //Find if a method exists with the same name and input. If it does, overwrite it with the new implemented method
+    boolean overridingMethod = false;
+    GNode methodsNode = classNode.getGeneric(4);
+    for(int i = 0; i < methodsNode.size(); i++){
+      GNode method = methodsNode.getGeneric(i);
+      if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
+      if(method.getString(0).equals(name)){
+        methodsNode.set(i, methodNode);
+        overridingMethod = true;
+        break;
+      }
+    }
+    
+    //Otherwise just add it to the bottom of the methods
+    if(!overridingMethod)
+      methodsNode.addNode(methodNode);
+    
     return methodNode;
   }
 
@@ -249,12 +262,26 @@ public class CPPAST {
    * @returns method node.
    */
   GNode addMethod(String name, GNode returnType, GNode classNode, String from) {
-    GNode methodNode = GNode.create("MethodDeclaration");
+    GNode methodNode = GNode.create("InheritedMethodDeclaration");
     methodNode.add(name);
     methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType.getGeneric(0));
     methodNode.add(GNode.create("FormalParameters"));
     methodNode.addNode(GNode.create("From")).getNode(methodNode.size()-1).add(from);
-    classNode.getGeneric(5).addNode(methodNode);
+    //Find if a method exists with the same name and input. If it does, overwrite it with the new implemented method
+    boolean overridingMethod = false;
+    GNode methodsNode = classNode.getGeneric(4);
+    for(int i = 0; i < methodsNode.size(); i++){
+      GNode method = methodsNode.getGeneric(i);
+      if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
+      if(method.getString(0).equals(name)){
+        methodsNode.set(i, methodNode);
+        overridingMethod = true;
+        break;
+      }
+    }
+    //Otherwise just add it to the bottom of the methods
+    if(!overridingMethod)
+      methodsNode.addNode(methodNode);
     return methodNode;
   }
 
@@ -297,15 +324,25 @@ public class CPPAST {
   
   //TODO:Refactor to simply wrap each methods in an "ImplementedMethod" and "InheritedMethod" node
   //so we can have arbitrary ordering allowing for vtable-consistent overloads
-  void addAllInheritedMethods(GNode implementedMethods, GNode inheritedMethods, GNode currentClass){
-    for(int i = 0; i < implementedMethods.size(); i++){
-      implementedMethods.getGeneric(i).remove(3);
-      ////System.err.println("CurrentClass: " + currentClass);
-      implementedMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
-      currentClass.getGeneric(5).addNode(implementedMethods.getGeneric(i));
-    }
-    for(int i = 0; i < inheritedMethods.size(); i++){
-      currentClass.getGeneric(5).addNode(inheritedMethods.getGeneric(i));
+  //Take in parent methods and class, add parent methods as InheritedMethod nodes to class
+  void addAllInheritedMethods(GNode parentMethods, GNode currentClass){
+    for(int i = 0; i < parentMethods.size(); i++){
+      //By default just assume the method itself is inherited and already has a container
+      GNode inheritedMethod = parentMethods.getGeneric(i);
+      if(!parentMethods.getGeneric(i).getName().equals("InheritedMethodDeclaration")){
+        //Create a inherited method container
+        inheritedMethod = GNode.create("InheritedMethodContainer");
+
+        //Remove the method block
+        parentMethods.getGeneric(i).remove(3);
+        //Insert the parent in a from node where the block was
+        parentMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
+
+        //Add it to the container
+        inheritedMethod.addNode(parentMethods.getGeneric(i));
+      }
+      //Add the parent method to the class. If it is inherited from further up the tree than the parent it will already be formatted as an inherited method
+      currentClass.getGeneric(4).addNode(inheritedMethod);
     }
   }
 
@@ -461,7 +498,7 @@ public class CPPAST {
     GNode objectType = generateObjectType();
     
     //Hashcode
-    GNode objectMethod = GNode.create("MethodDeclaration");
+    GNode objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("hashCode");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int32_t");
     objectMethod.addNode(GNode.create("FormalParameters"));
@@ -469,7 +506,7 @@ public class CPPAST {
     objectMethods.add(objectMethod);
     
     //equals
-    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("equals");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("bool");
     objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
@@ -477,7 +514,7 @@ public class CPPAST {
     objectMethods.add(objectMethod);
     
     //getClass
-    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("getClass");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("Class");
     objectMethod.addNode(GNode.create("FormalParameters"));
@@ -485,7 +522,7 @@ public class CPPAST {
     objectMethods.add(objectMethod);
     
     //toString
-    objectMethod = GNode.create("MethodDeclaration");
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("toString");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("String");
     objectMethod.addNode(GNode.create("FormalParameters"));

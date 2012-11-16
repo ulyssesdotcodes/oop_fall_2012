@@ -2,40 +2,31 @@
 #include "java_lang.h"
 #include <stdint.h>
 
-struct __HelloWorld;
-struct __HelloWorld_VT;
+struct __Foo;
+struct __Foo_VT;
 
-typedef __HelloWorld* HelloWorld;
+typedef __Foo* Foo;
 
-struct __HelloWorld {
-  __HelloWorld_VT* __vptr;
+struct __Foo {
+
+  __Foo_VT* __vptr;
+  java::lang::String zebra;
+
+  __Foo();
 
 
-  __HelloWorld();
+  static java::lang::Class __class();
 
-  static Class __class();
-
-  static HelloWorld_VT __vtable;
+  static __Foo_VT __vtable;
 };
 
-struct __HelloWorld_VT {
-  Class __isa;
-  int32_t (*hashCode)(HelloWorld);
-  bool (*equals)(HelloWorld, Object);
-  Class (*getClass)(HelloWorld);
-  String (*toString)(HelloWorld);
+struct __Foo_VT {
 
+  java::lang::Class __isa;
 
-
-  __HelloWorld_VT()
-    : __isa(__HelloWorld::__class()),
-    hashCode((int32_t(*)(HelloWorld))&__Object::hashCode),
-    equals((bool(*)(HelloWorld,Object))&__Object::equals),
-    getClass((Class(*)(HelloWorld))&__Object::getClass),
-    toString((String(*)(HelloWorld))&__Object::toString)
-
-
- {
+  __Foo_VT()
+  : __isa(__Foo::__class()),
+{
   }
 };
 

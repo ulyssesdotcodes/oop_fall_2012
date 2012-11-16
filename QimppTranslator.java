@@ -189,7 +189,7 @@ public class QimppTranslator extends Tool {
         // Add inherited mehthods and fields using the parent's class
         // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
         // should only be one argument to addAllInheritedMethods
-        cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), parentClassNode.getGeneric(5), currentClass);
+        cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
 
         //cppast.addAllInheritedFields(parentClassNode.getGeneric(3), currentClass); 
         parentClassNode = currentClass;
@@ -248,17 +248,15 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitMethodDeclaration(GNode n) {
-      //TODO: math names and remove
-      try{
-        
-        currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
-        //Add the method params gotten by dispatching the formalParameters node
-        cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
-        //Add the method block gotten by dispatching the block node
-        cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
-        
-        //Add a new method with name equiv to this method dec, dispatched type in the current classF
-        cppast.removeInheritedMethod(n, currentClass);
+        //TODO: math names and remove
+        try{
+
+          currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
+          //Add the method params gotten by dispatching the formalParameters node
+          cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
+          //Add the method block gotten by dispatching the block node
+          cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
+
         } catch(Exception e) { e.printStackTrace(); }
       }
 
