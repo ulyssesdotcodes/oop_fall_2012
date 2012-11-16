@@ -334,12 +334,22 @@ public class CPPAST {
         inheritedMethod = GNode.create("InheritedMethodContainer");
 
         //Remove the method block
-        parentMethods.getGeneric(i).remove(3);
+        GNode implementedMethod;
+        if (parentMethods.getGeneric(i).getName().equals("InheritedMethodContainer")){
+          implementedMethod = parentMethods.getGeneric(i).getGeneric(0);
+        }
+        else {
+          implementedMethod = parentMethods.getGeneric(i);
+        }
+
+        // Make a shallow copy
+        GNode newImplementedMethod = GNode.create(implementedMethod);
+        implementedMethod.remove(3);
         //Insert the parent in a from node where the block was
-        parentMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
+        newImplementedMethod.add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
 
         //Add it to the container
-        inheritedMethod.addNode(parentMethods.getGeneric(i));
+        inheritedMethod.addNode(newImplementedMethod);
       }
       //Add the parent method to the class. If it is inherited from further up the tree than the parent it will already be formatted as an inherited method
       currentClass.getGeneric(4).addNode(inheritedMethod);
