@@ -26,7 +26,6 @@ public class HeaderWriter extends Visitor {
   private ArrayList<GNode> implemented_methods;
   private ArrayList<GNode> fields;
   private boolean inherited;
-  private boolean implemented;
   //private String current_class;
   /** Constructor. Opens a new file called defined_classes.h
   *
@@ -60,7 +59,6 @@ public class HeaderWriter extends Visitor {
     implemented_methods = new ArrayList<GNode>();
     fields = new ArrayList<GNode>();
     inherited = false;
-    implemented = false;
     //current_class = "";
     printer.register(this);  
   }
@@ -115,23 +113,17 @@ public class HeaderWriter extends Visitor {
     fields.add(n); 
   }
 
-  public void visitInheritedMethods(GNode n){
+  public void visitInheritedMethodContainer(GNode n){
     inherited = true;
     visit(n);
     inherited = false;
   }
 
-  public void visitImplementedMethods(GNode n){
-    implemented = true;
-    visit(n);
-    implemented = false;
-  }
-
-  public void visitMethodDeclaration(GNode n){
+  public void visitImplementedMethodDeclaration(GNode n){
     if (!name(n).equals("main")) {
       if (inherited)
         inherited_methods.add(n);
-      else if (implemented)
+      else
         implemented_methods.add(n);
     }
   }
