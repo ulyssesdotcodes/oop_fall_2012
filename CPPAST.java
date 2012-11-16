@@ -329,17 +329,15 @@ public class CPPAST {
     for(int i = 0; i < parentMethods.size(); i++){
       //By default just assume the method itself is inherited and already has a container
       GNode inheritedMethod = parentMethods.getGeneric(i);
-      if(!parentMethods.getGeneric(i).getName().equals("InheritedMethodDeclaration")){
+      if(!parentMethods.getGeneric(i).getName().equals("InheritedMethodContainer")){
         //Create a inherited method container
         inheritedMethod = GNode.create("InheritedMethodContainer");
 
-        //Remove the method block
-        parentMethods.getGeneric(i).remove(3);
-        //Insert the parent in a from node where the block was
-        parentMethods.getGeneric(i).add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
-
         //Add it to the container
         inheritedMethod.addNode(parentMethods.getGeneric(i));
+
+        //Insert the parent in a from node in the inherited container
+        inheritedMethod.add(GNode.create("From")).getGeneric(1).addNode(currentClass.getGeneric(1));
       }
       //Add the parent method to the class. If it is inherited from further up the tree than the parent it will already be formatted as an inherited method
       currentClass.getGeneric(4).addNode(inheritedMethod);
@@ -502,7 +500,8 @@ public class CPPAST {
     objectMethod.add("hashCode");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int32_t");
     objectMethod.addNode(GNode.create("FormalParameters"));
-    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
     objectMethods.add(objectMethod);
     
     //equals
@@ -510,7 +509,8 @@ public class CPPAST {
     objectMethod.add("equals");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("bool");
     objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
-    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
     objectMethods.add(objectMethod);
     
     //getClass
@@ -518,7 +518,8 @@ public class CPPAST {
     objectMethod.add("getClass");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("Class");
     objectMethod.addNode(GNode.create("FormalParameters"));
-    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
     objectMethods.add(objectMethod);
     
     //toString
@@ -526,7 +527,8 @@ public class CPPAST {
     objectMethod.add("toString");
     objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("String");
     objectMethod.addNode(GNode.create("FormalParameters"));
-    objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
     objectMethods.add(objectMethod);
     
     return objectMethods;
