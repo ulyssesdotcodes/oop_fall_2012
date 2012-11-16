@@ -344,7 +344,7 @@ public class CPPAST {
 
         // Make a shallow copy
         GNode newImplementedMethod = GNode.create(implementedMethod);
-        implementedMethod.remove(3);
+        newImplementedMethod.remove(3);
         //Insert the parent in a from node where the block was
         newImplementedMethod.add(3,GNode.create("From")).getGeneric(3).addNode(currentClass.getGeneric(1));
 
