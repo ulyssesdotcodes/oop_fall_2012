@@ -47,7 +47,7 @@ public class Qimpp extends Tool {
 
 
   /** Create a new translator. */
-  public Translator() {
+  public Qimpp() {
     symbolTable = new SymbolTable();
   }
 
@@ -63,7 +63,7 @@ public class Qimpp extends Tool {
     super.init();
     
     runtime.
-      bool("printJavaAST", "printJavaAST", false, "Print Java AST.").
+      bool("printJavaAST", "printJavaAST", false, "Print Java AST.");
   }
 
   public void prepare() {
@@ -91,6 +91,8 @@ public class Qimpp extends Tool {
     }
 
     symbolTable.incorporate(node);
+    Translator t = new Translator();
+    t.process(node, "Point");
   }
 
   /**

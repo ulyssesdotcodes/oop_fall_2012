@@ -46,9 +46,9 @@ PACKAGE     = qimpp
 PACKAGE_LOC = qimpp
 
 SOURCE = \
-	QimppTranslator.java \
+	Qimpp.java \
 	Translator.java \
-	Grimm.java \
+	SymbolTable.java \
 	HeaderWriter.java \
 	ImplementationPrinter.java \
 	InheritanceManager.java \
