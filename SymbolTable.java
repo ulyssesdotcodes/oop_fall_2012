@@ -16,7 +16,7 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
  * USA.
  */
-package xtc.util;
+package qimpp;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,10 +25,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import xtc.Constants;
+import qimpp.Constants;
+import qimpp.Utilities;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Printer;
+import xtc.tree.Visitor;
+import xtc.util.EmptyIterator;
 
 /**
  * A symbol table.  This class implements a symbol table, which maps
@@ -42,7 +46,7 @@ import xtc.tree.Printer;
  * Both scope names and symbols can be unqualified &mdash; that is,
  * they need to be resolved relative to the {@link #current() current
  * scope} &mdash; or qualified by the {@link Constants#QUALIFIER
- * qualification character} '<code>.</code>' &mdash; that is, they are
+ * qualification character} "<code>::</code>" &mdash; that is, they are
  * resolved relative to the symbol table's {@link #root() root}.  Once
  * {@link #enter(String) created}, a scope remains in the symbol table
  * and the corresponding AST node should be associated with that scope
@@ -61,8 +65,8 @@ import xtc.tree.Printer;
  * '<code>(</code>' and suffixed by a closing parenthesis
  * '<code>)</code>'.
  *
- * @author Robert Grimm
- * @version $Revision: 1.35 $
+ * @author Robert Grimm, adapted by Qimpp
+ * @version N/A
  */
 public class SymbolTable {
 
@@ -515,7 +519,7 @@ public class SymbolTable {
     public void dump(Printer printer) {
       boolean hasVisitor = (null != printer.visitor());
 
-      printer.indent().p('.').p(name).pln(" = {").incr();
+      printer.indent().p("::").p(name).pln(" = {").incr();
 
       if (null != symbols) {
         List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -643,7 +647,7 @@ public class SymbolTable {
     // scope directly nested in the current scope.
     Scope scope = current;
     if (name.startsWith(scope.qName) && 
-        (name.lastIndexOf(Constants.QUALIFIER) == scope.qName.length())) {
+        (name.lastIndexOf(Constants.QUALIFIER) == scope.qName.length()-1)) { // TODO: Vivek changed this to -1 to reflect :: versus .
       return scope.getNested(Utilities.getName(name));
     }
 
@@ -814,13 +818,13 @@ public class SymbolTable {
   /**
    * Mark the specified node.  If the node does not have an associated
    * {@link Constants#SCOPE scope}, this method set the property with
-   * the current scope's qualified name.
+   * the current scope.
    *
    * @param n The node.
    */
   public void mark(Node n) {
     if (! n.hasProperty(Constants.SCOPE)) {
-      n.setProperty(Constants.SCOPE, current.getQualifiedName());
+      n.setProperty(Constants.SCOPE, current);
     }
   }
 
@@ -919,159 +923,183 @@ public class SymbolTable {
     return buf.toString();
   }
 
-  /**
-   * Create a fresh Java identifier.  The returned identifier has
-   * "<code>tmp</code>" as its base name.
-   *
-   * @see #freshJavaId(String)
-   *
-   * @return A fresh Java identifier.
-   */
-  public String freshJavaId() {
-    return freshJavaId("tmp");
-  }
-
-  /**
-   * Create a fresh Java identifier incorporating the specified base
-   * name.  The returned name is of the form
-   * <code><i>name</i>$<i>count</i></code>.
-   *
-   * @param base The base name.
-   * @return The corresponding fresh Java identifier.
-   */
-  public String freshJavaId(String base) {
-    StringBuilder buf = new StringBuilder();
-    buf.append(base);
-    buf.append('$');
-    buf.append(freshIdCount++);
-    return buf.toString();
-  }
-
-  /**
-   * Convert the specified unqualified symbol to a symbol in the
-   * specified name space.
-   *
-   * @param symbol The symbol
-   * @param space The name space.
-   * @return The mangled symbol.
-   */
-  public static String toNameSpace(String symbol, String space) {
-    return space + Constants.START_OPAQUE + symbol + Constants.END_OPAQUE;
-  }
-
-  /**
-   * Determine whether the specified symbol is in the specified name
-   * space.
-   *
-   * @param symbol The symbol.
-   * @param space The name space.
-   * @return <code>true</code> if the symbol is mangled symbol in the
-   *   name space.
-   */
-  public static boolean isInNameSpace(String symbol, String space) {
-    try {
-      return (symbol.startsWith(space) &&
-              (Constants.START_OPAQUE == symbol.charAt(space.length())) &&
-              symbol.endsWith(END_OPAQUE));
-    } catch (IndexOutOfBoundsException x) {
-      return false;
-    }
-  }
-
   /** The end of opaqueness marker as a string. */
   private static final String END_OPAQUE =
     Character.toString(Constants.END_OPAQUE);
 
+  // ===================================================================
+
   /**
-   * Convert the specified unqualified symbol within a name space to a
-   * symbol without a name space.
+   * Incorporate a Node tree into the instance. This method looks for
+   * identifiers, user-defined names contained in QualifiedIdentifier,
+   * PrimaryIdentifier, etc.
    *
-   * @param symbol The mangled symbol within a name space.
-   * @return The corresponding symbol without a name space.
+   * @param node a tree to incorporate into the SymbolTable
    */
-  public static String fromNameSpace(String symbol) {
-    int start = symbol.indexOf(Constants.START_OPAQUE);
-    int end   = symbol.length() - 1;
-    if ((0 < start) && (Constants.END_OPAQUE == symbol.charAt(end))) {
-      return symbol.substring(start + 1, end);
-    } else {
-      throw new IllegalArgumentException("Not a mangled symbol '"+symbol+"'");
+  public void incorporate(Node node) {
+    final SymbolTable table = this;
+    
+    new Visitor() {
+
+      // TODO: Inheretence.
+      //
+      // What I can think of:
+      // 1. runtime should be visible anywhere within the body since it gets
+      //  gets inherited from Tool.
+      // 2. classes from the import should be visible from anywhere in
+      //  the class.
+      // 3. Keep track of class versus stack scope.
+
+
+      // root of static scope tree
+      public void visitCompilationUnit(GNode n) {
+        visit(n);
+      }
+
+      public void visitClassDeclaration(GNode n) {
+        table.enter(n.getString(1));
+        table.mark(n);
+        visit(n.getNode(5));
+        table.exit();
+      }
+
+      // TODO: Handle interfaces?
+      public void visitInterfaceDeclaration(GNode n) {
+        table.enter(table.freshCId(n.getName()));
+        table.mark(n);
+        visit(n.getNode(4));
+        table.exit();
+      }
+
+      public void visitConstructorDeclaration(GNode n) {
+        table.enter(table.freshCId("constructor"));
+        table.mark(n);
+        visit(n.getNode(5));
+        visit(n.getNode(3)); // parameters
+        table.exit();
+      }
+
+      public void visitMethodDeclaration(GNode n) {
+        Node parameters = n.getNode(4);
+        if (parameters.size() > 0) {
+          table.enter(n.getString(3));
+          table.mark(n);
+          visit(parameters);
+          table.exit();
+        }
+
+        Node body = n.getNode(7);
+        if (null != body) {
+          table.enter(n.getString(3));
+          table.mark(n);
+          visit(body);
+          table.exit();
+        }
+      }
+
+      public void visitBlock(GNode n) {
+        table.enter(table.freshCId());
+        table.mark(n);
+        visit(n);
+        table.exit();
+      }
+
+      public void visitForStatement(GNode n) {
+        // if any declarations. TODO: Handle multiple declarations
+        Node declarators = n.getNode(1);
+        if (null != declarators) {
+          table.enter(table.freshCId("for"));
+          table.mark(n);
+          visit(n);
+          table.exit();
+        }
+      }
+
+      public void visitNewClassExpression(GNode n) {
+        Node body = n.getNode(4);
+        if (null != body) {
+          table.enter(table.freshCId(n.getName()));
+          table.mark(n);
+          visit(body);
+          table.exit();
+        }
+      }
+
+      // ======================================================================
+      
+      /**
+       * Visits Declarator and FormalParameter nodes and marks them with the 
+       * appropriate scope.
+       *
+       * Adding the definition is just for determining the context of nested
+       * scopes.
+       *
+       */
+      public void visitDeclarator(GNode n) {
+        table.current().addDefinition(n.getString(0), "declaration");
+        table.mark(n);
+      }
+
+      public void visitFormalParameter(GNode n) {
+        System.out.println("HELLO WORLD!");
+        table.current().addDefinition(n.getString(3), "parameter");
+        table.mark(n);
+      }
+
+      // ======================================================================
+
+      /**
+       * Visits identifier nodes and marks them with the appropriate
+       * scope. It requires looking up if scope for the identifier has been 
+       * created already. If so, do not call mark.
+       *
+       * Note that the QualifiedIdentifier may be contain several symbols, 
+       * as in a package name.
+       */
+
+      public void visitQualifiedIdentifier(GNode n) {
+        Scope currentScope = table.current();
+        Scope context = table.current().lookupScope(n.getString(0));
+        if (null != context) {
+          table.setScope(context);
+          table.mark(n);
+          table.setScope(currentScope);
+        }
+      }
+
+      public void visitPrimaryIdentifier(GNode n) {
+        Scope currentScope = table.current();
+        Scope context = table.current().lookupScope(n.getString(0));
+        if (null != context) {
+          table.setScope(context);
+          table.mark(n);
+          table.setScope(currentScope);
+        }
+      }
+
+      // I haven't seen this called yet, actually.
+      public void visitIdentifier(GNode n) {
+        table.mark(n);
+        System.out.println(
+           n.getString(0) + " => " + n.getProperty(Constants.SCOPE)
+        );
+      }
+
+      // ======================================================================
+
+      public void visit(Node n) {
+        for (Object o : n) {
+          if (o instanceof Node) {
+              dispatch((Node)o);
+          }
+        }
+      }
+    }.dispatch(node);
+
+    if (Constants.DEBUG) {
+      Printer printer = new Printer(System.out);
+      table.root().dump(printer);
+      printer.flush();
     }
   }
-
-  /**
-   * Conver the specified C macro identifier into a symbol table scope
-   * name.
-   *
-   * @param id The macro identifier.
-   * @return The corresponding symbol table scope name.
-   */
-  public static String toMacroScopeName(String id) {
-    return toNameSpace(id, "macro");
-  }
-
-  /**
-   * Determine whether the specified scope name represents a macro's
-   * scope.
-   *
-   * @param name The name.
-   * @return <code>true</code> if the name denotes a macro scope.
-   */
-  public static boolean isMacroScopeName(String name) {
-    return isInNameSpace(name, "macro");
-  }
-
-  /**
-   * Convert the specified C function identifier into a symbol table
-   * scope name.
-   *
-   * @param id The function identifier.
-   * @return The corresponding symbol table scope name.
-   */
-  public static String toFunctionScopeName(String id) {
-    return toNameSpace(id, "function");
-  }
-
-  /**
-   * Determine whether the specified scope name represents a
-   * function's scope.
-   *
-   * @param name The name.
-   * @return <code>true</code> if the name denotes a function scope.
-   */
-  public static boolean isFunctionScopeName(String name) {
-    return isInNameSpace(name, "function");
-  }
-
-  /**
-   * Convert the specified C struct, union, or enum tag into a symbol
-   * table name.
-   *
-   * @param tag The tag.
-   * @return The corresponding symbol table name.
-   */
-  public static String toTagName(String tag) {
-    return toNameSpace(tag, "tag");
-  }
-
-  /**
-   * Convert the specified label identifier into a symbol table name.
-   *
-   * @param id The identifier.
-   * @return The corresponding symbol table name.
-   */
-  public static String toLabelName(String id) {
-    return toNameSpace(id, "label");
-  }
-
-  /**
-   * Convert the specified method identifier into a symbol table name.
-   *
-   * @param id The method identifier.
-   * @return The corresponding symbol table name.
-   */
-  public static String toMethodName(String id) {
-    return toNameSpace(id, "method");
-  }
-
 }
