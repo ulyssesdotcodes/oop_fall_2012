@@ -941,7 +941,7 @@ public class SymbolTable {
     
     new Visitor() {
 
-      // TODO: Inheretence.
+      // TODO: Inheritance.
       //
       // What I can think of:
       // 1. runtime should be visible anywhere within the body since it gets
@@ -974,7 +974,7 @@ public class SymbolTable {
       public void visitConstructorDeclaration(GNode n) {
         table.enter(table.freshCId("constructor"));
         table.mark(n);
-        visit(n.getNode(5));
+        visit(n.getNode(5)); // block
         visit(n.getNode(3)); // parameters
         table.exit();
       }
@@ -1041,7 +1041,6 @@ public class SymbolTable {
       }
 
       public void visitFormalParameter(GNode n) {
-        System.out.println("HELLO WORLD!");
         table.current().addDefinition(n.getString(3), "parameter");
         table.mark(n);
       }

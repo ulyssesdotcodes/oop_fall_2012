@@ -61,11 +61,12 @@ public class Translator {
     cppast = new CPPAST();
   }
 
-  public void process(Node node, String class) {
+  public void process(Node node, String klass) {
     treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
     // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
-    currentClassName = class;
-    
+
+    currentClassName = klass;
+
     new Visitor() {
 
       public GNode visitBlock(GNode n) {
@@ -100,6 +101,7 @@ public class Translator {
         
         //Add the current class to the cppast, and set it as the current class global variable.
         currentClass = cppast.addClass(n.getString(1));
+        currentClassName = n.getString(1);
         parentClassNode = currentClass;
         
         //add the current class to the inheritance tree, but parent it to Object for now
@@ -117,7 +119,7 @@ public class Translator {
         try{
           new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
           cppast.printAST();
-          new ImplementationPrinter(new Printer(new PrintWriter("out.cc"))).dispatch(cppast.compilationUnit);
+          new ImplementationWriter(new Printer(new PrintWriter("out.cc"))).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
           //System.out.println("Uh oh... " + e);
           e.printStackTrace();
@@ -263,7 +265,7 @@ public class Translator {
           if (classTreeNode == null){
               
               try{
-                process(typename.replace(".", "/")+".java");
+                process(n, typename.replace(".", "/")+".java");
               }
 
               catch (Exception e){

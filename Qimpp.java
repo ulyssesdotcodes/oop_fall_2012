@@ -92,7 +92,7 @@ public class Qimpp extends Tool {
 
     symbolTable.incorporate(node);
     Translator t = new Translator();
-    t.process(node, "Point");
+    t.process(node, "");
   }
 
   /**

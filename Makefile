@@ -50,7 +50,7 @@ SOURCE = \
 	Translator.java \
 	SymbolTable.java \
 	HeaderWriter.java \
-	ImplementationPrinter.java \
+	ImplementationWriter.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	Type.java \
