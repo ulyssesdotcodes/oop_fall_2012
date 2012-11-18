@@ -125,17 +125,18 @@ public class ImplementationPrinter extends Visitor {
 		visit(n);
 	}
 
-  /** Visit the specified implemented methods node. */
-	public void visitImplementedMethods(GNode n) {
-		visit(n);
-	}
+  /** Refrain from going deeper when visiting an inherited method
+   *  - we don't need to print its implementation */
+  public void visitInheritedMethodContainer(GNode n){
+    return;
+  }
 
   boolean inMethod = false;
 	/** 
    * Visit the specified method declaration node.
    * Only visited in implemented methods.
    */
-	public void visitMethodDeclaration(GNode n) {
+	public void visitImplementedMethodDeclaration(GNode n) {
     boolean inMain = false;
     inMethod = true;
 
