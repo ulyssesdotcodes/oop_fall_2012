@@ -15,24 +15,11 @@ this->elephant = __rt::literal("In the room");
 }
 
 
-int32_t(Bar __this) {
-  }
-
-java::lang::Objectbool(Bar __this, obj) {
-  }
-
-java::lang::Objectjava::lang::Class(Bar __this) {
-  }
-
-java::lang::Objectjava::lang::String(Bar __this) {
-  return __rt::literal("FOO");
-}
-
-Foojava::lang::String(Bar __this) {
+java::lang::String __Bar::allTheAnimals(Bar __this) {
   return __this->zebra__this->elephant;
 }
 
-(Bar __this, args) {
+ main(int argc, char** argv) {
   std::cout <<  << std::endl ;
 std::cout <<  << std::endl ;
 }
@@ -49,24 +36,15 @@ __Foo::__Foo() : __vptr(&__vtable)    {
 }
 
 
-int32_t(Foo __this) {
-  }
-
-java::lang::Objectbool(Foo __this, obj) {
-  }
-
-java::lang::Objectjava::lang::Class(Foo __this) {
-  }
-
-java::lang::Objectjava::lang::String(Foo __this) {
+java::lang::String __Foo::toString(Foo __this) {
   return __rt::literal("FOO");
 }
 
-java::lang::String(Foo __this) {
+java::lang::String __Foo::allTheAnimals(Foo __this) {
   return __this->zebra;
 }
 
-(Foo __this, args) {
+ main(int argc, char** argv) {
   std::cout << __rt::literal("hello");
 }
 

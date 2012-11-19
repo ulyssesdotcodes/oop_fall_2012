@@ -115,7 +115,7 @@ public class HeaderWriter extends Visitor {
 
   public void visitInheritedMethodContainer(GNode n){
     inherited = true;
-    visit(n);
+    inherited_methods.add(n);
     inherited = false;
   }
 
@@ -366,7 +366,8 @@ public class HeaderWriter extends Visitor {
   private void writeInheritedVTMethods(GNode n) {
     String current_class = name(n);
     for (GNode m : inherited_methods) {
-      writeVTMethod(m, current_class);
+      //Get the implementedMethodDec node of the inheritedMethodContainer and write the VT method from it.
+      writeVTMethod(m.getGeneric(0), current_class);
     }
   }
 
@@ -442,6 +443,9 @@ public class HeaderWriter extends Visitor {
   }
 
   private void writeInheritedVTAddress(GNode n, String current_class) {
+    GNode inheritedMethodContainer;
+    inheritedMethodContainer = n;
+    n = inheritedMethodContainer.getGeneric(0);
     indentOut().p(n.getString(0)).p("((");
     printer.p(getType(n, true));
     printer.p("(*)(").p(current_class);
@@ -461,7 +465,7 @@ public class HeaderWriter extends Visitor {
   
       //printer.p(", <formal params>");
     // following line gets From field from method node
-    printer.p("))&").p(getTypeDirect(n.getGeneric(3).getGeneric(0), false))
+    printer.p("))&").p(getTypeDirect(inheritedMethodContainer.getGeneric(1).getGeneric(0), false))
       .p("::").p(name(n)).p(")");
   }
 
