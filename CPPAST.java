@@ -119,6 +119,8 @@ public class CPPAST {
     classNode.addNode(GNode.create("Fields"));
     classNode.addNode(GNode.create("Methods"));
     classes.addNode(classNode);
+    
+    System.out.println("Class added");
     return classNode;
   }
  
@@ -302,6 +304,7 @@ public class CPPAST {
    * @param method Method node.
    */ 
   void setMethodInstructions(GNode block, GNode method) {
+    System.out.println("In CPPAST:setMethodInstructions");
     method.remove(3);
     method.add(3, block);
   }

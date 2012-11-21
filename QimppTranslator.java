@@ -145,13 +145,16 @@ public class QimppTranslator extends Tool {
         //add the current class to the inheritance tree, but parent it to Object for now
         String[] qualified = n.getString(1).split("\\.");
         treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualified)), null, currentClass);
-        
+       
+        System.out.println("Inserted class in tree manager"); 
         visit(n);
       }
       
       public void visitCompilationUnit(GNode n) {
         
+        System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
         visit(n);
+        System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
         //Print the AST after we're done for debugging
         //cppast.printAST();
         try{
@@ -248,15 +251,25 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitMethodDeclaration(GNode n) {
+        System.out.println("at QimmppTranslator.java:visitMethodDeclaration");
         //TODO: math names and remove
         try{
 
           currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
+
+        System.out.println("at QimmppTranslator.java:visitMethodDeclaration after cppast.addMethod");
           //Add the method params gotten by dispatching the formalParameters node
           cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
           //Add the method block gotten by dispatching the block node
-          cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
 
+        System.out.println("at QimmppTranslator.java:visitMethodDeclaration cppast.setMethodParameters");
+        System.out.println("currentMethod: " + currentMethod);
+        //System.out.println("getGeneric(7): " + n.getGeneric(7));
+        System.out.println(dispatch(n.getGeneric(7)));
+        System.out.println("valid gnode: " + getValidGNode(dispatch(n.getGeneric(7))));  
+        cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
+         
+        System.out.println("at QimmppTranslator.java:visitMethodDeclaration.end");
         } catch(Exception e) { e.printStackTrace(); }
       }
 
@@ -275,7 +288,7 @@ public class QimppTranslator extends Tool {
         GNode identifier = n.getGeneric(0);
         String typename = identifier.getString(0);
         
-        if(identifier.hasName("PrimitiveIdentifier")){
+        if(identifier.hasName("PrimitiveType")){
           GNode type = GNode.create("Type");
           type.addNode(GNode.create("PrimitiveIdentifier")).getGeneric(1).add(Type.primitiveType(typename));
           return type;
@@ -312,7 +325,9 @@ public class QimppTranslator extends Tool {
               }
 
               catch (Exception e){
-                //System.err.println("Cannot parse " + typename + " " + e);
+                System.err.println("Cannot parse " + typename + " " + e);
+                cppast.printAST();
+                e.printStackTrace();
                 System.exit(1);
               }
               // Fail and crash with error if the file cannot be located
@@ -340,11 +355,14 @@ public class QimppTranslator extends Tool {
       
       //Takes an object, if it's a GNode returns it otherwise puts the object on a container with the name "something went wrong"
       public GNode getValidGNode(Object o){
-        if(o instanceof GNode)
+        if(o instanceof GNode) {
+          System.out.println(o);
           return (GNode)o;
-        else{
+        }
+        else {
           GNode container = GNode.create("Something went wrong parsing");
           container.add(o);
+          System.out.println(container);
           return container;
         }
       }
