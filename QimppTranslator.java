@@ -290,6 +290,10 @@ public class QimppTranslator extends Tool {
         } catch(Exception e) { e.printStackTrace(); }
       }
 
+      public void visitPackageDeclaration(GNode n){
+        System.out.println("Package " + dispatch(n.getGeneric(1)));
+      }
+
       public void visitStringLiteral(GNode n){
         visit(n);
       }

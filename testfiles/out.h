@@ -49,6 +49,7 @@ struct __Foo_VT {
 struct __Bar {
 
   __Bar_VT* __vptr;
+  java::lang::String zebra;
   java::lang::String elephant;
   Bar bar;
 
