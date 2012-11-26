@@ -1,10 +1,11 @@
-#/usr/bin/python
+#!/usr/bin/python
 """
 A simple Python testing suite, which uses qimmp.Translator
 """
 
 import os
 import re
+import sys
 
 
 #Figure out which tests we'll run
@@ -16,9 +17,23 @@ for filename in files:
   if os.path.isfile(filename) and re.match("^Test.*\\.java$", filename):
     numtests += 1
 
-# Loop through all test files
+print "\n===================="
+# Check if a specific test was specified on the command line
+try:
+  print "Selected test: " + sys.argv[1]
+  testnumber = int(sys.argv[1])
+except:
+  testnumber = numtests + 1
 
-count = 1
+if testnumber <= numtests and testnumber > 0:
+  count = testnumber
+  numtests = testnumber
+else:
+  count = 1
+
+# Loop through all test files, or if a single one is specified, do that
+# one
+
 while count <= numtests:
 
   print "\n\n----------------------------"
@@ -28,11 +43,11 @@ while count <= numtests:
   
   # Translate
   
-  os.system( "java qimpp.QimppTranslator " + "Test"+str(count)+".java" )
+  os.system( "java qimpp.QimppTranslator " + "Test"+str(count)+".java > /dev/null" )
 
   # Compile
 
-  compile_succeded = not os.system("g++ java_lang.cc out.cc")
+  compile_succeded = (0 == os.system("g++ java_lang.cc out.cc"))
 
   # Run test and put output into file
 
@@ -47,12 +62,12 @@ while count <= numtests:
   
   else:
     # Run output file
-
-    # Run java test
-
+    os.system( "./a.out > cpp.output" )
     # Diff output files
-
-    pass
+    print "\n==============================="
+    print "DIFF"
+    print "==============================="
+    os.system( "diff java.output cpp.output" )
 
   count += 1
   
