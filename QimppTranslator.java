@@ -39,6 +39,8 @@ import xtc.tree.Printer;
 
 import xtc.util.Tool;
 
+import qimpp.SymbolTable;
+
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
@@ -106,6 +108,13 @@ public class QimppTranslator extends Tool {
   }
 
   public void process(Node node) {
+    /** SYMBOL TABLE */
+    SymbolTable table = new SymbolTable();
+    table.incorporate(node);
+    // Now we can call .getProperty("qimpp.Constants.SCOPE") on certain
+    // scope-defining nodes and we'll get back a Scope object (look in
+    // SymbolTable).
+
     new Visitor() {
 
       public GNode visitBlock(GNode n) {
