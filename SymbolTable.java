@@ -27,6 +27,9 @@ import java.util.Map;
 
 import qimpp.Constants;
 import qimpp.Utilities;
+import qimpp.Type;
+import qimpp.PrimitiveType;
+import qimpp.QualifiedType;
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -534,7 +537,7 @@ public class SymbolTable {
           } else if (hasVisitor && (value instanceof Node)) {
             printer.p((Node)value);
           } else if (value instanceof String) {
-            printer.p('"').escape((String)value, Utilities.JAVA_ESCAPES).p('"');
+            printer.p('"').escape((String)value, Constants.JAVA_ESCAPE).p('"');
           } else {
             try {
               printer.p(value.toString());
@@ -1061,7 +1064,7 @@ public class SymbolTable {
         Scope context = table.current().lookupScope(n.getString(0));
         if (null != context) {
           table.setScope(context);
-          table.mark(n);
+          table.mark(n); // mark scope
           table.setScope(currentScope);
         }
       }

@@ -30,6 +30,7 @@ import xtc.parser.Result;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
+import xtc.tree.Printer;
 
 import xtc.util.Tool;
 
@@ -56,14 +57,21 @@ public class Qimpp extends Tool {
   }
 
   public String getCopy() {
-    return "(C) 2012 qimpp";
+    return "(C) 2012 Qimpp";
   }
 
   public void init() {
     super.init();
-    
-    runtime.
-      bool("printJavaAST", "printJavaAST", false, "Print Java AST.");
+
+    /**
+     * Difference between "print" and "write" in this usage is *persistence*:
+     * To "print" means to flush to console.
+     * To "write" means to flush to a file.
+     */
+    runtime
+      .bool("printJavaAST", "printJavaAST", false, "Print Java AST.")
+      .bool("printCppAST", "printCppAST", false, "Print translated C++ AST")
+      .bool("writeSource", "writeSource", true, "Write source to out");
   }
 
   public void prepare() {
@@ -90,9 +98,27 @@ public class Qimpp extends Tool {
       runtime.console().format(node).pln().flush();
     }
 
+    // - Declarations should have types
+    // - While there are multiple files to read in, keep incorporating
+    //  table.
+
     symbolTable.incorporate(node);
-    Translator t = new Translator();
-    t.process(node, "");
+    
+    GNode cNode = (GNode)node;
+
+    Printer printer = new Printer(System.out);
+
+    if (runtime.test("printCppAST")) {
+      runtime.console().format(cNode).pln().flush(); 
+    }
+
+    if (runtime.test("writeSource")) {
+      //new HWriter(printer).dispatch(test);
+      //new CCWriter(Constants.OUTPUT_IMPLEMENTATION_FILE)
+      //   .dispatch(cNode);
+    }
+
+    System.out.println("*** Translated ***");
   }
 
   /**

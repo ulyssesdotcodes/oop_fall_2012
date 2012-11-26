@@ -172,7 +172,6 @@ public class ImplementationWriter extends Visitor {
 
   /** Visit the specified expression node. */
 	public void visitExpression(GNode n) {
-		
     dispatch(n.getGeneric(0));
 		printer.p(' ').p(n.getString(1)).p(' ');
 		dispatch(n.getGeneric(2));
