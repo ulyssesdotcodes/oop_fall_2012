@@ -65,6 +65,7 @@ SOURCE = \
 	test/StoreTest.java \
 	test/SymbolTableTest.java \
 	test/TypeTest.java \
+	test/ScopeTest.java \
 	Variable.java \
 	StaticVariable.java \
 	ParameterVariable.java \

@@ -68,36 +68,34 @@ public class Klass {
   class Method extends Member {
  
     /** Method parameters list. */
-    ArrayList<Variable.Parameter> parameters;
+    ArrayList<ParameterVariable> parameters;
 
     /** Body. */
     // TODO
 
-
     /**
      * Method constructor.
      *
-     * @param name The method name.
      * @param type The return type of the method.
+     * @param name The method name.
      */
-    public Method(String name,
-                  Type type) {
-      this(name, type, new ArrayList<Variable.Parameter>());
+    public Method(Type type, String name) {
+      this(type, name, new ArrayList<ParameterVariable>());
     }
 
     /**
      * Method constructor.
      *
-     * @param name The method name.
      * @param type The return type of the method.
+     * @param name The method name.
      * @param parameters The method parameters, if any.
      */
-    public Method(String name,
-                  Type type,
-                  ArrayList<Variable.Parameter> parameters) {
+    public Method(Type type,
+                  String name,
+                  ArrayList<ParameterVariable> parameters) {
       this.implementor  = Klass.this;
-      this.name         = name;
       this.type         = type;
+      this.name         = name;
       this.parameters   = parameters;
 
       Klass.this.methods.add(this);
@@ -108,7 +106,7 @@ public class Klass {
      *
      * @return method parameters, if any.
      */
-    public ArrayList<Variable.Parameter> getParameters() {
+    public ArrayList<ParameterVariable> getParameters() {
       return this.parameters;
     }
 
@@ -194,8 +192,5 @@ public class Klass {
   public ArrayList<Field> getFields() {
     return this.fields;
   }
-
-
-
 
 }

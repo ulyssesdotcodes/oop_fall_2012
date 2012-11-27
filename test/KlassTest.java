@@ -77,15 +77,14 @@ public class KlassTest {
     Klass klass = new Klass("A");
 
     // primitive return type, no parameters
-    Klass.Method methodOne = klass.new Method("doFoo", 
-                                              new PrimitiveType("int"));
+    Klass.Method methodOne = klass.new Method(new PrimitiveType("int"),
+                                              "doFoo");
     assertTrue(1 == klass.getMethods().size());
     assertTrue(methodOne.getName().equals("doFoo"));
     assertTrue(methodOne.getType().getName().equals("int32_t"));
     assertTrue(0 == methodOne.getParameters().size());
 
     // primitive return type, several parameters
-    
     final ParameterVariable p1 = 
       new ParameterVariable(new PrimitiveType("int"), "hello", true);
     final ParameterVariable p2 = 
@@ -95,8 +94,9 @@ public class KlassTest {
       add(p1);
       add(p2);
     }};
-    Klass.Method methodTwo = klass.new Method("doBar",
-                                              new PrimitiveType("boolean"));
+    Klass.Method methodTwo = klass.new Method(new PrimitiveType("boolean"),
+                                              "doBar",
+                                              parameters);
     assertTrue(2 == klass.getMethods().size());
     assertTrue(methodTwo.getName().equals("doBar"));
     assertTrue(methodTwo.getType().getName().equals("bool"));
@@ -107,11 +107,29 @@ public class KlassTest {
     assertTrue(methodTwo.getParameters().get(1).getName().equals("b"));
     assertTrue(!methodTwo.getParameters().get(1).isPointer());
 
-    
     // qualified return type, no parameters
-    
-    // qualified return type, several parameters 
+    Klass.Method methodThree = klass.new Method(new QualifiedType("C"),
+                                              "doBaz");
+    assertTrue(3 == klass.getMethods().size());
+    assertTrue(methodThree.getName().equals("doBaz"));
+    assertTrue(methodThree.getType().getName().equals("C"));
+    assertTrue(methodThree.getType().getQualifiedName().equals("::C"));
+    assertTrue(0 == methodThree.getParameters().size());
 
+    // qualified return type, several parameters 
+    Klass.Method methodFour = klass.new Method(new QualifiedType("C"),
+                                              "doQux",
+                                              parameters);
+    assertTrue(4 == klass.getMethods().size());
+    assertTrue(methodFour.getName().equals("doQux"));
+    assertTrue(methodFour.getType().getName().equals("C"));
+    assertTrue(methodFour.getType().getQualifiedName().equals("::C"));
+    assertTrue(2 == methodFour.getParameters().size());
+
+    assertTrue(methodFour.getParameters().get(0).getName().equals("hello"));
+    assertTrue(methodFour.getParameters().get(0).isPointer());
+    assertTrue(methodFour.getParameters().get(1).getName().equals("b"));
+    assertTrue(!methodFour.getParameters().get(1).isPointer());
   }  
 
   

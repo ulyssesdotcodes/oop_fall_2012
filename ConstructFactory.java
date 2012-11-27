@@ -31,7 +31,7 @@ package qimpp;
 
 
 /**
- * Creates Node branches for different syntactic constructs.
+ * Creates Node branches for different C++ syntactic constructs.
  *
  * @author Qimpp
  */
@@ -135,6 +135,26 @@ public class ConstructFactory {
 
   // ===========================================================================
 
+  // translationUnit is more accurate than compilationUnit
+  // http://stackoverflow.com/questions/1106149/what-is-a-translation-unit-in-c
+  public Node buildTranslationUnit(Package thePackage) {
+    GNode translationUnit =
+      Gnode.create("TranslationUnit");
+
+    translationUnit.add(buildDefaultDirectives());
+
+    // Dynamic number of children depending on number of classes,
+    // so use an iterator.
+    Iterator it = thePackage.unpack();
+    
+    while(it.hasNext()) {
+      translationUnit.add(buildClassDeclaration(it.next());
+    }
+
+    return translationUnit;
+  }
+
+
   public Node buildDeclaration(...) {
     GNode declaration = 
       GNode.create("Declaration", NS.DECLARATION);
@@ -162,13 +182,13 @@ public class ConstructFactory {
 
   // TODO
   /** Build class declaration branch. */
-  public Node buildClassDeclaration(Name identifier, Name extension, Node body) {
+  public Node buildClassDeclaration(Klass klass) {
     GNode classDeclaration =
       Gnode.create("ClassDeclaration", NS.CLASS_DECLARATION);
 
-    classDeclaration.set(0, buildQualifiedIdentifier(identifier));
-    classDeclaration.set(1, buildExtension(extension));
-    classDeclaration.set(2, buildClassBody(members));
+    classDeclaration.set(0, buildQualifiedIdentifier(klass.identifier));
+    classDeclaration.set(1, buildExtension(klass.extension));
+    classDeclaration.set(2, buildClassBody(klass.members));
 
     return classDeclaration;
   }
