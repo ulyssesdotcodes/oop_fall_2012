@@ -514,8 +514,10 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified string literal node. */
 	public void visitStringLiteral(GNode n) {
-		printer.p("__rt::literal(").p(n.getString(0)).p(')');
-	}
+		final int prec = startExpression(160);
+    printer.p("__rt::literal(").p(n.getString(0)).p(')');
+	  endExpression(prec);
+  }
 
   /** Visit the specified boolean literal. */
   public void visitBooleanLiteral(GNode n) {
@@ -625,6 +627,8 @@ public class ImplementationPrinter extends Visitor {
     printer.p(')');
   } 
 
+
+
 // TODO: CHANGE THIS BACK
   /** Visit the specified arguments node. */
 /*  public void visitArguments(GNode n) {
@@ -646,6 +650,18 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
+    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
+
+    final int prec2 = enterContext();
+    printer.p(n.getNode(2));
+    exitContext(prec2);
+
+    endExpression(prec1);
+  }
+
+  /** Visit the specified multiplicative expression. */
+  public void visitMultiplicativeExpression(GNode n) {
+    final int prec1 = startExpression(130);
     printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
 
     final int prec2 = enterContext();
@@ -750,6 +766,21 @@ public class ImplementationPrinter extends Visitor {
       printer.p(" = ").p(n.getNode(2));
     }
   }
+
+  /** Visit the specified floating point literal. */
+  public void visitFloatingPointLiteral(GNode n) {
+    final int prec = startExpression(160);
+    printer.p(n.getString(0));
+    endExpression(prec);
+  }
+
+  /** Visit the specified character literal. */
+  public void visitCharacterLiteral(GNode n) {
+    final int prec = startExpression(160);
+    printer.p(n.getString(0));
+    endExpression(prec);
+  }
+
 
   /** Visit the specified integer literal. */
   public void visitIntegerLiteral(GNode n) {
