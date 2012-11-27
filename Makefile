@@ -57,13 +57,14 @@ SOURCE = \
 	PrimitiveType.java \
 	Qimpp.java \
 	QualifiedType.java \
-	SymbolTable.java \
 	Store.java \
+	SymbolTable.java \
 	Type.java \
+	test/KlassTest.java \
 	test/QimppTest.java \
+	test/StoreTest.java \
 	test/SymbolTableTest.java \
-	test/TypeTest.java \
-	test/StoreTest.java
+	test/TypeTest.java 
 
 JNI_SOURCE =
 

@@ -40,11 +40,7 @@ public class StoreTest {
 
   @Test
   public void addMembers() {
-    Klass klass = new Klass("A");
-    Klass.Field field = klass.new Field();
-    Klass.Method method = klass.new Method();
-    klass.getMethods().size();
-    klass.getFields().size();
+
   }
 
   @Test

@@ -16,10 +16,30 @@ public class Klass {
    * Member of a class.
    */
   abstract class Member {
-    final String name;            // might need to be freshly generated
-    final Klass implementor;
+    String name;            // might need to be freshly generated
+    Klass implementor;
     Type type;
+
+    /**
+     * Accessor for name.
+     *
+     * @return field name.
+     */
+    public String getName() {
+      return this.name;
+    } 
+
+    /**
+     * Accessor for type.
+     *
+     * @return field type.
+     */
+    public Type getType() {
+      return this.type;
+    }
   }
+
+  // ===========================================================================
 
   /**
    * Field of a class. Is a member.
@@ -30,16 +50,19 @@ public class Klass {
      * Field constructor.
      *
      * @param name The field name.
-     * @param implementor The class that implements this field.
      * @param type The type of the field.
      */
-    public Field(String name, Klass implementor, Type type) {
-      this.name         = name;
+    public Field(String name, Type type) {
       this.implementor  = Klass.this;
+      this.name         = name;
       this.type         = type;
+
+      Klass.this.fields.add(this);
     } 
-    
+  
   }
+
+  // ===========================================================================
 
   /**
    * Method of a class. Is a member.
@@ -52,22 +75,43 @@ public class Klass {
     /** Body. */
     // TODO
 
+
     /**
      * Method constructor.
      *
      * @param name The method name.
-     * @param implementor The class that implements the method.
+     * @param type The return type of the method.
+     */
+    public Method(String name,
+                  Type type) {
+      this(name, type, new ArrayList<Type>());
+    }
+
+    /**
+     * Method constructor.
+     *
+     * @param name The method name.
      * @param type The return type of the method.
      * @param parameters The method parameters, if any.
      */
     public Method(String name,
-                  Klass implementor, 
                   Type type,
                   ArrayList<Type> parameters) {
-      this.name         = name;
       this.implementor  = Klass.this;
+      this.name         = name;
       this.type         = type;
       this.parameters   = parameters;
+
+      Klass.this.methods.add(this);
+    }
+
+    /**
+     * Accessor for parameters.
+     *
+     * @return method parameters, if any.
+     */
+    public ArrayList<Type> getParameters() {
+      return this.parameters;
     }
 
   }
@@ -125,6 +169,35 @@ public class Klass {
     this.fields  = fields;
     this.methods = methods;
   }
+
+  /**
+   * Get class parent.
+   *
+   * @return class parent.
+   */
+  public Klass getParent() {
+    return this.parent;
+  }
+
+  /**
+   * Get methods of the class.
+   *
+   * @return methods of the class.
+   */
+  public ArrayList<Method> getMethods() {
+    return this.methods;
+  }
+
+  /**
+   * Get fields of the class.
+   *
+   * @return fields of the class.
+   */
+  public ArrayList<Field> getFields() {
+    return this.fields;
+  }
+
+
 
 
 }
