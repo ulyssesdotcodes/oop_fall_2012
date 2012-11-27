@@ -33,15 +33,262 @@ public class ImplementationPrinter extends Visitor {
    */
   protected GNode mainMethod;
 
-	/** 
+   /**
+   * The flag for whether to line up declarations and statements with
+   * their source locations.
+   */
+  protected final boolean lineUp;
+
+  /** The operator precedence level for the current expression. */
+  protected int precedence;
+  
+  
+  /** The flag for whether we just printed a declaration. */
+  protected boolean isDeclaration;
+  
+  
+  /** The flag for whether we just printed a statement. */
+  protected boolean isStatement;
+  
+  
+  /** The flag for whether the last statement ended with an open line. */
+  protected boolean isOpenLine;
+  
+  /**
+   * The flag for whether the current statement requires nesting or
+   * for whether the current declaration is nested within a for
+   * statement.
+   */
+  protected boolean isNested;
+
+  /**
+   * The flag for whether this statement is the else clause of an
+   * if-else statement.
+   */
+  protected boolean isIfElse;
+
+  /**
+   * The flag for whether you are in the main method
+   * 
+   */
+  protected boolean inMain;
+
+
+  /**
+   * The list precedence level.  This level corresponds to the
+   * assignment expression nonterminal.
+   */
+  public static final int PREC_LIST = 10;
+
+  /**
+   * The base precedence level. This level corresponds to the
+   * expression nonterminal.
+   */
+  public static final int PREC_BASE = 0;
+  
+  /** The flag for any statement besides an if or if-else statement. */
+  public static final int STMT_ANY = 0;
+
+  /** The flag for an if statement. */
+  public static final int STMT_IF = 1;
+
+  /** The flag for an if-else statement. */
+  public static final int STMT_IF_ELSE = 2;
+
+
+  /** 
 	 * Create a new C++ printer.
 	 *
 	 * @param printer The printer.
+   * @param lineUp The flag for whether to line up declarations and 
+   * statements with their source locations.
 	 */
 	public ImplementationPrinter(Printer printer) {
 		this.printer = printer;
-		printer.register(this);
+		this.lineUp = true;
+    printer.register(this);
 	}
+
+
+   /**
+   * Enter an expression contexti (Java AST).  The new context has the specified
+   * precedence level.
+   *
+   * @see #exitContext(int)
+   *
+   * @param prec The precedence level for the expression context.
+   * @return The previous precedence level.
+   */
+  protected int enterContext(int prec) {
+    int old    = precedence;
+    precedence = prec;
+    return old;
+  }
+
+  /**
+   * Enter an expression context.  The new context is appropriate for
+   * an operand opposite the associativity of the current operator.
+   * For example, when printing an additive expression, this method
+   * should be called before printing the second operand, as additive
+   * operators associate left-to-right.
+   *
+   * @see #exitContext(int)
+   *
+   * @return The previous precedence level.
+   */
+  protected int enterContext() {
+    int old     = precedence;
+    precedence += 1;
+    return old;
+  }
+
+
+
+/**
+   * Exit an expression context.
+   *
+   * @see #enterContext(int)
+   * @see #enterContext()
+   *
+   * @param prec The previous precedence level.
+   */
+  protected void exitContext(int prec) {
+    precedence = prec;
+  }
+
+ /**
+   * Print an expression as a truth value.  This method prints the
+   * specified node.  If that node represents an assignment expression
+   * and {@link #EXTRA_PARENTHESES} is <code>true</code>, this method
+   * adds an extra set of parentheses around the expression to avoid
+   * gcc warnings.
+   *
+   * @param n The node to print.
+   */
+ 
+  protected void formatAsTruthValue(Node n) {
+    if (GNode.cast(n).hasName("AssignmentExpression")) {
+      printer.p('(').p(n).p(')');
+    } else {
+      printer.p(n);
+    }
+  }
+
+  /**
+   * Start a new statement (C AST).  This method and the corresponding {@link
+   * #prepareNested()} and {@link #endStatement(boolean)} methods
+   * provide a reasonable default for newlines and indentation when
+   * printing statements.  They manage the {@link #isDeclaration},
+   * {@link #isStatement}, {@link #isOpenLine}, {@link #isNested}, and
+   * {@link #isIfElse} flags.
+   *
+   * @param kind The kind of statement, which must be one of the
+   *   three statement flags defined by this class.
+   * @param node The statement's node.
+   * @return The flag for whether the current statement is nested.
+   */
+  protected boolean startStatement(int kind, Node node) {
+    if (isIfElse && ((STMT_IF == kind) || (STMT_IF_ELSE == kind))) {
+      isNested = false;
+    } else {
+      if (lineUp) {
+        if (isOpenLine) printer.pln();
+        printer.lineUp(node);
+      } else {
+        if (isDeclaration || isOpenLine) {
+          printer.pln();
+        }
+      }
+      if (isNested) {
+        printer.incr();
+      }
+    }
+
+    isOpenLine     = false;
+    boolean nested = isNested;
+    isNested       = false;
+
+    return nested;
+  }
+
+  // Java AST
+  protected boolean startStatement(int kind) {
+    if (isIfElse && ((STMT_IF == kind) || (STMT_IF_ELSE == kind))) {
+      isNested = false;
+    } 
+    else {
+      if (isOpenLine) printer.pln();
+      if (isDeclaration) printer.pln();
+      if (isNested) printer.incr();
+    }
+    isOpenLine = false;
+    boolean nested = isNested;
+    isNested = false;
+                 
+    return nested;
+  }
+
+  /**
+   * Prepare for a nested statement.
+   *
+   * @see #startStatement
+   */
+  protected void prepareNested() {
+    isDeclaration = false;
+    isStatement   = false;
+    isOpenLine    = true;
+    isNested      = true;
+  }
+
+  protected void endStatement(boolean nested) {
+    if (nested) {
+      printer.decr();
+    }
+    isDeclaration = false;
+    isStatement   = true;
+  }
+
+  /**
+   * Start printing an expression at the specified operator precedence
+   * level.
+   *
+   * @see #endExpression(int)
+   *
+   * @param prec The expression's precedence level.
+   * @return The previous precedence level.
+   */
+  protected int startExpression(int prec) {
+    if (prec < precedence) {
+      printer.p('(');
+    }
+		
+    int old    = precedence;
+    precedence = prec;
+    return old;
+  }
+
+  /**
+   * Stop printing an expression.
+   *
+   * @see #startExpression(int)
+   *
+   * @param prec The previous precedence level.
+   */
+  protected void endExpression(int prec) {
+    if (precedence < prec) {
+      printer.p(')');
+    }
+    precedence = prec;
+  }
+
+   /**
+   * Print empty square brackets for the given number of dimensions.
+   * 
+   * @param n Number of dimensions to print.
+   */
+  protected void formatDimensions(final int n) {
+    for (int i=0; i<n; i++) printer.p("[]");
+  }
 
   /** Visit the specified compilation unit node. */
 	public void visitCompilationUnit(GNode n) {
@@ -137,7 +384,7 @@ public class ImplementationPrinter extends Visitor {
    * Only visited in implemented methods.
    */
 	public void visitImplementedMethodDeclaration(GNode n) {
-    boolean inMain = false;
+    inMain = false;
     inMethod = true;
 
   	if (n.getString(0).equals("main")) {
@@ -151,13 +398,15 @@ public class ImplementationPrinter extends Visitor {
       printer.p(" __").p(this.currentClass);
       printer.p("::").p(n.getString(0)); // method name  
       dispatch(n.getGeneric(2)); // parameters
-    } else {
+    } 
+    else {
       printer.p(" main(int argc, char** argv)"); // method name
     }
     dispatch(n.getGeneric(3)); // block
 		printer.flush();
 
     inMethod = false;
+    inMain = false;
 	}
 
   public void visitBlock(GNode n) {
@@ -239,16 +488,21 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified primary identifier node. */
 	public void visitPrimaryIdentifier(GNode n) {
     //TODO:HACK
-    if ( inPrintStatement ) {
+    if (inPrintStatement) {
       return;
     }
-
-    else if ( !inConstructor ) {
-		  printer.p("__this->").p(n.getString(0));
-    }
-
     else {
-      printer.p("this->").p(n.getString(0));
+      final int prec = startExpression(160);
+      if (inMain) {
+        printer.p(n.getString(0));
+      }
+      else if (!inConstructor) {
+		    printer.p("__this->").p(n.getString(0));
+      }
+      else {
+        printer.p("this->").p(n.getString(0));
+      }
+      endExpression(prec);
     }
 	}
 
@@ -262,6 +516,13 @@ public class ImplementationPrinter extends Visitor {
 	public void visitStringLiteral(GNode n) {
 		printer.p("__rt::literal(").p(n.getString(0)).p(')');
 	}
+
+  /** Visit the specified boolean literal. */
+  public void visitBooleanLiteral(GNode n) {
+    final int prec = startExpression(160);
+    printer.p(n.getString(0));
+    endExpression(prec);
+  }
 
   /** Visit the specified formal parameters node. */
 	public void visitFormalParameters(GNode n) {
@@ -279,6 +540,14 @@ public class ImplementationPrinter extends Visitor {
 	public void visitType(GNode n) {
 		visit(n);
 	}
+
+  /** Visit the specified field declaration. */
+  public void visitFieldDeclaration(GNode n) {
+    printer.indent().p(n.getNode(0)).p(n.getNode(1)).p(' ').p(n.getNode(2)).
+      p(';').pln();
+    isDeclaration = true;
+    isOpenLine    = false;
+  }
 
   /** Visit the specified primitive type node. */
   public void visitPrimitiveType(GNode n) {
@@ -344,10 +613,23 @@ public class ImplementationPrinter extends Visitor {
     // Do nothing for now
   }
 
-  /** Visit the specified arguments node. */
+  /** Visit the specified arguments. */
   public void visitArguments(GNode n) {
+    printer.p('(');
+    for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
+      final int prec = enterContext(PREC_LIST);
+      printer.p((Node)iter.next());
+      exitContext(prec);
+      if (iter.hasNext()) printer.p(", ");
+    }
+    printer.p(')');
+  } 
+
+// TODO: CHANGE THIS BACK
+  /** Visit the specified arguments node. */
+/*  public void visitArguments(GNode n) {
     visit(n); // one string literal for now
-  }
+  } */
 
   /** Visit the specified string concatination expression node. */
 	public void visitStringConcatExpression(GNode n) {
@@ -361,6 +643,199 @@ public class ImplementationPrinter extends Visitor {
 		}
 	}
 
+  /** Visit the specified additive expression. */
+  public void visitAdditiveExpression(GNode n) {
+    final int prec1 = startExpression(120);
+    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
+
+    final int prec2 = enterContext();
+    printer.p(n.getNode(2));
+    exitContext(prec2);
+
+    endExpression(prec1);
+  }
+
+  /** Visit the specified conditional statement. */
+  public void visitConditionalStatement(GNode n) {
+    final int     flag   = null == n.get(2) ? STMT_IF : STMT_IF_ELSE;
+    final boolean nested = startStatement(flag);
+    if (isIfElse) {
+      printer.p(' ');
+    } else {
+      printer.indent();
+    }
+    printer.p("if (").p(n.getNode(0)).p(')');
+    prepareNested();
+    printer.p(n.getNode(1));
+    if (null != n.get(2)) {
+      if (isOpenLine) {
+        printer.p(" else");
+      } else {
+        printer.indent().p("else");
+      }
+      prepareNested();
+      boolean ifElse = isIfElse;
+      isIfElse       = true;
+      printer.p(n.getNode(2));
+      isIfElse       = ifElse;
+    }
+    endStatement(nested);
+  }
+
+
+ 
+/** Visit the specified for statement. */
+  public void visitForStatement(GNode n) { 
+    final boolean nested = startStatement(STMT_ANY);
+
+    printer.indent().p("for (").p(n.getNode(0)).p(')');
+    prepareNested();
+    printer.p(n.getNode(1));
+                  
+    endStatement(nested);
+  }
+
+  /** Visit the specified basic for control. */
+  public void visitBasicForControl(GNode n) { 
+    printer.p(n.getNode(0));
+    if (null != n.get(1)) printer.p(n.getNode(1)).p(' ');
+
+    final int prec1 = enterContext(PREC_BASE);
+    printer.p(n.getNode(2)).p("; ");
+    exitContext(prec1);
+
+    if (null != n.get(3)) {
+      final int prec2 = enterContext(PREC_BASE);
+      formatAsTruthValue(n.getNode(3));
+      exitContext(prec2);
+    }    
+    
+    printer.p("; ");
+    final int prec3 = enterContext(PREC_BASE);
+    printer.p(n.getNode(4));
+    exitContext(prec3);
+  } 
+
+  /** Visit the specified while statement. */
+  public void visitWhileStatement(GNode n) {
+    final boolean nested = startStatement(STMT_ANY);
+    printer.indent().p("while (").p(n.getNode(0)).p(')');
+    prepareNested();
+    printer.p(n.getNode(1));
+    endStatement(nested);
+  }
+
+  /** Visit the specified equality expression. */
+  public void visitEqualityExpression(GNode n) {
+    final int prec1 = startExpression(80);
+    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
+    final int prec2 = enterContext();
+    printer.p(n.getNode(2));
+    exitContext(prec2);
+    endExpression(prec1);
+  }
+
+
+  /** Visit the specified declarator. */
+  public void visitDeclarator(GNode n) {
+    printer.p(n.getString(0));
+    if(null != n.get(1)) {
+      if (Token.test(n.get(1))) {
+        formatDimensions(n.getString(1).length());
+      } else {
+        printer.p(n.getNode(1));
+      }
+    }
+    if(null != n.get(2)) {
+      printer.p(" = ").p(n.getNode(2));
+    }
+  }
+
+  /** Visit the specified integer literal. */
+  public void visitIntegerLiteral(GNode n) {
+    final int prec = startExpression(160);
+    printer.p(n.getString(0));
+    endExpression(prec);
+  }
+
+  /** Visit the specified postfix expression. */
+  public void visitPostfixExpression(GNode n) {
+    final int prec = startExpression(160);
+    printer.p(n.getNode(0)).p(n.getString(1));
+    endExpression(prec);
+  }
+
+
+
+  /** Visit the specified expression list. */
+  public void visitExpressionList(GNode n) {
+    for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
+      final int prec = enterContext(PREC_LIST);
+      printer.p((Node)iter.next());
+      exitContext(prec);
+      if (iter.hasNext()) printer.p(", ");
+    }
+  }
+ 
+
+  /** Visit the specified relational expression. */
+  public void visitRelationalExpression(GNode n) {
+    final int prec1 = startExpression(100);
+    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
+    final int prec2 = enterContext();
+    printer.p(n.getNode(2));
+    exitContext(prec2);
+
+    endExpression(prec1);
+  }
+
+
+
+  /** Visit the specified declarators. */
+  public void visitDeclarators(GNode n) {
+    for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
+      printer.p((Node)iter.next());
+      if (iter.hasNext()) printer.p(", ");
+    }
+  }
+
+
+ 
+/** Visit the specified for statement node. */
+/*
+  public void visitForStatement(GNode n) {
+    boolean nested = startStatement(STMT_ANY, n);
+
+    printer.indent().p("for (");
+    if (null != n.get(0)) {
+      int prec = enterContext(PREC_BASE);
+      printer.p(n.getNode(0));
+      exitContext(prec);
+    }
+    printer.p(';');
+
+    if (null != n.get(1)) {
+      int prec = enterContext(PREC_BASE);
+      printer.p(' ');
+      formatAsTruthValue(n.getNode(1));
+      exitContext(prec);
+    }
+
+    printer.p(';');
+    if (null != n.get(2)) {
+      int prec = enterContext(PREC_BASE);
+      printer.p(' ').p(n.getNode(2));
+      exitContext(prec);
+    }
+    printer.p(')');
+
+    prepareNested();
+    printer.p(n.getNode(3));
+
+    endStatement(nested);
+  }
+
+*/
   /** Visit the specified Node. */
 	public void visit(Node n) {
 		for (Object o : n) if (o instanceof Node) dispatch((Node)o);

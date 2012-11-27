@@ -120,11 +120,19 @@ public class QimppTranslator extends Tool {
       public GNode visitBlock(GNode n) {
         //Visits a Block (a set of instructions in Java) and figures out how to translate it. Returns the GNode of the whole translated Block
         GNode block = GNode.create("Block");
-        for(Object o : n){
+        
+        //TODO: CHANGE THIS BACK
+        /*
+        for (Object o : n) {
           //dispatches each ExpressionStatement, ReturnStatement, etc.
           block.add(getValidGNode(dispatch(getValidGNode(o))));
+        } */
+        for (Object o : n) {
+          block.add(o);
         }
-        return block;
+        //TODO: CHNANGE THIS BACK
+        // return block;
+        return n;
       }
 
       public GNode visitCallExpression(GNode n) {
