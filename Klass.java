@@ -2,8 +2,6 @@ package qimpp;
 
 import java.util.ArrayList;
 
-import qimpp.Type;
-
 
 /**
  * Maintains class types expressive fields and methods.
@@ -68,9 +66,9 @@ public class Klass {
    * Method of a class. Is a member.
    */
   class Method extends Member {
-    
+ 
     /** Method parameters list. */
-    ArrayList<Type> parameters;
+    ArrayList<Variable.Parameter> parameters;
 
     /** Body. */
     // TODO
@@ -84,7 +82,7 @@ public class Klass {
      */
     public Method(String name,
                   Type type) {
-      this(name, type, new ArrayList<Type>());
+      this(name, type, new ArrayList<Variable.Parameter>());
     }
 
     /**
@@ -96,7 +94,7 @@ public class Klass {
      */
     public Method(String name,
                   Type type,
-                  ArrayList<Type> parameters) {
+                  ArrayList<Variable.Parameter> parameters) {
       this.implementor  = Klass.this;
       this.name         = name;
       this.type         = type;
@@ -110,7 +108,7 @@ public class Klass {
      *
      * @return method parameters, if any.
      */
-    public ArrayList<Type> getParameters() {
+    public ArrayList<Variable.Parameter> getParameters() {
       return this.parameters;
     }
 

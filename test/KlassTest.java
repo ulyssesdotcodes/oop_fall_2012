@@ -3,6 +3,7 @@ package qimpp;
 import static org.junit.Assert.*;
 import org.junit.*;
 
+import java.util.ArrayList;
 
 /**
  * Test suite for Klass.java.
@@ -76,14 +77,36 @@ public class KlassTest {
     Klass klass = new Klass("A");
 
     // primitive return type, no parameters
-    Klass.Method methodOne = klass.new Method("doFoo", new PrimitiveType("int"));
+    Klass.Method methodOne = klass.new Method("doFoo", 
+                                              new PrimitiveType("int"));
     assertTrue(1 == klass.getMethods().size());
     assertTrue(methodOne.getName().equals("doFoo"));
     assertTrue(methodOne.getType().getName().equals("int32_t"));
     assertTrue(0 == methodOne.getParameters().size());
 
     // primitive return type, several parameters
-    Klass.Method methodTwo = klass.new Method("doBar", new PrimitiveType("boolean"));
+    
+    final ParameterVariable p1 = 
+      new ParameterVariable(new PrimitiveType("int"), "hello", true);
+    final ParameterVariable p2 = 
+      new ParameterVariable(new QualifiedType("B"), "b");
+    ArrayList<ParameterVariable> parameters = 
+      new ArrayList<ParameterVariable> () {{
+      add(p1);
+      add(p2);
+    }};
+    Klass.Method methodTwo = klass.new Method("doBar",
+                                              new PrimitiveType("boolean"));
+    assertTrue(2 == klass.getMethods().size());
+    assertTrue(methodTwo.getName().equals("doBar"));
+    assertTrue(methodTwo.getType().getName().equals("bool"));
+    assertTrue(2 == methodTwo.getParameters().size());
+
+    assertTrue(methodTwo.getParameters().get(0).getName().equals("hello"));
+    assertTrue(methodTwo.getParameters().get(0).isPointer());
+    assertTrue(methodTwo.getParameters().get(1).getName().equals("b"));
+    assertTrue(!methodTwo.getParameters().get(1).isPointer());
+
     
     // qualified return type, no parameters
     

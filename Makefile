@@ -64,7 +64,12 @@ SOURCE = \
 	test/QimppTest.java \
 	test/StoreTest.java \
 	test/SymbolTableTest.java \
-	test/TypeTest.java 
+	test/TypeTest.java \
+	Variable.java \
+	StaticVariable.java \
+	ParameterVariable.java \
+	InstanceVariable.java \
+	LocalVariable.java
 
 JNI_SOURCE =
 
