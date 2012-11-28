@@ -37,6 +37,7 @@ public class SymbolTableTest extends Tool {
 
   /** File to parse. */
   private String fileToParse = "./input/ABCDE.java";
+  private String secondFileToParse = "./input/FGH.java";
 
   // ==========================================================
  
@@ -51,7 +52,7 @@ public class SymbolTableTest extends Tool {
     return (Node)parser.value(result);
   }
 
-  public void run() throws IOException, ParseException {
+  public void run(String fileToParse) throws IOException, ParseException {
     File file = locate(fileToParse);
     if (Integer.MAX_VALUE < file.length()) {
       throw new IllegalArgumentException(file + ": file too large");
@@ -72,7 +73,7 @@ public class SymbolTableTest extends Tool {
  
   @Before 
   public void setUp() throws IOException, ParseException {
-    run();
+    run(fileToParse);
     table = new SymbolTable();
     table.incorporate(this.tree); 
     resetToRoot();
@@ -138,5 +139,19 @@ public class SymbolTableTest extends Tool {
     SymbolTable.Scope scope = table.current().getNested("A");
     assertTrue(scope.getName().equals("A"));
     assertTrue(scope.getQualifiedName().equals("::A"));
+  }
+
+  @Test
+  public void incorporateSecondFile() throws IOException, ParseException {
+    run(secondFileToParse);
+    table.incorporate(this.tree);
+    assertTrue(null != table.lookupScope("A"));
+    assertTrue(null != table.lookupScope("B"));
+    assertTrue(null != table.lookupScope("C"));
+    assertTrue(null != table.lookupScope("D"));
+    assertTrue(null != table.lookupScope("E"));
+    assertTrue(null != table.lookupScope("F"));
+    assertTrue(null != table.lookupScope("G"));
+    assertTrue(null != table.lookupScope("H"));
   }
 }
