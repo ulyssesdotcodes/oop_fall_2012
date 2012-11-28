@@ -45,7 +45,8 @@ import xtc.util.Tool;
  */
 public class CPPAST {
   public GNode compilationUnit, directives, declarations, classes;
-  HashMap<String, GNode> classesMap; 
+  HashMap<String, GNode> classesMap;
+  HashMap<String,String> currentFieldMap; 
 
   /** Constructor */  
   public CPPAST() {
@@ -118,6 +119,9 @@ public class CPPAST {
     classNode.addNode(GNode.create("Constructors"));
     classNode.addNode(GNode.create("Fields"));
     classNode.addNode(GNode.create("Methods"));
+    currentFieldMap = new HashMap<String,String>();
+    classNode.setProperty("FieldMap", currentFieldMap);
+
     classes.addNode(classNode);
     
     System.out.println("Class added");
@@ -150,6 +154,7 @@ public class CPPAST {
     fieldNode.add(name);
     fieldNode.addNode(type);
     classNode.getGeneric(3).addNode(fieldNode);
+    currentFieldMap.put(name, classNode.getString(0) + "_" + name);
     return fieldNode;
   }
   
@@ -347,8 +352,14 @@ public class CPPAST {
     }
   }
 
-  void addAllInheritedFields(GNode parentDefinedFields, GNode parentInheritedFields, GNode currentClass){
-    return; 
+  void addAllInheritedFields(GNode parentClassNode, GNode currentClass){
+    currentClass.setProperty("FieldMap", new HashMap<String,String>((HashMap<String,String>)parentClassNode.getProperty("FieldMap")));
+    currentFieldMap = (HashMap<String,String>)currentClass.getProperty("FieldMap");
+
+    for(Object fieldobj : parentClassNode.getGeneric(3)){
+      GNode field = (GNode)fieldobj;
+      addField(field.getString(0), field.getGeneric(1), currentClass);
+    }
   }
   
 

@@ -25,6 +25,7 @@ import java.io.Reader;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import xtc.lang.JavaFiveParser;
 
@@ -211,7 +212,7 @@ public class QimppTranslator extends Tool {
         // should only be one argument to addAllInheritedMethods
         cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
 
-        //cppast.addAllInheritedFields(parentClassNode.getGeneric(3), currentClass); 
+        cppast.addAllInheritedFields(parentClassNode, currentClass); 
         parentClassNode = currentClass;
         
         //add the current class to the inheritance tree, but parent it to Object for now
@@ -242,7 +243,7 @@ public class QimppTranslator extends Tool {
         //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
         for(int i = 0; i < declarators.size(); i++){
           String name = (String)dispatch(declarators.getGeneric(i));
-          cppast.addField(name, type, currentClass);
+          cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
         }
       }
       

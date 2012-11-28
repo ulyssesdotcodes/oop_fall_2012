@@ -15,7 +15,7 @@ typedef __Foo* Foo;
 struct __Foo {
 
   __Foo_VT* __vptr;
-  java::lang::String zebra;
+  java::lang::String Foo_zebra;
 
   __Foo();
 
@@ -49,9 +49,8 @@ struct __Foo_VT {
 struct __Bar {
 
   __Bar_VT* __vptr;
-  java::lang::String zebra;
-  java::lang::String elephant;
-  Bar bar;
+  java::lang::String Foo_zebra;
+  java::lang::String Bar_elephant;
 
   __Bar();
 
