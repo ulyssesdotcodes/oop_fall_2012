@@ -26,10 +26,8 @@ import java.io.Writer;
 
 import java.util.Iterator;
 import java.util.List;
-
+import java.util.Arrays;
 import java.util.regex.Pattern;
-
-import qimpp.Constants;
 
 /**
  * Implementation of utilities for language processors, focusing on
@@ -98,24 +96,16 @@ public final class Utilities {
    * For example, the unqualified name for
    * <code>xtc.parser.Rats</code> is <code>Rats</code>.
    *
-   * @param qname The qualified name.
+   * @param qName The qualified name.
    * @return The unqualified name.
    */
-  public static String getName(String qname) {
-    boolean opaque = false;
-
-    for (int i=qname.length()-1; i>=0; i--) {
-      char c = qname.charAt(i);
-
-      if (opaque) {
-        if (Constants.START_OPAQUE == c) opaque = false;
-      } else {
-        if (Constants.QUALIFIER.equals(c)) return qname.substring(i+1);
-        if (Constants.END_OPAQUE == c) opaque = true;
-      }
+  public static String getName(String qName) {
+    for (int i = qName.length() - 2; i >= 0; i--) {
+      String s = qName.substring(i, i + 2);
+      if (Constants.QUALIFIER.equals(s)) return qName.substring(i + 2);
     }
 
-    return qname;
+    return qName;
   }
 
   /**
@@ -148,53 +138,8 @@ public final class Utilities {
    * @param qname The qualified name.
    * @return The corresponding identifier.
    */
-  public static String[] toComponents(String qname) {
-    final int length = qname.length();
-    int       count  = 1;
-    boolean   opaque = false;
-
-    // Count the number of components.
-    for (int i=0; i<length; i++) {
-      char c = qname.charAt(i);
-
-      if (opaque) {
-        if (Constants.END_OPAQUE == c) opaque = false;
-      } else {
-        if (Constants.QUALIFIER.equals(c)) count++;
-        if (Constants.START_OPAQUE == c) opaque = true;
-      }
-    }
-
-    // Wrap up with the trivial case of no qualifiers.
-    if (1 == count) return new String[] { qname };
-
-    // Set up the component array.
-    String[] components = new String[count];
-    int      start      = -1;
-    count               = 0;
-
-    // Fill in the component array.
-    for (int i=0; i<length; i++) {
-      char c = qname.charAt(i);
-
-      if (opaque) {
-        if (Constants.END_OPAQUE == c) opaque = false;
-      } else {
-        if (Constants.QUALIFIER.equals(c)) {
-          components[count] = qname.substring(start+1, i);
-          start = i;
-          count++;
-        } else if (Constants.START_OPAQUE == c) {
-          opaque = true;
-        }
-      }
-    }
-
-    // Don't forget the last component.
-    components[count] = qname.substring(start+1,length);
-
-    // Done.
-    return components;
+  public static String[] toComponents(String qName) {
+    return qName.split(Constants.QUALIFIER);
   }
 
   /**

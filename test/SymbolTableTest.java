@@ -19,8 +19,6 @@ import org.junit.*;
 
 /**
  * Test suite for SymbolTable.java.
- * Test file is Point.java.
- * IMPORTANT: Make sure fileToParse has the right location.
  *
  * Remember to fully qualify source files.
  * Run the following to run this file alone:
@@ -31,41 +29,6 @@ import org.junit.*;
  */
 public class SymbolTableTest extends Tool {
 
-/*
-
-   Based on the following scope tree.
-  
-:: = {
-  ::Point = {
-    DIMENSIONS = "declaration";
-    ORIGIN = "declaration";
-    coordinates = "declaration";
-    ::__constructor_0 = {
-    };
-    ::getCoordinate = {
-    };
-    ::getDistanceFrom = {
-      distanceSquared = "declaration";
-      ::__for_2 = {
-        i = "declaration";
-        ::__tmp_3 = {
-          diff = "declaration";
-        };
-      };
-      ::__tmp_1 = {
-        a = "declaration";
-      };
-    };
-    ::main = {
-      p1 = "declaration";
-    };
-    ::toString = {
-    };
-  };
-};
-
-*/
-
   /** Symbol table. */
   protected SymbolTable table;
 
@@ -73,7 +36,7 @@ public class SymbolTableTest extends Tool {
   protected Node tree;
 
   /** File to parse. */
-  private String fileToParse = "/Users/vivek/Point.java";
+  private String fileToParse = "./input/ABCDE.java";
 
   // ==========================================================
  
@@ -106,116 +69,74 @@ public class SymbolTableTest extends Tool {
 
   /** Default constructor. */
   public SymbolTableTest() {}
+ 
+  @Before 
+  public void setUp() throws IOException, ParseException {
+    run();
+    table = new SymbolTable();
+    table.incorporate(this.tree); 
+    resetToRoot();
+  }
+
+  @After
+  public void after() {
+    resetToRoot();
+  }
 
   /** Resets scope to root. */
   public void resetToRoot() {
     table.setScope(table.root());
   };
 
-  @Before
-  public void createTable() throws IOException, ParseException {
-    run();
-    table = new SymbolTable("");
-    table.incorporate(this.tree);
+  @Test
+  public void classes() {
+    assertTrue(null != table.lookupScope("A"));
+    assertTrue(null != table.lookupScope("B"));
+    assertTrue(null != table.lookupScope("C"));
+    assertTrue(null != table.lookupScope("D"));
+    assertTrue(null != table.lookupScope("E"));
   }
 
   @Test
-  public void forLoopDeclarationInScope() {
-    /*
-     * With the following code, we want the declared i to be visible 
-     * within the inner loop but we don't want diff, declared 
-     * in the body, to be visible in the for statement definition.
-     *
-     * <code>
-     * for (int i = 0; i<DIMENSIONS; i++) {
-     *   double diff = this.getCoordinate(i) - p.getCoordinate(i);
-     *   distanceSquared += diff * diff;
-     * }
-     * </code>
-     */
- 
+  public void methods() {
+    table.enter("A");     // class
+    table.enter("foo");   // method
+    
+    assertTrue(null != table.lookupScope("A"));
+    assertTrue(null != table.lookupScope("B"));
+    assertTrue(null != table.lookupScope("C"));
+    assertTrue(null != table.lookupScope("D"));
+    assertTrue(null != table.lookupScope("E"));
+    assertTrue(null != table.lookupScope("foo")); 
+    assertTrue(null == table.lookupScope("bar")); 
+    
     resetToRoot();
 
-    // get to the right place (for statement) in the scope tree 
-    table.enter("Point");
-    table.enter("getDistanceFrom");
-    table.enter("__for_2");
-    table.enter("__tmp_3");
+    table.enter("D");
+    table.enter("bar");
+    assertTrue(null != table.lookupScope("A"));
+    assertTrue(null != table.lookupScope("B"));
+    assertTrue(null != table.lookupScope("C"));
+    assertTrue(null != table.lookupScope("D"));
+    assertTrue(null != table.lookupScope("E"));
+    assertTrue(null != table.lookupScope("bar")); 
+    assertTrue(null == table.lookupScope("foo"));
 
-    // make sure we're at the right place
-    // i.e. no children scopes
-    assertTrue(table.current().hasSymbols());
-    assertFalse(table.current().hasNested());
-
-    // check we have scope of both i and diff
-    assertTrue(null != table.lookup("i"));
-    assertTrue(null != table.lookup("diff"));
-
-    // go up one level
-    table.exit();
-
-    // check we have scope of i but not diff
-    assertTrue(null != table.lookup("i"));
-    assertFalse(null != table.lookup("diff"));
-   
-    // done! Set scope to root.
     resetToRoot();
+
+    table.enter("E");
+    table.enter("baz");
+    assertTrue(null != table.getScope("::A::foo"));
+    assertTrue(null != table.getScope("::A"));
+    assertTrue(null == table.getScope("A"));
+    assertTrue(null == table.getScope("F"));
+    assertTrue(null == table.getScope("E::baz")); // note, need to fully resolve
   }
 
   @Test
-  public void classFieldsInScope() {
-    /**
-     * Traverse all the scopes, and make sure
-     * that class fields are visible in all scopes.
-     */
-
-    resetToRoot();
-
-    // class field scope at class level
-    table.enter("Point");
-    assertTrue(null != table.lookup("ORIGIN"));
-
-    // class field scope at method level
-    table.enter("getDistanceFrom");
-    assertTrue(null != table.lookup("ORIGIN"));
-
-    // class field scope at for statement level
-    table.enter("__for_2");
-    assertTrue(null != table.lookup("ORIGIN"));
-
-    // class field scope at block level
-    table.enter("__tmp_3");
-    assertTrue(null != table.lookup("ORIGIN"));
-
-    resetToRoot();
+  public void getScope() {
+    SymbolTable.Scope scope = table.current().getNested("A");
+    assertTrue(scope.getName().equals("A"));
+    assertTrue(scope.getQualifiedName().equals("::A"));
   }
-
-  @Test
-  public void correctQualifiedNames() {
-    resetToRoot();
-
-    // class field scope at class level
-    table.enter("Point");
-    System.out.println(table.current().getQualifiedName());
-    assertTrue(table.current().getQualifiedName()
-        .equals("::Point"));
-
-    // class field scope at method level
-    table.enter("getDistanceFrom");
-    assertTrue(table.current().getQualifiedName()
-        .equals("::Point::getDistanceFrom"));
-
-    // class field scope at for statement level
-    table.enter("__for_2");
-    assertTrue(table.current().getQualifiedName()
-        .equals("::Point::getDistanceFrom::__for_2"));
-
-    // class field scope at block level
-    table.enter("__tmp_3");
-    assertTrue(table.current().getQualifiedName()
-        .equals("::Point::getDistanceFrom::__for_2::__tmp_3"));
-
-    resetToRoot();
-  }
-
 }

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 import qimpp.Constants;
 import qimpp.Utilities;
@@ -92,9 +93,6 @@ public class SymbolTable {
     /** The nested scopes, if any. */
     Map<String, Scope> scopes;
 
-    /** The map from symbols to values, if any. */
-    Map<String, Object> symbols;
-
     /**
      * Create a new root scope with the specified name, which may be
      * the empty string.
@@ -146,6 +144,17 @@ public class SymbolTable {
      */
     public String getQualifiedName() {
       return qName;
+    }
+
+    /**
+     * Qualify the specified unqualified symbol with this scope's
+     * name.
+     *
+     * @param symbol The unqualified symbol.
+     * @return The qualified symbol.
+     */
+    public String qualify(String symbol) {
+      return Utilities.qualify(qName, symbol);
     }
 
     /**
@@ -228,160 +237,6 @@ public class SymbolTable {
     }
 
     /**
-     * Determine whether the scope with the specified unqualified name
-     * can be merged into this scope.  A nested scope can be merged if
-     * it (1) does not contain any bindings with the same names as
-     * this scope's bindings and (2) does not have any children with
-     * the same names as this scope's children.
-     *
-     * @param name The nested scope's unqualified name.
-     * @return <code>true</code> if the scope can be merged.
-     * @throws IllegalArgumentException Signals that this scope does
-     *   not have a nested scope with the specified name.
-     */
-    public boolean isMergeable(String name) {
-      Scope nested = getNested(name);
-
-      if (null == nested) {
-        throw new IllegalArgumentException("Scope " + qName + " does not " +
-                                           " contain scope " + name);
-      }
-
-      if (null != nested.scopes) {
-        // Note that this scope must have nested scopes, since we just
-        // looked one up.
-        for (String s : nested.scopes.keySet()) {
-          if ((! s.equals(name)) && this.scopes.containsKey(s)) {
-            return false;
-          }
-        }
-      }
-
-      if ((null != this.symbols) && (null != nested.symbols)) {
-        for (String s : nested.symbols.keySet()) {
-          if (this.symbols.containsKey(s)) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-    /**
-     * Merge the nested scope with the specified unqualified name into
-     * this scope.
-     *
-     * @param name The nested scope's unqualified name.
-     * @throws IllegalArgumentException Signals that (1) this scope
-     *   does not have a nested scope with the specified name, (2) any
-     *   of the nested scope's children has the same name as one of
-     *   this scope's children, or (3) any of the nested scope's
-     *   bindings has the same name as one of this scope's bindings.
-     */
-    public void merge(String name) {
-      final Scope nested = getNested(name);
-
-      // Make sure the nested scope is mergeable.  Note that the
-      // nested scope must exist in the consequence of the
-      // if-statement, since isMergeable signals an exception for
-      // non-existent scopes.
-      if (! isMergeable(name)) {
-        throw new IllegalArgumentException("Scope " + nested.qName +
-                                           " cannot be merged into the parent");
-      }
-
-      // Remove the nested scope.
-      this.scopes.remove(name);
-
-      // Add the nested scope's children.
-      if (null != nested.scopes) {
-        this.scopes.putAll(nested.scopes);
-
-        for (Scope s : nested.scopes.values()) {
-          s.parent = this;
-          s.requalify();
-        }
-      }
-
-      // Add the nested scope's bindings.
-      if (null != nested.symbols) {
-        if (null == this.symbols) {
-          this.symbols = nested.symbols;
-        } else {
-          this.symbols.putAll(nested.symbols);
-        }
-      }
-
-      // Invalidate the nested scope.
-      nested.parent  = null;
-      nested.name    = null;
-      nested.qName   = null;
-      nested.scopes  = null;
-      nested.symbols = null;
-    }
-
-    /**
-     * Determine whether this scope has any local definitions.
-     *
-     * @return <code>true</code> if this scope has any local
-     *   definitions.
-     */
-    public boolean hasSymbols() {
-      return ((null != symbols) && (0 < symbols.size()));
-    }
-
-    /**
-     * Get an iterator over the all locally defined symbols.
-     *
-     * @return An iterator over the locally defined symbols.
-     */
-    public Iterator<String> symbols() {
-      if (null == symbols) {
-        return EmptyIterator.value();
-      } else {
-        return symbols.keySet().iterator();
-      }
-    }
-
-    /**
-     * Determine whether the specified symbol is defined in this
-     * scope.
-     *
-     * @param symbol The unqualified symbol.
-     * @return <code>true</code> if the symbol is defined in this
-     *   scope.
-     */
-    public boolean isDefinedLocally(String symbol) {
-      return (null == symbols)? false : symbols.containsKey(symbol);
-    }
-
-    /**
-     * Determine whether the specified unqualified symbol is defined
-     * in this scope or any of its ancestors.
-     *
-     * @param symbol The unqualified symbol.
-     * @return <code>true</code> if the symbol is defined in this scope
-     *   or any of its ancestors.
-     */
-    public boolean isDefined(String symbol) {
-      return (null != lookupScope(symbol));
-    }
-
-    /**
-     * Determine whether the specified symbol is defined multiple
-     * times in this scope or any of its ancestors.
-     *
-     * @param symbol The unqualified symbol.
-     * @return <code>true</code> if the symbol is defined multiple
-     *   times.
-     */
-    public boolean isDefinedMultiply(String symbol) {
-      Scope scope = lookupScope(symbol);
-      return (null == scope)? false : scope.symbols.get(symbol) instanceof List;
-    }
-
-    /**
      * Get the scope defining the specified unqualified symbol.  This
      * method searches this scope and all its ancestors, returning the
      * first defining scope.
@@ -393,7 +248,7 @@ public class SymbolTable {
     public Scope lookupScope(String symbol) {
       Scope scope = this;
       do {
-        if ((null != scope.symbols) && (scope.symbols.containsKey(symbol))) {
+        if ((null != scope.scopes) && (scope.scopes.containsKey(symbol))) {
           return scope;
         }
         scope = scope.parent;
@@ -402,172 +257,28 @@ public class SymbolTable {
     }
 
     /**
-     * Get the value for the specified unqualified symbol.  This
-     * method searches this scope and all its ancestors, returning the
-     * value of the first definition.
-     *
-     * @param symbol The unqualified symbol.
-     * @return The corresponding value or <code>null</code> if there is
-     *   no definition.
-     */
-    public Object lookup(String symbol) {
-      Scope scope = lookupScope(symbol);
-      return (null == scope)? null : scope.symbols.get(symbol);
-    }
-
-    /**
-     * Get the scope named by the specified unqualified symbol, which
-     * is nested in the scope defining the symbol.  This method
-     * searches this scope and all its ancestors, up to the first
-     * defining scope.  It then looks for the nested scope with the
-     * same name.
-     *
-     * @param symbol The unqualified symbol.
-     * @return The bound scope or <code>null</code> if there is no
-     *   definition or nested scope with the same name.
-     */
-    public Scope lookupBoundScope(String symbol) {
-      Scope scope = lookupScope(symbol);
-      return (null == scope)? null : scope.getNested(symbol);
-    }
-
-    /**
-     * Get the local value for the specified unqualified symbol.
-     *
-     * @param symbol The unqualified symbol.
-     * @return The corresponding value or <code>null</code> if there is
-     *   no local definition.
-     */
-    public Object lookupLocally(String symbol) {
-      return (null == symbols)? null : symbols.get(symbol);
-    }
-
-    /**
-     * Set the specified symbol's value to the specified value in this
-     * scope.
-     *
-     * @param symbol The unqualified symbol.
-     * @param value The value.
-     */
-    public void define(String symbol, Object value) {
-      if (null == symbols) {
-        symbols = new HashMap<String, Object>();
-      }
-      symbols.put(symbol, value);
-    }
-
-    /**
-     * Add the specified value to the specified symbol's values in
-     * this scope.
-     *
-     * @param symbol The unqualified symbol.
-     * @param value The value.
-     */
-    @SuppressWarnings("unchecked")
-    public void addDefinition(String symbol, Object value) {
-      if (null == symbols) {
-        symbols = new HashMap<String, Object>();
-      }
-
-      if (symbols.containsKey(symbol)) {
-        Object o = symbols.get(symbol);
-
-        if (o instanceof List) {
-          ((List<Object>)o).add(value);
-
-        } else {
-          List<Object> l = new ArrayList<Object>();
-          l.add(o);
-          l.add(value);
-          symbols.put(symbol, l);
-        }
-
-      } else {
-        symbols.put(symbol, value);
-      }
-    }
-
-    /**
-     * Undefine the specified unqualified symbol.  If the symbol is
-     * defined in this scope, this method removes all its values.
-     *
-     * @param symbol The unqualified symbol.
-     */
-    public void undefine(String symbol) {
-      if (null != symbols) {
-        symbols.remove(symbol);
-      }
-    }
-
-    /**
-     * Qualify the specified unqualified symbol with this scope's
-     * name.
-     *
-     * @param symbol The unqualified symbol.
-     * @return The qualified symbol.
-     */
-    public String qualify(String symbol) {
-      return Utilities.qualify(qName, symbol);
-    }
-
-    /**
      * Dump the contents of this scope.  This method pretty prints the
      * contents of this scope and all nested scopes with the specified
-     * printer.  If the printer is registered with a visitor, that
-     * visitor is used for formatting any node values.
+     * printer. 
+     *
+     * TODO: Perhaps print a bit nicer?
      *
      * @param printer The printer, which need not be registered with a
      *   visitor.
      */
     public void dump(Printer printer) {
-      boolean hasVisitor = (null != printer.visitor());
-
-      printer.indent().p("::").p(name).pln(" = {").incr();
-
-      if (null != symbols) {
-        List<String> keys = new ArrayList<String>(symbols.keySet());
-        Collections.sort(keys);
-
-        for (String symbol : keys) {
-          Object value = symbols.get(symbol);
-
-          printer.indent().p(symbol).p(" = ");
-          if (null == value) {
-            printer.p("null");
-          } else if (hasVisitor && (value instanceof Node)) {
-            printer.p((Node)value);
-          } else if (value instanceof String) {
-            printer.p('"').escape((String)value, Constants.JAVA_ESCAPE).p('"');
-          } else {
-            try {
-              printer.p(value.toString());
-            } catch (final Exception e) {
-              printer.p(value.getClass().getName() + "@?");
-            }
-          }
-          printer.pln(';');
-
-          Scope nested = getNested(symbol);
-          if (null != nested) {
-            nested.dump(printer);
-          }
-        }
-      }
-
+      printer.indent().p(Constants.QUALIFIER).pln(name).incr();
+        
       if (null != scopes) {
-        List<String> keys = new ArrayList<String>(scopes.keySet());
-        Collections.sort(keys);
-
-        for (String name : keys) {
-          if ((null == symbols) || (! symbols.containsKey(name))) {
-            scopes.get(name).dump(printer);
-          }
+        Iterator iterator = scopes.entrySet().iterator();
+        while (iterator.hasNext()) {
+          Map.Entry entry = (Map.Entry)iterator.next();
+          ((Scope)entry.getValue()).dump(printer);
         }
       }
-
-      printer.decr().indent().pln("};");
+      
+      printer.decr().indent().pln();
     }
-
   }
 
   // =========================================================================
@@ -587,8 +298,8 @@ public class SymbolTable {
   // =========================================================================
 
   /**
-   * Create a new symbol table with the empty string as the root
-   * scope's name.
+   * Create a new symbol table with the global namespace resolution operator
+   * as the root.
    */
   public SymbolTable() {
     this("");
@@ -614,7 +325,6 @@ public class SymbolTable {
    */
   public void reset() {
     root.scopes    = null;
-    root.symbols   = null;
     current        = root;
     freshNameCount = 0;
     freshIdCount   = 0;
@@ -649,8 +359,9 @@ public class SymbolTable {
     // Optimize for the common case where the specified name denotes a
     // scope directly nested in the current scope.
     Scope scope = current;
+
     if (name.startsWith(scope.qName) && 
-        (name.lastIndexOf(Constants.QUALIFIER) == scope.qName.length()-1)) { // TODO: Vivek changed this to -1 to reflect :: versus .
+        (name.lastIndexOf(Constants.QUALIFIER) == scope.qName.length())) {
       return scope.getNested(Utilities.getName(name));
     }
 
@@ -687,44 +398,6 @@ public class SymbolTable {
   }
 
   /**
-   * Determine whether the specified symbol is defined.  If the symbol
-   * is qualified, this method checks whether the symbol is defined in
-   * the named scope.  Otherwise, it checks whether the symbol is
-   * defined in the current scope or one of its ancestors.
-   *
-   * @param symbol The symbol.
-   * @return <code>true</code> if the specified symbol is defined.
-   */
-  public boolean isDefined(String symbol) {
-    Scope scope = lookupScope(symbol);
-    if ((null == scope) || (null == scope.symbols)) {
-      return false;
-    } else {
-      return scope.symbols.containsKey(Utilities.unqualify(symbol));
-    }
-  }
-
-  /**
-   * Determine whether the specified symbol is define multiple times.
-   * If the symbol is qualified, this method checks whether the symbol
-   * has multiple definitions in the named scope.  Otherwise, it
-   * checks whether the symbol has multiple definitions in the current
-   * scope or one of its ancestors.
-   *
-   * @param symbol The symbol.
-   * @return <code>true</code> if the specified symbol is multiply
-   *   defined.
-   */
-  public boolean isDefinedMultiply(String symbol) {
-    Scope scope = lookupScope(symbol);
-    if ((null == scope) || (null == scope.symbols)) {
-      return false;
-    } else {
-      return scope.symbols.get(Utilities.unqualify(symbol)) instanceof List;
-    }
-  }
-
-  /**
    * Get the scope for the specified symbol.  If the symbol is
    * qualified, this method returns the named scope (without checking
    * whether the symbol is defined in that scope).  Otherwise, it
@@ -738,30 +411,11 @@ public class SymbolTable {
   public Scope lookupScope(String symbol) {
     if (Utilities.isQualified(symbol)) {
       return getScope(Utilities.getQualifier(symbol));
-
     } else {
       return current.lookupScope(symbol);
     }
   }
 
-  /**
-   * Get the value for the specified symbol.  If the symbol is
-   * qualified, this method returns the definition within the named
-   * scope.  Otherwise, it searches the current scope and all its
-   * ancestors, returning the value of the first definition.
-   *
-   * @param symbol The symbol.
-   * @return The corresponding value or <code>null</code> if no such
-   *   definition exists.
-   */
-  public Object lookup(String symbol) {
-    Scope scope = lookupScope(symbol);
-    if ((null == scope) || (null == scope.symbols)) {
-      return null;
-    } else {
-      return scope.symbols.get(Utilities.unqualify(symbol));
-    }
-  }
 
   /**
    * Enter the scope with the specified unqualified name.  If the
@@ -944,16 +598,6 @@ public class SymbolTable {
     
     new Visitor() {
 
-      // TODO: Inheritance.
-      //
-      // What I can think of:
-      // 1. runtime should be visible anywhere within the body since it gets
-      //  gets inherited from Tool.
-      // 2. classes from the import should be visible from anywhere in
-      //  the class.
-      // 3. Keep track of class versus stack scope.
-
-
       // root of static scope tree
       public void visitCompilationUnit(GNode n) {
         visit(n);
@@ -966,7 +610,6 @@ public class SymbolTable {
         table.exit();
       }
 
-      // TODO: Handle interfaces?
       public void visitInterfaceDeclaration(GNode n) {
         table.enter(table.freshCId(n.getName()));
         table.mark(n);
@@ -1039,13 +682,15 @@ public class SymbolTable {
        *
        */
       public void visitDeclarator(GNode n) {
-        table.current().addDefinition(n.getString(0), "declaration");
+        table.enter(n.getString(0));
         table.mark(n);
+        table.exit();
       }
 
       public void visitFormalParameter(GNode n) {
-        table.current().addDefinition(n.getString(3), "parameter");
+        table.enter(n.getString(3));
         table.mark(n);
+        table.exit();
       }
 
       // ======================================================================
@@ -1082,9 +727,6 @@ public class SymbolTable {
       // I haven't seen this called yet, actually.
       public void visitIdentifier(GNode n) {
         table.mark(n);
-        System.out.println(
-           n.getString(0) + " => " + n.getProperty(Constants.SCOPE)
-        );
       }
 
       // ======================================================================
