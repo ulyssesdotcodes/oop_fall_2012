@@ -1,6 +1,6 @@
 package qimpp;
 
-
+import java.util.*
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
@@ -21,7 +21,8 @@ public class BlockMangler {
   public BlockMangler(
                 GNode block, 
                 HashMap<String, String> fieldMap, 
-                HashMap<String, Klass> classNameMap,
+                HashMap<String, String> classNameMap,
+                HashMap<String, GNode> qualifiedClassNameMap,
                 MethodResolver mr
                 ) {
     
