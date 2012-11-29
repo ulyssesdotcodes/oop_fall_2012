@@ -18,7 +18,13 @@ public class BlockMangler {
 
   public GNode root;
   
-  public BlockMangler(GNode block) {
+  public BlockMangler(
+                GNode block, 
+                HashMap<String, String> fieldMap, 
+                HashMap<String, Klass> classNameMap,
+                MethodResolver mr
+                ) {
+    
     root = block;
   }
 
