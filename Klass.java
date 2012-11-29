@@ -1,6 +1,10 @@
 package qimpp;
 
+import java.util.Iterator;
 import java.util.ArrayList;
+
+import xtc.tree.Node;
+
 import qimpp.SymbolTable.Scope;
 
 /**
@@ -17,6 +21,7 @@ public class Klass {
     String name;            // might need to be freshly generated
     Klass implementor;
     Type type;
+    boolean isStatic;
 
     /**
      * Accessor for name.
@@ -31,6 +36,7 @@ public class Klass {
      * Setter for name.
      *
      * @param field name.
+     * @return member.
      */
     public Member setName(String name) {
       this.name = name;
@@ -50,10 +56,28 @@ public class Klass {
      * Setter for type.
      *
      * @param field type.
+     * @return member.
      */
     public Member setType(Type type) {
       this.type = type;
       return this;
+    }
+
+    /**
+     * Accessor for whether the member is static.
+     *
+     * @return isStatic.
+     */
+    public boolean isStatic() {
+      return this.isStatic;
+    }
+
+    /**
+     * Setter for whether the member is static.
+     *
+     */
+    public void makeStatic() {
+      this.isStatic = true;
     }
   }
 
@@ -64,24 +88,40 @@ public class Klass {
    */
   class Field extends Member {
 
+    /** Field initialization. */
+    Node initialization;
+
     public Field() {
-      this(null, null);
+      this.implementor  = Klass.this;
+      this.name           = null;
+      this.type           = null;
+      this.initialization = null;
+      this.isStatic       = false;
+      Klass.this.fields.add(this);
     }
 
     /**
-     * Field constructor.
+     * Accessor for field initialization block.
      *
-     * @param name The field name.
-     * @param type The type of the field.
+     * @return field initialization block.
      */
-    public Field(String name, Type type) {
-      this.implementor  = Klass.this;
-      this.name         = name;
-      this.type         = type;
+    public Node getInitialization() {
+      return this.initialization;
+    }
 
-      Klass.this.fields.add(this);
-    } 
+    /**
+     * Setter for field initialization block.
+     *
+     * @param field initialization block.
+     */
+    public void setInitialization(Node initialization) {
+      this.initialization = initialization;
+    }
   
+    public String toString() {
+      return this.type.getQualifiedName() + ' ' +
+        this.name + ';';
+    }
   }
 
   // ===========================================================================
@@ -95,40 +135,19 @@ public class Klass {
     ArrayList<ParameterVariable> parameters;
 
     /** Body. */
-    // TODO
+    // TODO: Right now, I'm just copying the method block.
+    Node body;
 
     public Method() {
-      this(null, null);
-    }
-
-    /**
-     * Method constructor.
-     *
-     * @param type The return type of the method.
-     * @param name The method name.
-     */
-    public Method(Type type, String name) {
-      this(type, name, new ArrayList<ParameterVariable>());
-    }
-
-    /**
-     * Method constructor.
-     *
-     * @param type The return type of the method.
-     * @param name The method name.
-     * @param parameters The method parameters, if any.
-     */
-    public Method(Type type,
-                  String name,
-                  ArrayList<ParameterVariable> parameters) {
       this.implementor  = Klass.this;
-      this.type         = type;
-      this.name         = name;
-      this.parameters   = parameters;
-
+      this.type         = null; // to set in Analyze.java via setType
+      this.name         = null; // to set in Analyze.java via setName
+      this.body         = null; // to set in Analyze.java via setBody
+      this.parameters   = new ArrayList<ParameterVariable>();
+      this.isStatic     = false;
       Klass.this.methods.add(this);
     }
-
+    
     /**
      * Accessor for parameters.
      *
@@ -136,6 +155,47 @@ public class Klass {
      */
     public ArrayList<ParameterVariable> getParameters() {
       return this.parameters;
+    }
+
+    /**
+     * Add parameter to a method's parameters.
+     *
+     * @param parameter A method parameter.
+     */
+    public void addParameter(ParameterVariable parameter) {
+      this.parameters.add(parameter); 
+    }
+
+    /** 
+     * Accessor for method body.
+     *
+     * @return method body.
+     */
+    public Node getBody() {
+      return this.body;
+    }
+
+    /**
+     * Set method body.
+     *
+     * @param body Node method body.
+     */
+    public void setBody(Node body) {
+      this.body = body;
+    }
+
+    public String toString() {
+      String tmp = this.type.getQualifiedName() + ' ' + this.name + '(';
+      Iterator<ParameterVariable> it = parameters.iterator();
+      while (it.hasNext()) {
+        ParameterVariable parameter = it.next();
+        tmp += parameter.getType().getQualifiedName() + ' ' + 
+          parameter.getName(); 
+        if (it.hasNext()) {
+          tmp += ", ";
+        }
+      }
+      return tmp;
     }
 
   }

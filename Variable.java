@@ -31,11 +31,25 @@ public abstract class Variable {
     return this.name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public Type getType() {
     return this.type;
   }
 
+  public void setType(Type type) {
+    this.type = type;
+  }
+
   public boolean isPointer() {
     return this.isPointer;
+  }
+
+  public String toString() {
+    if (null == this.type) {
+      return "<null> " + this.name;
+    } else { return this.type.getName() + ' ' + this.name; }
   }
 }

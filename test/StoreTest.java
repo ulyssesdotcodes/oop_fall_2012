@@ -124,5 +124,56 @@ public class StoreTest extends Tool {
     assertTrue(fields.get(1).getType().getName().equals("String"));
   }
 
+  @Test
+  public void methodsAreSetCorrectly() {
+    Klass a = pkg.get("A");
+    ArrayList<Klass.Method> methods = a.getMethods();
+    assertTrue(methods.size() == 6);
+
+    assertTrue(methods.get(0).getName().equals("f1"));
+    assertTrue(null == methods.get(0).getType()); // void
+
+    assertTrue(methods.get(1).getName().equals("f2"));
+    assertTrue(null != methods.get(1).getType());
+    assertTrue(methods.get(1).getParameters().get(0).getName().equals("i"));
+    assertTrue(methods.get(1).getParameters().get(0).getType()
+                                                    .getName()
+                                                    .equals("int32_t"));
+
+
+    assertTrue(methods.get(2).getName().equals("f3"));
+    assertTrue(null != methods.get(2).getType());
+    assertTrue(methods.get(2).getParameters().get(0).getName().equals("i"));
+    assertTrue(methods.get(2).getParameters().get(0).getType()
+                                                    .getName()
+                                                    .equals("int32_t"));
+    assertTrue(methods.get(2).getParameters().get(1).getName().equals("str"));
+    assertTrue(methods.get(2).getParameters().get(1).getType()
+                                                    .getName()
+                                                    .equals("String"));
+
+    assertTrue(methods.get(3).getName().equals("f4"));
+    assertTrue(methods.get(3).getType().getName().equals("String"));
+
+    assertTrue(methods.get(4).getName().equals("f5"));
+    assertTrue(null != methods.get(4).getType());
+    assertTrue(methods.get(4).getParameters().get(0).getName().equals("i"));
+    assertTrue(methods.get(4).getParameters().get(0).getType()
+                                                    .getName()
+                                                    .equals("int32_t"));
+
+    assertTrue(methods.get(5).getName().equals("f6"));
+    assertTrue(null != methods.get(5).getType());
+    assertTrue(methods.get(5).getParameters().get(0).getName().equals("i"));
+    assertTrue(methods.get(5).getParameters().get(0).getType()
+                                                    .getName()
+                                                    .equals("int32_t"));
+    assertTrue(methods.get(5).getParameters().get(1).getName().equals("str"));
+    assertTrue(methods.get(5).getParameters().get(1).getType()
+                                                    .getName()
+                                                    .equals("String"));
+
+  }
+
   
 }

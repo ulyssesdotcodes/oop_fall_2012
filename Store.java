@@ -80,10 +80,17 @@ class Store {
     /** Flag for whether we're building a field. */
     boolean buildingField;
 
+    /** The current parameter that we're constructing. */
+    ParameterVariable currentParameter;
+
+    /** Flag for whether we're building a parameter. */
+    boolean buildingParameter;
+
     public Analyzer() {
-      this.currentClass   = null;
-      this.currentMethod  = null;
-      this.currentField   = null;
+      this.currentClass     = null;
+      this.currentMethod    = null;
+      this.currentField     = null;
+      this.currentParameter = null;
     }
 
     /**
@@ -108,7 +115,7 @@ class Store {
     /** Visit specified class declaration node and add class. */
     public void visitClassDeclaration(GNode n) {
       buildingClass = true;
-      Klass parent = null;
+      Klass parent = null; // i.e. Object
 
       String extendsName = fetchParentClassName(n.getGeneric(3));
       if (pkg.containsKey(extendsName)) {
@@ -160,15 +167,31 @@ class Store {
  
     /** Visit specified qualified identifier node. */
     public void visitQualifiedIdentifier(GNode n) {
+      String typename = n.getString(0);
       if (buildingField && (null == currentField.getType())) {
-        currentField.setType(new QualifiedType(n.getString(0)));
+        currentField.setType(new QualifiedType(typename));
+      } else if (buildingMethod) {
+        if (null == currentMethod.getType()) {
+          currentMethod.setType(new QualifiedType(typename));
+        }
+        if (buildingParameter) {
+          currentParameter.setType(new QualifiedType(typename));
+        }
       }
     }
 
     /** Visit specified primitive type node. */
     public void visitPrimitiveType(GNode n) {
+      String typename = n.getString(0);
       if (buildingField && (null == currentField.getType())) {
-        currentField.setType(new PrimitiveType(n.getString(0)));
+        currentField.setType(new PrimitiveType(typename));
+      } else if (buildingMethod) {
+        if (null == currentMethod.getType()) {
+          currentMethod.setType(new PrimitiveType(typename));
+        }
+        if (buildingParameter) {
+          currentParameter.setType(new PrimitiveType(typename));
+        }
       }
     }
 
@@ -180,19 +203,44 @@ class Store {
       }
     }
 
+    /** Visit specified modifier node. */
+    public void visitModifier(GNode n) {
+      if (buildingField && (!currentField.isStatic())) {
+        if (n.getString(0).equals("static")) {
+          currentField.makeStatic();
+        }
+      }
+    }
+
     // =========================================================================
 
     // Let's analyze that class' methods! 
-    
+   
+    /** Visit specified method declaration node. */ 
     public void visitMethodDeclaration(GNode n) {
       buildingMethod = true;
       currentMethod = currentClass.new Method();
+      currentMethod.setName(n.getString(3));
 
       visit(n);
 
       currentMethod = null;
       buildingMethod = false;
     }
+
+    /** Visit specified formal parameter node. */
+    public void visitFormalParameter(GNode n) {
+      buildingParameter = true;
+      currentParameter = new ParameterVariable();
+      currentParameter.setName(n.getString(3));
+      
+      visit(n); 
+
+      currentMethod.addParameter(currentParameter);
+      currentParameter = null;
+      buildingParameter = false;  
+    }
+    
 
     // =========================================================================
 

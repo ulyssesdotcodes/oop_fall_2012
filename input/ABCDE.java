@@ -21,11 +21,16 @@ package qimpp;
  */
 
 public class A {
-
   int fieldOne;
   String fieldTwo;
 
-  public void foo() { }
+  public void f1()                   { }
+  public void f2(int i)              { }
+  public void f3(int i, String str)  { }
+
+  public String f4()                 { return ""; }
+  public int f5(int i)               { return 0;  }
+  public int f6(int i, String str)   { return 1;  }
 }
 
 class B extends A {}

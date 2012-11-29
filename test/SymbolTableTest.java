@@ -18,6 +18,8 @@ import static org.junit.Assert.*;
 import org.junit.*;
 
 /**
+ * TODO : RE-DO THIS BECAUSE ABCDE.java HAS BEEN MODIFIED.
+ *
  * Test suite for SymbolTable.java.
  *
  * Remember to fully qualify source files.
