@@ -60,7 +60,8 @@ public class QimppTranslator extends Tool {
   String parentName;
   CPPAST cppast;
   InheritanceTreeManager treeManager;
-      
+  GNode root;
+
   /** Create a new translator. */
   public QimppTranslator() {
     cppast = new CPPAST();
@@ -122,15 +123,15 @@ public class QimppTranslator extends Tool {
         //Visits a Block (a set of instructions in Java) and figures out how to translate it. Returns the GNode of the whole translated Block
         GNode block = GNode.create("Block");
         
-        //TODO: CHANGE THIS BACK
         /*
         for (Object o : n) {
           //dispatches each ExpressionStatement, ReturnStatement, etc.
           block.add(getValidGNode(dispatch(getValidGNode(o))));
         } */
-        for (Object o : n) {
-          block.add(o);
-        }
+        visit(n);
+        //for (Object o : n) {
+        //  visit(getValidGNode(o));
+        //}
         //TODO: CHNANGE THIS BACK
         // return block;
         return n;
@@ -169,7 +170,7 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitCompilationUnit(GNode n) {
-        
+        root = n;     
         System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
         visit(n);
         System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
@@ -283,8 +284,8 @@ public class QimppTranslator extends Tool {
         System.out.println("at QimmppTranslator.java:visitMethodDeclaration cppast.setMethodParameters");
         System.out.println("currentMethod: " + currentMethod);
         //System.out.println("getGeneric(7): " + n.getGeneric(7));
-        System.out.println(dispatch(n.getGeneric(7)));
-        System.out.println("valid gnode: " + getValidGNode(dispatch(n.getGeneric(7))));  
+        //System.out.println(dispatch(n.getGeneric(7)));
+        //System.out.println("valid gnode: " + getValidGNode(dispatch(n.getGeneric(7))));  
         cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
          
         System.out.println("at QimmppTranslator.java:visitMethodDeclaration.end");
@@ -301,26 +302,48 @@ public class QimppTranslator extends Tool {
         
       public GNode visitVoidType(GNode n){
         GNode type = GNode.create("Type");
-        type.addNode(GNode.create("PrimitiveIdentifier")).getGeneric(0).add("void");
+        type.addNode(GNode.create("PrimitiveType")).getGeneric(0).add("void");
         return type;
       }
         
+      public void visitPrimitiveType(GNode n) {
+        if (n.getProperty("visitcount") == null){
+          n.setProperty("visitcount", new Integer(0));
+        }
+        Integer visitCount = (Integer)n.getProperty("visitcount");
+        visitCount++;
+        n.setProperty("visitcount", visitCount);
+        String javaType = n.getString(0);
+        String cppType = Type.primitiveType(javaType);
+        if (cppType == null) {
+          System.out.println(javaType);
+          System.out.println("wo this doesn't exist");
+          System.out.print("visits:");
+          System.out.println(visitCount);
+          runtime.console().format(root).pln().flush(); 
+          if ( visitCount > 1 )
+            new Exception().printStackTrace(System.err);
+          System.exit(1);
+        }
+        n.set(0, cppType);
+      }
+      
       public GNode visitType(GNode n) {
         //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
+        visit(n);
         GNode identifier = n.getGeneric(0);
         String typename = identifier.getString(0);
-        
+
         if(identifier.hasName("PrimitiveType")){
-          GNode type = GNode.create("Type");
-          type.addNode(GNode.create("PrimitiveIdentifier")).getGeneric(1).add(Type.primitiveType(typename));
-          return type;
-          
-          // Fix this later in treeManager
-        } else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
+          return null;
+        }
+        // Fix this later in treeManager
+          else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");
           type.add((new Disambiguator()).disambiguate(typename));
           return type;
-        } else {
+        } 
+        else {
           
           //System.err.println("Split: " + typename.split("\\.").length);
           //System.err.println("Adding typename: " + typename);

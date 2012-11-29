@@ -3,10 +3,6 @@ package qimpp.tests;
 /** Test basic number types and arithmetic */
 public class Test2 {
   
-  public Test2 () {
-
-  }
-
   public static void main ( String[] args ) {
     
     int num1 = 97;

@@ -591,7 +591,7 @@ public class CPPAST {
   String getGNodeType(GNode n){
     GNode typeNode = n.getGeneric(GNodeNameToTypeLoc.get(n.getName()));
     GNode identifier = n.getGeneric(0);
-    if(identifier.getName().equals("PrimitiveIdentifier")){
+    if(identifier.getName().equals("PrimitiveType")){
       return JavaPrimitiveTypeToCPP.get(identifier.getGeneric(0));
     } else if(identifier.getName().equals("QualifiedIdentifier")){
       boolean hasUnderscore = GNodeNameToHasUnderscores.get(n.getName());

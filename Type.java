@@ -35,6 +35,7 @@ class Type {
     put("float", "float");
     put("double", "double");
     put("char", "char");
+    put("boolean", "bool");
   }};
 
   /**
