@@ -28,10 +28,10 @@ class Type {
   // not using generics to specify key, value types, so need to suppress warnings
   @SuppressWarnings(value = "unchecked")
   static HashMap<String, String> primitives = new HashMap<String, String>() {{
-    put("long", "signed int64_t");
+    put("long", "int64_t");
     put("int", "int32_t");
-    put("short", "signed int16_t");
-    put("byte", "signed int8_t");
+    put("short", "int16_t");
+    put("byte", "int8_t");
     put("float", "float");
     put("double", "double");
     put("char", "char");

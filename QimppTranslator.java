@@ -61,6 +61,7 @@ public class QimppTranslator extends Tool {
   CPPAST cppast;
   InheritanceTreeManager treeManager;
   GNode root;
+  boolean inBlock;
 
   /** Create a new translator. */
   public QimppTranslator() {
@@ -121,6 +122,7 @@ public class QimppTranslator extends Tool {
 
       public GNode visitBlock(GNode n) {
         //Visits a Block (a set of instructions in Java) and figures out how to translate it. Returns the GNode of the whole translated Block
+        inBlock = true;
         GNode block = GNode.create("Block");
         
         /*
@@ -134,6 +136,8 @@ public class QimppTranslator extends Tool {
         //}
         //TODO: CHNANGE THIS BACK
         // return block;
+        inBlock = false;
+
         return n;
       }
 
@@ -237,6 +241,8 @@ public class QimppTranslator extends Tool {
                       
       public void visitFieldDeclaration(GNode n) {
         //Get the string by dispatching the Type GNode
+        
+        
         GNode type = (GNode)dispatch(n.getGeneric(1));
         //Create a new GNode to hold all of the declarators;
         GNode declarators = n.getGeneric(2);
@@ -244,7 +250,9 @@ public class QimppTranslator extends Tool {
         //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
         for(int i = 0; i < declarators.size(); i++){
           String name = (String)dispatch(declarators.getGeneric(i));
-          cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
+          if (!inBlock) {
+            cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
+          }
         }
       }
       
@@ -270,25 +278,23 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitMethodDeclaration(GNode n) {
-        System.out.println("at QimmppTranslator.java:visitMethodDeclaration");
         //TODO: math names and remove
         try{
+          String methodName = n.getString(3);
+          if (methodName.equals("main")) {
+            n.set(2, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
 
+          }
           currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
-
-        System.out.println("at QimmppTranslator.java:visitMethodDeclaration after cppast.addMethod");
           //Add the method params gotten by dispatching the formalParameters node
           cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
           //Add the method block gotten by dispatching the block node
 
-        System.out.println("at QimmppTranslator.java:visitMethodDeclaration cppast.setMethodParameters");
-        System.out.println("currentMethod: " + currentMethod);
         //System.out.println("getGeneric(7): " + n.getGeneric(7));
         //System.out.println(dispatch(n.getGeneric(7)));
         //System.out.println("valid gnode: " + getValidGNode(dispatch(n.getGeneric(7))));  
         cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
          
-        System.out.println("at QimmppTranslator.java:visitMethodDeclaration.end");
         } catch(Exception e) { e.printStackTrace(); }
       }
 
@@ -335,7 +341,7 @@ public class QimppTranslator extends Tool {
         String typename = identifier.getString(0);
 
         if(identifier.hasName("PrimitiveType")){
-          return null;
+          return n;
         }
         // Fix this later in treeManager
           else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
@@ -356,7 +362,8 @@ public class QimppTranslator extends Tool {
           GNode tempClass = currentClass;
           
           parentName = typename;
-
+          boolean tempInBlock = inBlock;
+          inBlock = false;
           // disambiguate() - figure out the fully qualified name
           // Later we'll keep track of already-imported types,
           // and we'll automatically skip those or expand them
@@ -381,7 +388,8 @@ public class QimppTranslator extends Tool {
           
           currentClassName = tempClassName;
           currentClass = tempClass;
-          
+          inBlock = tempInBlock;
+
           GNode type = GNode.create("Type");
           type.add((new Disambiguator()).disambiguate(typename));
           return type;

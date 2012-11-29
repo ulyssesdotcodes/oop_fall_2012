@@ -488,9 +488,15 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified primary identifier node. */
 	public void visitPrimaryIdentifier(GNode n) {
     //TODO:HACK
-    if (inPrintStatement) {
+    if(n.getString(0).equals("System")) {
       return;
     }
+    
+    //if (inPrintStatement) {
+    //  final int prec = startExpression(160);
+    //  printer.p(n.getString(0));
+    //  endExpression(prec);
+   // }
     else {
       final int prec = startExpression(160);
       if (inMain) {
@@ -515,7 +521,11 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified string literal node. */
 	public void visitStringLiteral(GNode n) {
 		final int prec = startExpression(160);
-    printer.p("__rt::literal(").p(n.getString(0)).p(')');
+    if (!inPrintStatement) 
+      printer.p("__rt::literal(");
+    printer.p(n.getString(0));
+    if (!inPrintStatement)
+      printer.p(')');
 	  endExpression(prec);
   }
 
@@ -661,11 +671,11 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified multiplicative expression. */
   public void visitMultiplicativeExpression(GNode n) {
-    final int prec1 = startExpression(130);
-    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
-
+    final int prec1 = startExpression(130); 
+    printer.p((GNode)dispatch(n.getGeneric(0))).p(' ').p(n.getString(1)).p(' ');
+    
     final int prec2 = enterContext();
-    printer.p(n.getNode(2));
+    printer.p((GNode)dispatch(n.getGeneric(2)));
     exitContext(prec2);
 
     endExpression(prec1);
@@ -780,6 +790,13 @@ public class ImplementationPrinter extends Visitor {
     printer.p(n.getString(0));
     endExpression(prec);
   }
+
+  /** Visit the specified unary expression. */                                                       
+  public void visitUnaryExpression(GNode n) {
+    final int prec = startExpression(150);
+    printer.p(n.getString(0)).p(n.getNode(1));
+    endExpression(prec);
+  }                 
 
 
   /** Visit the specified integer literal. */
