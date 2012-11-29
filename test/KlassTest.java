@@ -69,7 +69,7 @@ public class KlassTest {
     assertTrue(fieldTwo.getType().getName().equals("C"));
     assertTrue(fieldTwo.getType().getQualifiedName().equals("::B::C"));
 
-    // do we need to initialize?
+    // TODO: should we not allow for the initialization of the field?
   }
 
   @Test
@@ -131,6 +131,12 @@ public class KlassTest {
     assertTrue(methodFour.getParameters().get(1).getName().equals("b"));
     assertTrue(!methodFour.getParameters().get(1).isPointer());
   }  
+
+  // TODO: Klass objects do not have scopes yet.
+  public void withinGlobalScope() {
+    //assertTrue(new Klass("A").getScope().getQualifiedName().equals("::A"));
+  }
+
 
   
 }

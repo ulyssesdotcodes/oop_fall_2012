@@ -32,11 +32,7 @@ public class PrimitiveType extends Type {
    *
    * @param name Name of Java primitive to translate to C++.
    */
-  public PrimitiveType(String name) throws Exception {
-    if (!isJavaPrimitive(name)) {
-      throw new Exception(name + " is not a Java primitive type.");
-    }
-
+  public PrimitiveType(String name) {
     this.ccName = ccPrimitives.get(name);
   }
   

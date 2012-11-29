@@ -7,7 +7,7 @@ package qimpp;
  * The key here is to make the ordering of nodes very clear.
  * My idea here is something like this. To make the code
  * readable, we should strive to make the span (number of children)
- * of each node small. Example function calls are contrived.
+ * of each node small. Example function "make..." calls are contrived.
  *
  * public Node makeMethodDeclaration (...) {
  *   GNode methodDeclaration =
@@ -25,8 +25,8 @@ package qimpp;
  * default to adding most children as nodes. PrimaryIdentifier in this 
  * case has one child and it is a String identifying the method.
  * 
- * Here we can find a C++ language specification guide:
- * http://publib.boulder.ibm.com/iseries/v5r2/ic2924/books/c0948150.pdf
+ * See Stroustrup's C++ language specification guide.
+ *
  */
 
 
@@ -143,10 +143,7 @@ public class ConstructFactory {
 
     translationUnit.add(buildDefaultDirectives());
 
-    // Dynamic number of children depending on number of classes,
-    // so use an iterator.
     Iterator it = thePackage.unpack();
-    
     while(it.hasNext()) {
       translationUnit.add(buildClassDeclaration(it.next());
     }
@@ -170,9 +167,11 @@ public class ConstructFactory {
   /** Build default directives. */
   public Node buildDefaultDirectives() {
     GNode pragma = GNode.create("Pragma", "once");
+
     GNode include = GNode.create("IncludeDirectives");
     include.add(GNode.create("QuotedForm", "java_lang");
     include.add(GNode.create("AngleBracketForm", "stdint");
+
     return GNode.create("Directives", pragma, include);
   }
 

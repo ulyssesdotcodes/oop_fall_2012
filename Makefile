@@ -65,7 +65,6 @@ SOURCE = \
 	test/StoreTest.java \
 	test/SymbolTableTest.java \
 	test/TypeTest.java \
-	test/ScopeTest.java \
 	Variable.java \
 	StaticVariable.java \
 	ParameterVariable.java \
@@ -88,6 +87,3 @@ ifdef JAVA_DEV_ROOT
 include $(JAVA_DEV_ROOT)/Makerules
 endif
 
-
-testall:
-	java org.junit.runner.JUnitCore qimpp.InheritanceTreeManagerTest

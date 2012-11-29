@@ -21,25 +21,17 @@ package qimpp;
  */
 
 public class A {
-  public void foo() {
-    for (int i = 0; i < 4; i++) {
-      int j = 0;
-    }
-  }
+
+  int fieldOne;
+  String fieldTwo;
+
+  public void foo() { }
 }
 
 class B extends A {}
 
 class C extends A {}
 
-class D extends C {
-  public void bar() {
-    // Do nothing.
-  }
-}
+class D extends C {}
 
-class E extends C {
-  public void baz() {
-    // Do nothing.
-  }
-}
+class E extends C {}

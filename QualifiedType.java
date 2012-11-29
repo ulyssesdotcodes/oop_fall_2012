@@ -21,7 +21,7 @@ public class QualifiedType extends Type {
   /**
    * Constructor
    */
-  public QualifiedType(String ... ancestry) throws Exception {
+  public QualifiedType(String ... ancestry) {
 
     // set name
     this.name = ancestry[ancestry.length - 1];

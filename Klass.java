@@ -1,7 +1,7 @@
 package qimpp;
 
 import java.util.ArrayList;
-
+import qimpp.SymbolTable.Scope;
 
 /**
  * Maintains class types expressive fields and methods.
@@ -28,12 +28,32 @@ public class Klass {
     } 
 
     /**
+     * Setter for name.
+     *
+     * @param field name.
+     */
+    public Member setName(String name) {
+      this.name = name;
+      return this;
+    }
+
+    /**
      * Accessor for type.
      *
      * @return field type.
      */
     public Type getType() {
       return this.type;
+    }
+
+    /**
+     * Setter for type.
+     *
+     * @param field type.
+     */
+    public Member setType(Type type) {
+      this.type = type;
+      return this;
     }
   }
 
@@ -43,6 +63,10 @@ public class Klass {
    * Field of a class. Is a member.
    */
   class Field extends Member {
+
+    public Field() {
+      this(null, null);
+    }
 
     /**
      * Field constructor.
@@ -72,6 +96,10 @@ public class Klass {
 
     /** Body. */
     // TODO
+
+    public Method() {
+      this(null, null);
+    }
 
     /**
      * Method constructor.
@@ -127,6 +155,9 @@ public class Klass {
   /** Methods of a class. */
   ArrayList<Method> methods;
 
+  /** Scope of the class. */
+  Scope scope;
+
   /**
    * Klass constructor.
    * This singular overloaded form explicitly states no parent, so it
@@ -176,6 +207,20 @@ public class Klass {
   }
 
   /**
+   * Set class parent.
+   * TODO: Can we figure out a way to get rid of this?
+   *  It's powerful but it seems like it could 
+   *  potentially cause issues in class linking.
+   *
+   *  @param parent Parent class to set.
+   *  @return this Klass object.
+   */
+  public Klass setParent(Klass parent) {
+    this.parent = parent;
+    return this;
+  }
+
+  /**
    * Get methods of the class.
    *
    * @return methods of the class.
@@ -193,4 +238,12 @@ public class Klass {
     return this.fields;
   }
 
+  /**
+   * Get the scope of the class.
+   *
+   * @return scope of the class.
+   */
+  //public Scope getScope() {
+  //  return this.scope;
+  //}
 }
