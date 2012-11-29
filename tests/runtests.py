@@ -12,38 +12,40 @@ import sys
 files = os.listdir(os.getcwd())
 
 numtests = 0
+testFilenames = []
 
 for filename in files:
   if os.path.isfile(filename) and re.match("^Test.*\\.java$", filename):
     numtests += 1
+    testFilenames.append(filename)
 
 print "\n===================="
 # Check if a specific test was specified on the command line
 try:
-  print "Selected test: " + sys.argv[1]
-  testnumber = int(sys.argv[1])
+  targetFile = sys.argv[1];
+  if not targetFile in testFilenames:
+    raise TypeError("No such test file")
+  testFilenames = [targetFile]
+except TypeError as e:
+  print e
+  exit(1)
 except:
-  testnumber = numtests + 1
+    pass # No first argument
 
-if testnumber <= numtests and testnumber > 0:
-  count = testnumber
-  numtests = testnumber
-else:
-  count = 1
 
 # Loop through all test files, or if a single one is specified, do that
 # one
 
-while count <= numtests:
+for filename in testFilenames:
 
   print "\n\n----------------------------"
-  print "Testing " + "Test"+str(count)
+  print "Testing " + filename 
   print "----------------------------\n"
 
   
   # Translate
   
-  os.system( "java qimpp.QimppTranslator " + "Test"+str(count)+".java > /dev/null" )
+  os.system( "java qimpp.QimppTranslator " + filename +".java > /dev/null" )
 
   # Compile
 
@@ -51,7 +53,7 @@ while count <= numtests:
 
   # Run test and put output into file
 
-  os.system( "java qimpp.tests.Test"+str(count) + " > java.output" ) 
+  os.system( "java qimpp.tests." + filename.split("\\.")[0] + " > java.output" ) 
   
   # Check compilation return code
 
@@ -69,7 +71,6 @@ while count <= numtests:
     print "==============================="
     os.system( "diff java.output cpp.output" )
 
-  count += 1
   
 
 
