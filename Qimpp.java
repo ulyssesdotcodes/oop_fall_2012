@@ -104,16 +104,22 @@ public class Qimpp extends Tool {
 
     symbolTable.incorporate(node);
     
-    GNode cNode = (GNode)node;
+    Store store = new Store();
+    store.decomposeJavaAST(node);
+   
+    ConstructFactory factory = new ConstructFactory(); 
+    GNode cNode = (GNode)factory.buildTranslationUnit(store.getPackage());
 
     Printer printer = new Printer(System.out);
 
     if (runtime.test("printCppAST")) {
+      
       runtime.console().format(cNode).pln().flush(); 
     }
 
     if (runtime.test("writeSource")) {
-      //new HWriter(printer).dispatch(test);
+      new HWriter(printer).dispatch(cNode);
+      printer.flush();
       //new CCWriter(Constants.OUTPUT_IMPLEMENTATION_FILE)
       //   .dispatch(cNode);
     }

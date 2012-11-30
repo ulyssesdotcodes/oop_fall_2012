@@ -164,7 +164,6 @@ class Store {
       buildingField = false;
     }
 
- 
     /** Visit specified qualified identifier node. */
     public void visitQualifiedIdentifier(GNode n) {
       String typename = n.getString(0);
@@ -196,10 +195,12 @@ class Store {
     }
 
     // TODO: Handle the case of "int i, j;" See #visitFieldDeclaration
+    //  i.e. Java: double x, y, z; => C++: double x; double y; double z;
     /** Visit specified declarator node. */
     public void visitDeclarator(GNode n) {
       if (buildingField) {
         currentField.setName(n.getString(0));
+        currentField.setInitialization(n.getGeneric(2));
       }
     }
 
@@ -212,6 +213,13 @@ class Store {
       }
     }
 
+    /** Visit the specified block node. */
+    public void visitBlock(GNode n) {
+      if (buildingMethod) {
+        currentMethod.setBody(n);
+      }
+    }
+
     // =========================================================================
 
     // Let's analyze that class' methods! 
@@ -221,6 +229,18 @@ class Store {
       buildingMethod = true;
       currentMethod = currentClass.new Method();
       currentMethod.setName(n.getString(3));
+
+      visit(n);
+
+      currentMethod = null;
+      buildingMethod = false;
+    }
+    
+    /** Visit the specified constructor declaration node. Treat as method. */
+    public void visitConstructorDeclaration(GNode n) {
+      buildingMethod = true;
+      currentMethod = currentClass.new Method();
+      currentMethod.setName(n.getString(2));
 
       visit(n);
 
@@ -240,7 +260,7 @@ class Store {
       currentParameter = null;
       buildingParameter = false;  
     }
-    
+
 
     // =========================================================================
 

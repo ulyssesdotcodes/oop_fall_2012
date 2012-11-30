@@ -17,4 +17,11 @@ public abstract class Type {
 
   /** Qualified C++ name. */
   abstract String getQualifiedName();
+
+  /** Whether array. TODO: Don't initialize here. */
+  boolean dimensions = false;
+
+  public boolean hasDimensions() {
+    return this.dimensions;
+  }
 }

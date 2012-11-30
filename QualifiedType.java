@@ -2,6 +2,7 @@ package qimpp;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Arrays;
 
 /**
  * Extends abstract Type class to represent qualified types.

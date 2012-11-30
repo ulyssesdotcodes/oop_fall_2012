@@ -1,30 +1,30 @@
-
-
 package qimpp;
 
+import xtc.tree.Node;
+import xtc.tree.GNode;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.HashMap;
 
 /**
  * The key here is to make the ordering of nodes very clear.
  * My idea here is something like this. To make the code
  * readable, we should strive to make the span (number of children)
- * of each node small. Example function "make..." calls are contrived.
+ * of each node small. Example function "build..." calls are contrived.
  *
  * public Node makeMethodDeclaration (...) {
  *   GNode methodDeclaration =
  *     GNode.create("MethodDeclaration", NodeSizes.METHOD_DECLARATION);
  *
- *   methodDeclaration.set(0, makePrimaryIdentifier(...));
- *   methodDeclaration.set(1, makeReturnType(...));
- *   methodDeclaration.set(2, makeFormalParameters(...));
- *   methodDeclaration.set(3, makeBlock(...));
+ *   methodDeclaration.set(0, buildPrimaryIdentifier(...));
+ *   methodDeclaration.set(1, buildReturnType(...));
+ *   methodDeclaration.set(2, buildFormalParameters(...));
+ *   methodDeclaration.set(3, buildBlock(...));
  *
  *   return methodDeclaration;
  * }
  *
- * Note, PrimaryIdentifier is not a string. It will probably be easier to 
- * default to adding most children as nodes. PrimaryIdentifier in this 
- * case has one child and it is a String identifying the method.
- * 
  * See Stroustrup's C++ language specification guide.
  *
  */
@@ -37,12 +37,15 @@ package qimpp;
  */
 public class ConstructFactory {
 
+  // TODO: Clean up constants that aren't actually implemented.
   // NS => "NodeSizes"
   class NS {
     // Declarations - p. 23
     public static final int DECLARATION             = 4;
     public static final int MEMBER_DEFINITION       = 3;
     public static final int METHOD_DEFINITION       = 3;
+    public static final int METHOD_DECLARATION      = 5;
+    public static final int QUALIFIFED_IDENTIFIER   = 1;
 
     // Structures - p. 37
     public static final int STRUCT                  = 3;
@@ -53,6 +56,7 @@ public class ConstructFactory {
       public static final int POINTER_OPERATOR      = 2;
       public static final int DECLARATOR_NAME       = 2; 
       public static final int FUNCTION_DECLARATOR   = 5;
+    public static final int FIELD_DECLARATION       = 3;
  
     // Expressions - p. 71
     public static final int EXPRESSION              = 2;
@@ -101,7 +105,7 @@ public class ConstructFactory {
 
     // Namespaces - p. 177
     public static final int NAMESPACE               = 2;
-    public static final int QUALIFIED_IDENTIFIER    = 2;
+    public static final int QUALIFIED_IDENTIFIER    = 1;
 
     // Classes - p. 199
     public static final int CLASS_DECLARATION       = 3;
@@ -113,8 +117,13 @@ public class ConstructFactory {
     public static final int CATCH_BLOCK             = 2;
     public static final int THROW_EXPRESSION        = 1;
 
+    // Other
+    public static final int MODIFIER                = 1;
+    public static final int DIMENSIONS              = 1;
+    public static final int EXTENSION               = 1;
+    public static final int TYPE                    = 2;
+    public static final int FORMAL_PARAMETER        = 2;
   }
-
 
 
   public ConstructFactory() {
@@ -126,51 +135,46 @@ public class ConstructFactory {
    * Take a name and determines whether it is a fundamental type
    * or a qualified type name.
    */
-  protected Node formatAsTypeName(Name name) {
-    if (PrimitiveType.isJavaPrimitive(name.get())) {
-      return GNode.create("FundamentalType", name.get());
-    } else { return GNode.create("QualifiedType", name.get()); }
+  protected Node formatAsTypeName(String name) {
+    if (PrimitiveType.isJavaPrimitive(name)) {
+      return GNode.create("FundamentalType", name);
+    } else { return GNode.create("QualifiedType", name); }
   }
+
+  /**
+   * Take a name and prepend "__" to it, making it for internal
+   * representation.
+   */
+  protected String internal(String name) { return "__" + name; }
 
 
   // ===========================================================================
 
   // translationUnit is more accurate than compilationUnit
   // http://stackoverflow.com/questions/1106149/what-is-a-translation-unit-in-c
-  public Node buildTranslationUnit(Package thePackage) {
+  public Node buildTranslationUnit(HashMap<String,Klass> thePackage) {       // DONE
     GNode translationUnit =
-      Gnode.create("TranslationUnit");
+      GNode.create("TranslationUnit");
 
     translationUnit.add(buildDefaultDirectives());
 
-    Iterator it = thePackage.unpack();
-    while(it.hasNext()) {
-      translationUnit.add(buildClassDeclaration(it.next());
+    for (Object o : thePackage.values()) {
+      translationUnit
+        .add(buildClassDeclaration((Klass)o));
     }
+
 
     return translationUnit;
   }
 
-
-  public Node buildDeclaration(...) {
-    GNode declaration = 
-      GNode.create("Declaration", NS.DECLARATION);
-
-    declaration.set(0, buildStorage(...));
-    declaration.set(1, buildType(...));
-    declaration.set(2, buildDeclarators(...));
-    declaration.set(3, buildExpression(...));
-
-    return declaration;
-  }
-
   /** Build default directives. */
-  public Node buildDefaultDirectives() {
+  public Node buildDefaultDirectives() {                                // DONE
     GNode pragma = GNode.create("Pragma", "once");
 
     GNode include = GNode.create("IncludeDirectives");
-    include.add(GNode.create("QuotedForm", "java_lang");
-    include.add(GNode.create("AngleBracketForm", "stdint");
+    include.add(GNode.create("QuotedForm", "java_lang.h"));
+    include.add(GNode.create("AngleBracketForm", "stdint"));
+    include.add(GNode.create("AngleBracketForm", "sstream"));
 
     return GNode.create("Directives", pragma, include);
   }
@@ -178,200 +182,256 @@ public class ConstructFactory {
 
   // ===========================================================================
 
-
-  // TODO
   /** Build class declaration branch. */
-  public Node buildClassDeclaration(Klass klass) {
+  public Node buildClassDeclaration(Klass klass) {                      // DONE
     GNode classDeclaration =
-      Gnode.create("ClassDeclaration", NS.CLASS_DECLARATION);
-
-    classDeclaration.set(0, buildQualifiedIdentifier(klass.identifier));
-    classDeclaration.set(1, buildExtension(klass.extension));
-    classDeclaration.set(2, buildClassBody(klass.members));
-
+      GNode.create("ClassDeclaration",
+          buildPointerTypedef(klass.getName()),      /* 0 */
+          buildStructDeclaration(klass),             /* 1 */
+          buildQualifiedIdentifier(klass.getName()), /* 2 */
+          buildExtension(klass.getParent()),         /* 3 */
+          buildClassBody(klass.getFields(),          /* 4 */
+                         klass.getMethods()));
     return classDeclaration;
   }
 
-  // TODO
-  /** Build class identifier branch. */
-  public Node buildQualifiedIdentifier(...) {
-    GNode className = GNode.create("QualifiedIdentifier", NS.CLASS_IDENTIFIER);
-    className.set(0, ...); 
-    return className;
+  /** Build class struct branch. */
+  public Node buildStructDeclaration(Klass klass) {
+    return GNode.create("StructDeclaration",
+      internal(klass.getName()),
+      buildStructClassFields(klass.getFields(), klass.getName()),
+      buildStructConstructor(klass.getMethods()),
+      buildStructImplementedMethods(klass.getMethods()));
   }
 
   // TODO
+  public Node buildStructClassFields(ArrayList<Klass.Field> fields, 
+                                     String name) {
+    GNode structClassFields = GNode.create("StructClassFields");
+   
+    // vtable pointer
+    structClassFields.add(internal(name) + "_VT* __vptr");
+    
+    for (Klass.Field field : fields) {
+      structClassFields.add(field.getType().getName() + " " 
+                          + field.getName());
+    }
+
+    return structClassFields;
+  }
+
+  // TODO: How do we represent the constructor?
+  public Node buildStructConstructor(ArrayList<Klass.Method> methods) {
+    return GNode.create("StructConstructor");
+  }
+
+  // TODO
+  public Node buildStructImplementedMethods(ArrayList<Klass.Method> methods) {
+    GNode structImplementedMethods = GNode.create("StructImplementedMethods");
+
+    for (Klass.Method method : methods) {
+      structImplementedMethods.add(buildStructImplementedMethod(method));
+    }
+
+    return structImplementedMethods;
+  }
+
+  // TODO
+  public Node buildStructImplementedMethod(Klass.Method method) {
+    String typename = 
+      (null == method.getType() ? "void" : method.getType().getName());
+
+    return GNode.create("StructImplementedMethod",
+      method.isStatic(),                             /* 0 */
+      typename,                                      /* 1 */
+      method.getName(),                              /* 2 */
+      buildStructImplementedMethodTypes(method));    /* 3 */
+  }
+
+  public Node buildStructImplementedMethodTypes(Klass.Method method) {
+    GNode structImplementedMethodTypes = 
+      GNode.create("StructImplementedMethodTypes");
+
+    // always add own as implicit "this"
+    structImplementedMethodTypes.add(method.implementor.getName());
+
+    for (ParameterVariable pv : method.getParameters()) {
+      structImplementedMethodTypes.add(pv.getType().getName());
+    }
+
+    return structImplementedMethodTypes;
+  }
+
+
+
+  // TODO
+  /** Build class struct vtable branch. */
+  public Node buildStructVTDeclaration(Klass klass) {
+    return GNode.create("StructVTDeclaration"); 
+  }
+
+  /** Build class typedef node. */
+  public Node buildPointerTypedef(String aliasName) {
+    return GNode.create("PointerTypedef",
+      internal(aliasName),
+      aliasName);
+  }
+
+  /** Build class identifier branch. */
+  public Node buildQualifiedIdentifier(String qualifiedIdentifier) {    // DONE
+    return GNode.create("QualifiedIdentifier", qualifiedIdentifier); 
+  }
+
   /** Build class inheritance branch. */
-  public Node buildExtension(Name name) {
-    GNode extension = GNode.create("Extension", NS.EXTENSION);
-    extension.set(0, buildType(name));
-    return extension;
+  public Node buildExtension(Klass parent) {                            // DONE
+    if (null == parent) { 
+      return GNode.create("Extension", null);
+    } else { return GNode.create("Extension", buildType(parent.getType())); }
+  }
+
+  /** Build type branch. */
+  public Node buildType(Type type) {                                    // DONE
+    GNode typeNode = GNode.create("Type", NS.TYPE);
+
+    if (null == type) {
+      return (GNode)typeNode.add(GNode.create("FundamentalType", "void")); /*0*/
+    } else { 
+      typeNode.add(formatAsTypeName(type.getName()));                      /*0*/
+      if (type.hasDimensions()) { // TODO: Implement array indication in Type
+        typeNode.add(buildDimensions()); /* 1 */
+      } else { typeNode.add(null); }     /* 1 */
+    }
+
+    return typeNode;
   }
 
   // TODO
   /** Build class body branch. */
-  public Node buildClassBody(ArrayList<Member> members) {
-    // Dynamic number of children.
-    // First one is the constructor.
+  public Node buildClassBody(ArrayList<Klass.Field> fields, 
+                             ArrayList<Klass.Method> methods) {               
+    GNode classBody = GNode.create("ClassBody",
+        buildConstructors(methods),  /* 0 */
+        buildFields(fields),         /* 1 */
+        buildMethods(methods));      /* 2 */
+    return classBody; 
+  }
+
+  // TODO
+  /** Build constructors branch. */
+  public Node buildConstructors(ArrayList<Klass.Method> methods) {
+    //ArrayList<Klass.Method> constructors = extractConstructorsFrom(methods);
+    
+    // initialize same way as a method declaration.
+    return GNode.create("Constructors");
   }
 
 
   // ===========================================================================
 
-  // TODO
+  /** Build fields branch. */
+  public Node buildFields(ArrayList<Klass.Field> fields) {
+    GNode fieldsNode = GNode.create("Fields");
+
+    Iterator it = fields.iterator();
+    while (it.hasNext()) {
+      fieldsNode.add(buildFieldDeclaration((Klass.Field)it.next()));
+    }
+   
+    return fieldsNode;
+  }
+
   /** Build field declaration branch. */
-  public Node buildFieldDeclaration(...) {
+  public Node buildFieldDeclaration(Klass.Field field) {
     GNode fieldDeclaration =
-      GNode.create("FieldDeclaration", NS.FIELD_DECLARATION);
-
-    fieldDeclaration.set(0, buildModifiers(...));
-    fieldDeclaration.set(1, buildType(...));
-    fieldDeclaration.set(2, buildDeclarators(...));
-
+      GNode.create("FieldDeclaration",
+          buildModifiers(field.isStatic()),                     /* 0 */
+          buildType(field.getType()),                           /* 1 */
+          buildDeclarators((GNode)field.getInitialization()));  /* 2 */
     return fieldDeclaration;
   }
 
-  // TODO
-  /** Build type branch. */
-  public Node buildType(Name name) {
-    GNode type =
-      GNode.create("Type", NS.TYPE);
+  /** 
+   * Build modifiers branch. Since there we're going from the more constrained
+   * private notion in Java to the less constrained C++, we can skip worrying
+   * about private / public / protected modifiers. We DO need to care about
+   * static modifiers though.
+   */
+  public Node buildModifiers(boolean isStatic) {
+    GNode modifiers = GNode.create("Modifiers");
+    
+    if (isStatic) {
+      GNode modifier  = GNode.create("Modifier", "static");
+      modifiers.add(modifier);
+    }
 
-    type.set(0, formatAsTypeName(name));
-    if (dimensions) {
-      type.set(1, buildDimensions());
-    } else { type.set(1, null); }
-
-    return type;
+    return modifiers;
   }
 
-  // TODO
   /** Build dimensions node. */
-  public static Node buildDimensions() {
-    GNode dimensions =
-      GNode.create("Dimensions", NS.DIMENSIONS);
-    dimensions.set(0, "[");
-    return dimensions;
+  public Node buildDimensions() {
+    return GNode.create("Dimensions", "[");
   }
 
-  // TODO
-  /** Build declarator branch. */
-  public Node buildDeclarator(...) {
-    GNode declarator =
-      GNode.create("Declarator", NS.DECLARATOR);
+  /**
+   * Build declarators branch. 
+   *
+   * TODO: This only holds one declarator at the moment,
+   * but it should hold more when we can handle definitions like
+   * double i, j = 3;
+   */
+  public Node buildDeclarators(GNode declarator) {
+    return GNode.create("Declarators", declarator);
+  } 
 
-    declarator.set(0, buildIdentifier(...));
-    declarator.set(1, build_);
-    declarator.set(2, buildExpression(...));
+  // ===========================================================================
 
-    return declarator;
+  /** Build methods branch. */
+  public Node buildMethods(ArrayList<Klass.Method> methods) {
+    GNode methodsNode = GNode.create("Methods");
+
+    Iterator it = methods.iterator();
+    while (it.hasNext()) {
+      methodsNode.add(buildMethodDeclaration((Klass.Method)it.next()));
+    }
+
+    return methodsNode;
   }
-
-  // TODO
-  /** Build formal parameters node. */
-  public Node buildFormalParameters(...) {
-    // Dynamic number of children.
-  }
-
-  // TODO
+  
   /** Build method declaration branch. */
-  public Node buildMethodDeclaration(...) {
+  public Node buildMethodDeclaration(Klass.Method method) {
     GNode methodDeclaration =
-      GNode.create("MethodDeclaration", NS.METHOD_DECLARATION);
+      GNode.create("MethodDeclaration",
+          buildModifiers(method.isStatic()),              /* 0 */
+          buildType(method.getType()),                    /* 1 */
+          method.getName(),                               /* 2 */
+          buildFormalParameters(method.getParameters()),  /* 3 */
+          method.getBody());                              /* 4 */
+    return methodDeclaration;
+  }
+  
+  /** Build formal parameters branch. */
+  public Node buildFormalParameters(ArrayList<ParameterVariable> parameters) {
+    GNode formalParameters = GNode.create("FormalParameters");
 
-    methodDeclaration.set(0, makePrimaryIdentifier(...));
-    methodDeclaration.set(1, makeReturnType(...));
-    methodDeclaration.set(2, makeFormalParameters(...));
-    methodDeclaration.set(3, makeBlock(...));
+    Iterator it = parameters.iterator();
+    while (it.hasNext()) {
+      formalParameters.add(buildFormalParameter((ParameterVariable)it.next()));
+    }
+
+    return formalParameters;
   }
 
-  // TODO
-  /** Build using branch. */
-  public Node buildUsing(Namespace namespace) {
-    GNode using =
-      GNode.create("Using", NS.USING);
-    using.set(0, namespace.getFullyQualified());
-    return namespace;
-  }
-
-  // ===========================================================================
-
-
-  // TODO
-  /** Build conditional expression branch. */
-  public Node buildConditionalExpression(...) {
-    GNode conditionalExpression =
-      GNode.create("ConditionalExpression", NS.CONDITIONAL_EXPRESSION);
-
-    conditionalExpression.set(0, NS.EXPRESSION);
-    conditionalExpression.set(1, RELATIONAL_OPERATOR);
-    conditionalExpression.set(2, NS.EXPRESSION);
-
-    return conditionalExpression;
+  /** Build formal parameter branch. */
+  public Node buildFormalParameter(ParameterVariable parameter) {
+    GNode parameterNode = GNode.create("FormalParameter",
+        buildType(parameter.getType()),                   /* 0 */
+        parameter.getName());                             /* 1 */
+    return parameterNode;
   }
 
   // ===========================================================================
-
-
-  // TODO
-  /** Build if statement branch. */
-  public Node buildIfStatement(...) {
-    GNode ifStatement =
-      GNode.create("IfStatement", NS.IF_STATEMENT);
-
-    ifStatement.set(0, buildConditionalExpression(...));
-    ifStatement.set(1, buildBlock(...));
-
-    return ifStatement;
-  } 
-
-  // TODO
-  /** Build while statement branch. */
-  public Node buildWhileStatement(...) {
-    GNode whileStatement =
-      GNode.create("WhileStatement", NS.WHILE_STATEMENT);
-
-    whileStatement.set(0, buildExpression(...));
-    whileStatement.set(1, buildBlock(...));
-
-    return whileStatement;
-  }
-
-
-
-  /** Build break node. */
-  public Node buildBreakStatement() {
-    return GNode.create("BreakStatement");
-  }
-
-  /** Build continue node. */
-  public Node buildContinueStatement() {
-    return GNode.create("ContinueStatement");
-  }
-
-  /** Build primary identifier. */
-  public Node buildPrimaryIdentifier(String identifier) {
-    GNode primaryIdentifier =
-      GNode.create("PrimaryIdentifier", NS.PRIMARY_IDENTIFIER);
-
-    primaryIdentifier.set(0, identifier);
-
-    return primaryIdentifier;
-  } 
-
-  /** Build qualified identifier. */
-  public Node buildQualifiedIdentifier(...) {
-    // Dynamic number of children.
-  }
-
 
 }
-
-
-
-
-
-
 
 
 

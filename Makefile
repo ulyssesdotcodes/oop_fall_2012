@@ -48,6 +48,7 @@ PACKAGE_LOC = qimpp
 SOURCE = \
 	CPPAST.java \
 	Constants.java \
+	ConstructFactory.java \
 	HWriter.java \
 	HeaderWriter.java \
 	ImplementationWriter.java \

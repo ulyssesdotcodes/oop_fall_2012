@@ -3,15 +3,40 @@ package qimpp;
 import xtc.tree.Visitor;
 import xtc.tree.Node;
 import xtc.tree.GNode;
-
 import xtc.tree.Printer;
+
+import java.util.Iterator;
 
 /**
  * Writes the header file from the C++ AST.
+ * It might help with debugging to put our comments in the 
+ * actual outputted code.
+ *
+ * TODO: Remove all the p(' ') with something like s().
+ *  It's clearer and less visually confusing.
+ *
+ * TODO: There MUST be a better way to do indenting. Calling 
+ *  indent() every single time is horrible.
+ *
+ * TODO: (11/30) Vivek's remaining work on this is:
+ *  1) ordering of declarations
+ *  2) constructor initialization
+ *  3) vtable struct
  *
  * @author Qimpp
  */
 public class HWriter extends Visitor {
+
+  // WC => "Write Constants"
+  class WC {
+    public static final String RT_PTR = "__rt::Ptr";
+  }
+
+  // Into => Indexes
+  class Into {
+    public static final int STRUCT_DECLARATION = 1;
+  }
+
 
   /** The printer for this C++ printer. */ 
   protected final Printer printer;
@@ -242,7 +267,7 @@ public class HWriter extends Visitor {
   
 
   /** Visit the specified translation unit node. */
-  public void visitCompilationUnit(GNode n) {
+  public void visitTranslationUnit(GNode n) {
     // Reset the state.
     isDeclaration   = false;
     isStatement     = false;
@@ -252,21 +277,188 @@ public class HWriter extends Visitor {
     precedence      = PREC_BASE;
 
     if (lineUp) printer.line(1);
-
+    printer.pln("// =========================================================");
     visit(n);
   }
 
-  /** Visit the specified assignment expression node. */
-  public void visitAssignmentExpression(GNode n) {
-    int prec1 = startExpression(20);
-    int prec2 = enterContext();
-    visit(n.getNode(0));
-    exitContext(prec2);
+  /** Visit the specified directives node. */
+  //public void visitDirectives() {}
 
-    printer.p(' ').p(n.getString(1)).p(' ');
-    visit(n.getNode(2));
-    endExpression(prec1);
+  /** Visit the specified pragma node. */
+  public void visitPragma(GNode n) {
+    printer.p("#pragma").p(' ').pln(n.getString(0));
   }
+
+  /** Visit the specified include directives node. */
+  public void visitIncludeDirectives(GNode n) { 
+    visit(n); printer.pln();
+  }
+  
+  /** Visit the specified quoted form include node. */
+  public void visitQuotedForm(GNode n) {
+    printer.p("#include").p(' ').p('\"').p(n.getString(0)).pln('\"');
+  }
+
+  /** Visit the specified angle bracket form include node. */
+  public void visitAngleBracketForm(GNode n) {
+    printer.p("#include").p(' ').p('<').p(n.getString(0)).pln('>');
+  }
+
+
+  // ===========================================================================
+
+  /** Flag for forward declarating a class struct. */
+  boolean forwardDeclareStruct; 
+
+  public void prepareClassDeclaration() {
+    forwardDeclareStruct = true;
+  }
+
+  public void endClassDeclaration() {
+    forwardDeclareStruct = false;
+  }
+
+  /** Visit the specified class declaration node. */
+  public void visitClassDeclaration(GNode n) {
+    printer.pln("// ================== NEW CLASS ======================");
+    prepareClassDeclaration();
+    dispatch(n.getGeneric(Into.STRUCT_DECLARATION)); // forward declare
+
+    visit(n);
+
+    endClassDeclaration();
+  }
+
+  // TODO
+  /** Visit specified struct declaration branch. */
+  public void visitStructDeclaration(GNode n) {
+    if (forwardDeclareStruct) {
+      printer.pln("// Forward declare data layout and vtables.");
+      printer.p("struct").p(' ').p(n.getString(0)).pln(';');
+      printer.p("struct").p(' ').p(n.getString(0)).p("_VT").pln(';');
+      printer.pln();
+      forwardDeclareStruct = false;
+    } else {
+      prepareNested();
+      boolean nested = startStatement(STMT_ANY, n);
+      printer.pln("// The data layout");
+      printer.p("struct").p(' ').p(n.getString(0)).p(' ').pln('{');
+
+      visit(n);
+
+      printer
+        .indent().pln("// The function returning the class object")
+        .indent().pln("static Class __class();").pln()
+        .indent().pln("// The vtable")
+        .indent().p("static").p(' ').p(n.getString(0)).p("_VT").p(' ')
+        .p("__vtable").pln(';');
+
+      endStatement(nested);
+      printer.p('}').pln(';').pln();
+    }
+  }
+
+  /** Visit specified struct class fields branch. */
+  public void visitStructClassFields(GNode n) {
+    for (Object o : n) { printer.indent().p((String)o).pln(';'); }
+    printer.pln();
+  }
+
+  /** Visit specified struct constructor branch. */
+  public void visitStructConstructor(GNode n) {
+    // TODO
+  }
+
+  /** Visit specified struct implemented methods branch. */
+  public void visitStructImplementedMethods(GNode n) {
+    if (n.size() > 0) { 
+      printer.indent().pln("// implemented methods");
+      for (Object o : n) {
+        Node m = (Node)o;
+        if (m.getName().equals("StructImplementedMethod")) {
+          printer.indent();
+          if (m.getBoolean(0)) { printer.p("static").p(' '); }
+          printer.p(m.getString(1)).p(' ');
+          printer.p(m.getString(2))
+            .p('(');
+          dispatch(m.getGeneric(3));
+          printer.p(')').pln(';');
+        }
+      }
+      printer.pln();
+    }
+  }
+
+  /** Visit specified struct implemented method types branch. */
+  public void visitStructImplementedMethodTypes(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      printer.p((String)iter.next());
+      if (iter.hasNext()) {
+        printer.p(',').p(' ');
+      }
+    }
+  }
+
+  /** Visit specified typedef node for aliasing from a smart pointer. */
+  public void visitPointerTypedef(GNode n) {
+    printer.indent()
+      .pln("// Definition of type names, which are equivalent to Java "
+        + "semantics.")
+      .p("typedef").p(' ')
+      .p(WC.RT_PTR).p('<').p(n.getString(0)).p('>').p(' ')
+      .p(n.getString(1)).pln(';');
+    printer.pln();
+  }
+
+  boolean writingField = false;
+
+  /** Visit specified field node. */
+  public void visitFieldDeclaration(GNode n) {
+      visit(n);
+  }
+
+  /** Visit specified modifier node. */
+  public void visitModifier(GNode n) {
+    if (writingField) {
+      printer.p(n.getString(0)).p(' ');
+    }
+  }
+
+  /** Visit specified type node. */
+  public void visitType(GNode n) {
+    if (writingField) {
+      visit(n);
+      if (null != n.get(1)) { printer.p("[]"); }
+    }
+  }
+
+  /** Visit specified qualified type node. */
+  public void visitQualifiedType(GNode n) {
+    if (writingField) { printer.p(n.getString(0)).p(' '); }
+  }
+
+  /** Visit specified fundamental type node. */
+  public void visitFundamentalType(GNode n) {
+    if (writingField) { printer.p(n.getString(0)).p(' '); }
+  }
+
+  /** 
+   * Visit specified declarator node.
+   * TODO: Note, we only can handle single declarations
+   *  in a single line, at this point. See Store.Analyzer
+   *  to learn more.
+   */
+  public void visitDeclarator(GNode n) {
+    if (writingField) { printer.p(n.getString(0)).pln(';'); }
+  }
+
+
+  /** The constructor */
+  public void visitConstructor(GNode n) {
+  }
+
+  
+
 
 
 

@@ -28,7 +28,10 @@ public class A {
   public void f2(int i)              { }
   public void f3(int i, String str)  { }
 
-  public String f4()                 { return ""; }
+  public String f4()                 { 
+    boolean b;
+    return ""; 
+  }
   public int f5(int i)               { return 0;  }
   public int f6(int i, String str)   { return 1;  }
 }

@@ -244,7 +244,8 @@ public class HeaderWriter extends Visitor {
       if(current.hasName("FieldDeclaration"))
         //For now just get the first field declared
         indentOut().p(Type.translate(current)).p(" ").p(current.getGeneric(2).getGeneric(0).getString(0)).p(";").pln();
-    } */
+    } 
+    */
   }
   
   private String getTypeDirect(GNode n, boolean isPointer){

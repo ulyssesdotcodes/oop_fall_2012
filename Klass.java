@@ -209,6 +209,9 @@ public class Klass {
   /** Parent class, if any. */
   Klass parent;
 
+  /** Type of class. */
+  Type type;
+
   /** Class fields. */
   ArrayList<Field> fields;
 
@@ -255,6 +258,7 @@ public class Klass {
     this.parent  = parent;
     this.fields  = fields;
     this.methods = methods;
+    this.type    = new QualifiedType(name);
   }
 
   /**
@@ -299,6 +303,15 @@ public class Klass {
   }
 
   /**
+   * Get type of the class.
+   *
+   * @return type of the class.
+   */
+  public Type getType() {
+    return this.type;
+  }
+
+  /**
    * Get the scope of the class.
    *
    * @return scope of the class.
@@ -306,4 +319,13 @@ public class Klass {
   //public Scope getScope() {
   //  return this.scope;
   //}
+  
+  /**
+   * Get the name of the class.
+   *
+   * @return name of the class.
+   */
+  public String getName() {
+    return this.name;
+  }
 }
