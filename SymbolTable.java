@@ -514,7 +514,7 @@ public class SymbolTable {
       return this.node;
     }
 
-    public Node node(Node node) {
+    public void node(Node node) {
       this.node = node;
     }
 
