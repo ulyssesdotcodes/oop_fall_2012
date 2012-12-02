@@ -94,6 +94,14 @@ public class HeaderWriter extends Visitor {
     //current_class = name(n);
     try{ 
       visit(n);
+
+      // Write out the namespace of the class
+      String[] qualifiedType = getNameQualifiedArray(n);
+      for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
+        indentOut().pln("namespace " + qualifiedType[i] + " {");
+        printer.incr();
+      }
+
       
       writeStruct(n);
       writeVTStruct(n);
@@ -101,6 +109,14 @@ public class HeaderWriter extends Visitor {
       inherited_methods.clear();
       implemented_methods.clear();
       fields.clear();
+
+      // Write out the namespace of the class
+      for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
+        printer.decr();
+        indentOut().pln("}");
+      }
+
+
       //current_class = "";
     } catch ( Exception e) { e.printStackTrace(); }
   }
@@ -152,8 +168,8 @@ public class HeaderWriter extends Visitor {
   public void writeTypeDeclaration(GNode node){
     // ClassDeclaration field 1 is the name of the class
     
-    printer.p("struct __").p(name(node)).p(";\n");
-    printer.p("struct __").p(name(node)).p("_VT;\n").pln();
+    indentOut().p("struct __").p(name(node)).p(";\n");
+    indentOut().p("struct __").p(name(node)).p("_VT;\n").pln();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -177,7 +193,7 @@ public class HeaderWriter extends Visitor {
   // Using java_lang.h as a basis, NOT skeleton.h
   private void writeStruct(GNode n){
     try{
-    printer.p("struct __").p(name(n)).p(" {\n");
+    indentOut().p("struct __").p(name(n)).p(" {\n");
     printer.pln();
     printer.incr();
       writeVPtr(n);
@@ -191,7 +207,7 @@ public class HeaderWriter extends Visitor {
       printer.pln();
       writeVTable(n); 
     printer.decr();
-    printer.p("};\n").pln();
+    indentOut().p("};\n").pln();
     }catch(Exception e) { e.printStackTrace(); }
   }
   
@@ -278,7 +294,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeField(GNode n) {
     String type = getType(n, true); 
-    indentOut().p(type).p(" ").p(n.getString(0)).p(";\n"); 
+    indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
   }
 
   private void writeMethods(GNode n){
@@ -327,7 +343,8 @@ public class HeaderWriter extends Visitor {
   * @param i the index of the class we are writing
   */
   private void writeVTStruct(GNode node) {
-    printer.p("struct __").p(name(node)).p("_VT {\n");
+    
+    indentOut().p("struct __").p(name(node)).p("_VT {\n");
     printer.pln(); 
     printer.incr();
       // initialize __isa
@@ -346,7 +363,7 @@ public class HeaderWriter extends Visitor {
       printer.decr();
       indentOut().p("}\n");
     printer.decr();
-    printer.p("};\n").pln();
+    indentOut().p("};\n").pln();
   }
 
   /** Write out all the inherited methods of Object, since every class extends Object
@@ -481,12 +498,24 @@ public class HeaderWriter extends Visitor {
 
   private String name(GNode n) {
     System.out.println("Name of what? :" + n.toString());
-    String name = n.getString(0);
+    // Get the final identifier from the qualified name
+    String[] qualifiedNameArray = n.getString(0).split("\\.");
+    String name = qualifiedNameArray[qualifiedNameArray.length - 1];
     return name;
   }
   
   private Printer indentOut(){
     return printer.indent();
+  }
+
+  private String[] getNameQualifiedArray(GNode n) {
+    String qualifiedName = n.getString(0);
+    String[] qualifiedType = qualifiedName.split("\\.");
+    return qualifiedType;
+  }
+
+  private String getFieldPrefix(GNode n){
+    return n.getString(0).replace(".", "_");
   }
 
 }
