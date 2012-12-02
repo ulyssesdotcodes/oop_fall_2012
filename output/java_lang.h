@@ -49,7 +49,7 @@ namespace java {
     struct __Class_VT;
 
     // Definition of type names, which are equivalent to Java semantics,
-    // i.e., an instance is the address of the object's data layout.
+    // i.e., a smart pointer to a data layout.
     typedef __rt::Ptr<__Object> Object;
     typedef __rt::Ptr<__Class> Class;
     typedef __rt::Ptr<__String> String;
@@ -390,6 +390,18 @@ namespace __rt {
         throw java::lang::ArrayStoreException();
       }
     }
+  }
+
+  // Template function for translated Java casts.
+  template <typename T, typename U>
+  T java_cast(U object) {
+    java::lang::Class k = T::value_t::__class();
+    
+    if (! k->__vptr->isInstance(k, object)) {
+      throw java::lang::ClassCastException();
+    }
+
+    return T(object);
   }
 
 }

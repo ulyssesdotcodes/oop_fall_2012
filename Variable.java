@@ -27,19 +27,19 @@ public abstract class Variable {
     this.isPointer  = isPointer;
   }
 
-  public String getName() {
+  public String name() {
     return this.name;
   }
 
-  public void setName(String name) {
+  public void name(String name) {
     this.name = name;
   }
 
-  public Type getType() {
+  public Type type() {
     return this.type;
   }
 
-  public void setType(Type type) {
+  public void type(Type type) {
     this.type = type;
   }
 
@@ -50,6 +50,6 @@ public abstract class Variable {
   public String toString() {
     if (null == this.type) {
       return "<null> " + this.name;
-    } else { return this.type.getName() + ' ' + this.name; }
+    } else { return this.type.name() + ' ' + this.name; }
   }
 }

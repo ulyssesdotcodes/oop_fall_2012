@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * @author QIMPP
  */
-public class HeaderWriterTest {
+public class HeaderWriterTes1 {
 	
   ByteArrayOutputStream out = new ByteArrayOutputStream();
   Printer printer = new Printer(out);  

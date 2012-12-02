@@ -277,7 +277,10 @@ public class HWriter extends Visitor {
     precedence      = PREC_BASE;
 
     if (lineUp) printer.line(1);
-    printer.pln("// =========================================================");
+    printer.pln("// ==========================================================")
+      .pln("//               .h Header file              ")
+      .pln("// ==========================================================")
+      .pln();
     visit(n);
   }
 
@@ -331,7 +334,7 @@ public class HWriter extends Visitor {
 
   // TODO
   /** Visit specified struct declaration branch. */
-  public void visitStructDeclaration(GNode n) {
+  public void visitDataLayoutDeclaration(GNode n) {
     if (forwardDeclareStruct) {
       printer.pln("// Forward declare data layout and vtables.");
       printer.p("struct").p(' ').p(n.getString(0)).pln(';');
@@ -359,23 +362,23 @@ public class HWriter extends Visitor {
   }
 
   /** Visit specified struct class fields branch. */
-  public void visitStructClassFields(GNode n) {
+  public void visitDataLayoutClassFields(GNode n) {
     for (Object o : n) { printer.indent().p((String)o).pln(';'); }
     printer.pln();
   }
 
   /** Visit specified struct constructor branch. */
-  public void visitStructConstructor(GNode n) {
+  public void visitDataLayoutConstructor(GNode n) {
     // TODO
   }
 
   /** Visit specified struct implemented methods branch. */
-  public void visitStructImplementedMethods(GNode n) {
+  public void visitDataLayoutImplementedMethods(GNode n) {
     if (n.size() > 0) { 
       printer.indent().pln("// implemented methods");
       for (Object o : n) {
         Node m = (Node)o;
-        if (m.getName().equals("StructImplementedMethod")) {
+        if (m.getName().equals("ImplementedMethod")) {
           printer.indent();
           if (m.getBoolean(0)) { printer.p("static").p(' '); }
           printer.p(m.getString(1)).p(' ');
@@ -389,8 +392,65 @@ public class HWriter extends Visitor {
     }
   }
 
+  // VTABLE ====================================================================
+
+  /** Visit specified VT declaration node. */
+  public void visitVTDeclaration(GNode n) {
+    printer.pln("// vtable layout");
+    printer.p("struct").p(' ').p(n.getString(0)).p("_VT").p(' ').pln('{');
+    printer.incr().indent().pln("::java::lang::Class __isa;");
+    printer.indent().p("void (*__delete)(").p(n.getString(0)).p("*)").pln(';');
+    visit(n);
+    printer.decr().p('}').pln(';').pln();
+  }
+
+  /** Visit specified VT method node. */
+  public void visitVTMethod(GNode n) {
+    printer.indent().p(n.getString(0)).p(' ')
+      .p('(').p('*').p(n.getString(1)).p(')')
+      .p('(');
+    dispatch(n.getGeneric(2));
+    printer.p(')').pln(';'); 
+  }
+
+  /** Visit specified VT constructor node. */
+  public void visitVTConstructor(GNode n) {
+    // print the isa and delete methods first
+    printer.pln().indent().p(n.getString(0)).p("_VT").p(' ').pln('{');
+    printer.indent().p(':').p(' ').p("__isa(").p(n.getString(0))
+      .p(Constants.QUALIFIER).p("__class()").p(')').pln(',').incr();
+    printer.indent().p("__delete(&__rt::__delete").p(n.getString(0)).p('>')
+      .p(')').pln(',');
+
+    visit(n);
+
+    printer.decr();
+  }
+
+  /** Visit specified VT initializations node. */
+  public void visitVTInitializations(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      dispatch((GNode)iter.next());
+      if (iter.hasNext()) {
+        printer.pln(',');
+      }
+    }
+    printer.p(' ').pln("{}");
+  }
+
+  /** Visit specified VT initialization node. */
+  public void visitVTInitialization(GNode n) {
+    printer.indent().p(n.getString(0)).p('(').p('(')
+      .p(n.getString(1)).p("(*)").p('(');
+    dispatch(n.getGeneric(2)); // MethodParameterTypes
+    printer.p(')').p(')').p('&').p(n.getString(3)).p(')');
+  }
+
+  // ===========================================================================
+
+
   /** Visit specified struct implemented method types branch. */
-  public void visitStructImplementedMethodTypes(GNode n) {
+  public void visitMethodParameterTypes(GNode n) {
     for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
       printer.p((String)iter.next());
       if (iter.hasNext()) {
@@ -411,11 +471,6 @@ public class HWriter extends Visitor {
   }
 
   boolean writingField = false;
-
-  /** Visit specified field node. */
-  public void visitFieldDeclaration(GNode n) {
-      visit(n);
-  }
 
   /** Visit specified modifier node. */
   public void visitModifier(GNode n) {

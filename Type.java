@@ -13,10 +13,10 @@ public abstract class Type {
   // Nothing to see here.
 
   /** Unqualified C++ name. */
-  abstract String getName();
+  abstract String name();
 
   /** Qualified C++ name. */
-  abstract String getQualifiedName();
+  abstract String qualifiedName();
 
   /** Whether array. TODO: Don't initialize here. */
   boolean dimensions = false;

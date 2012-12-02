@@ -46,7 +46,6 @@ public class Qimpp extends Tool {
 
   SymbolTable symbolTable;
 
-
   /** Create a new translator. */
   public Qimpp() {
     symbolTable = new SymbolTable();
@@ -98,10 +97,7 @@ public class Qimpp extends Tool {
       runtime.console().format(node).pln().flush();
     }
 
-    // - Declarations should have types
-    // - While there are multiple files to read in, keep incorporating
-    //  table.
-
+    // - While there are multiple files to read in, keep incorporating table.
     symbolTable.incorporate(node);
     
     Store store = new Store();
@@ -113,15 +109,14 @@ public class Qimpp extends Tool {
     Printer printer = new Printer(System.out);
 
     if (runtime.test("printCppAST")) {
-      
       runtime.console().format(cNode).pln().flush(); 
     }
 
     if (runtime.test("writeSource")) {
       new HWriter(printer).dispatch(cNode);
       printer.flush();
-      //new CCWriter(Constants.OUTPUT_IMPLEMENTATION_FILE)
-      //   .dispatch(cNode);
+      new CCWriter(printer).dispatch(cNode);
+      printer.flush();
     }
 
     System.out.println("*** Translated ***");

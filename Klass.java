@@ -19,16 +19,19 @@ public class Klass {
    */
   abstract class Member {
     String name;            // might need to be freshly generated
+                            // TODO: also need a method for generating fully qualified names
     Klass implementor;
+    Klass of;
     Type type;
     boolean isStatic;
+
 
     /**
      * Accessor for name.
      *
      * @return field name.
      */
-    public String getName() {
+    public String name() {
       return this.name;
     } 
 
@@ -38,7 +41,7 @@ public class Klass {
      * @param field name.
      * @return member.
      */
-    public Member setName(String name) {
+    public Member name(String name) {
       this.name = name;
       return this;
     }
@@ -48,7 +51,7 @@ public class Klass {
      *
      * @return field type.
      */
-    public Type getType() {
+    public Type type() {
       return this.type;
     }
 
@@ -58,7 +61,7 @@ public class Klass {
      * @param field type.
      * @return member.
      */
-    public Member setType(Type type) {
+    public Member type(Type type) {
       this.type = type;
       return this;
     }
@@ -79,6 +82,33 @@ public class Klass {
     public void makeStatic() {
       this.isStatic = true;
     }
+  
+    /**
+     * Getter for implementor.
+     *
+     * @return implementor.
+     */
+    public Klass implementor() {
+      return this.implementor;
+    }
+
+    /** 
+     * Setter for implementor.
+     *
+     * @param implementing class.
+     */
+    public void implementor(Klass implementor) {
+      this.implementor = implementor;
+    }
+  
+    /**
+     * Getter for getting the class a member is part *of*.
+     *
+     * @return class the member is a member of.
+     */
+    public Klass of() {
+      return this.of;
+    }
   }
 
   // ===========================================================================
@@ -92,11 +122,27 @@ public class Klass {
     Node initialization;
 
     public Field() {
-      this.implementor  = Klass.this;
+      this.implementor    = Klass.this;
       this.name           = null;
       this.type           = null;
       this.initialization = null;
       this.isStatic       = false;
+      this.of             = Klass.this;
+    }
+
+    /**
+     * At the end of setting the field's properties, incorporate this
+     * field into the fields of the class.
+     */
+    public void incorporate() {
+      for (Field field : Klass.this.fields) {
+        // TODO: match implementations on more than just name
+        if (field.name().equals(this.name)) {
+          Field implemented = field;
+          field.implementor = Klass.this;
+          return;
+        }  
+      }
       Klass.this.fields.add(this);
     }
 
@@ -105,7 +151,7 @@ public class Klass {
      *
      * @return field initialization block.
      */
-    public Node getInitialization() {
+    public Node initialization() {
       return this.initialization;
     }
 
@@ -114,12 +160,12 @@ public class Klass {
      *
      * @param field initialization block.
      */
-    public void setInitialization(Node initialization) {
+    public void initialization(Node initialization) {
       this.initialization = initialization;
     }
   
     public String toString() {
-      return this.type.getQualifiedName() + ' ' +
+      return this.type.qualifiedName() + ' ' +
         this.name + ';';
     }
   }
@@ -145,6 +191,26 @@ public class Klass {
       this.body         = null; // to set in Analyze.java via setBody
       this.parameters   = new ArrayList<ParameterVariable>();
       this.isStatic     = false;
+      this.of           = Klass.this;
+    }
+
+    /** 
+     * At the end of setting the method's properties, incorporate this 
+     * method into the methods of a class.
+     *
+     * If it implements a parent class' method, then set the appropriate
+     * implementor in this class's methods list (already inherited).
+     * If it's new, we add it.
+     */
+    public void incorporate() {
+      for (Method method : Klass.this.methods) {
+        // TODO: match implementations on more than just name
+        if (method.name().equals(this.name)) {
+          Method implemented = method;
+          implemented.implementor = Klass.this;
+          return;
+        }  
+      }
       Klass.this.methods.add(this);
     }
     
@@ -153,7 +219,7 @@ public class Klass {
      *
      * @return method parameters, if any.
      */
-    public ArrayList<ParameterVariable> getParameters() {
+    public ArrayList<ParameterVariable> parameters() {
       return this.parameters;
     }
 
@@ -171,7 +237,7 @@ public class Klass {
      *
      * @return method body.
      */
-    public Node getBody() {
+    public Node body() {
       return this.body;
     }
 
@@ -180,25 +246,37 @@ public class Klass {
      *
      * @param body Node method body.
      */
-    public void setBody(Node body) {
+    public void body(Node body) {
       this.body = body;
     }
 
     public String toString() {
-      String tmp = this.type.getQualifiedName() + ' ' + this.name + '(';
+      String tmp = this.type.qualifiedName() + ' ' + this.name + '(';
       Iterator<ParameterVariable> it = parameters.iterator();
       while (it.hasNext()) {
         ParameterVariable parameter = it.next();
-        tmp += parameter.getType().getQualifiedName() + ' ' + 
-          parameter.getName(); 
+        tmp += parameter.type().qualifiedName() + ' ' + 
+          parameter.name(); 
         if (it.hasNext()) {
           tmp += ", ";
         }
       }
+      tmp += ')';
       return tmp;
     }
 
+
   }
+
+  // ===========================================================================
+
+  class Constructor {
+    String name;
+    String qualifiedName;
+    ArrayList<Node> arguments;     // could be expression, so use GNode
+    ArrayList<Node> initializers;  // also could be expression
+  }
+
 
 
   // ===========================================================================
@@ -222,38 +300,27 @@ public class Klass {
   Scope scope;
 
   /**
-   * Klass constructor.
-   * This singular overloaded form explicitly states no parent, so it
-   * should inherit from Object. In this case, null implies Object.
+   * Klass constructor. If a class doesn't explicitly inherit from
+   * anything, it inherits from Object. Create it as so:
+   *   
+   *   new Klass("A", new Klass("Object", null))
    *
-   * @param name Name of the class.
-   */
-  public Klass(String name) {
-    this(name, null);
-  }
-
-  /**
-   * Klass constructor.
+   * An object should not be instantiated with no parent, unless that
+   * parent's name is "Object"
    *
    * @param name Name of the class.
    * @param parent The parent class.
    */
   public Klass(String name, Klass parent) {
-    this(name, parent, new ArrayList<Field>(), new ArrayList<Method>());
-  }
+    // copy methods and fields from parent if it exists
+    // TODO: only inherit accessible fields (i.e. not private ones)
+    ArrayList<Method> methods = generateObjectMethods();
+    ArrayList<Field> fields = new ArrayList<Field>();
+    if (null != parent) { 
+      methods = new ArrayList<Method>(parent.methods());
+      fields = new ArrayList<Field>(parent.fields());
+    }
 
-  /**
-   * Klass constructor.
-   *
-   * @param name Name of the class.
-   * @param parent The parent class.
-   * @param fields The class member fields.
-   * @param methods The class member methods.
-   */
-  public Klass(String name,
-               Klass parent,
-               ArrayList<Field> fields,
-               ArrayList<Method> methods) {
     this.name    = name;
     this.parent  = parent;
     this.fields  = fields;
@@ -261,12 +328,48 @@ public class Klass {
     this.type    = new QualifiedType(name);
   }
 
+  public ArrayList<Method> generateObjectMethods() {
+    // First: Object methods
+    Method hashCode = new Method();
+    hashCode.makeStatic();
+    hashCode.name("hashCode");
+    hashCode.type(new PrimitiveType("int"));
+    hashCode.implementor(this);
+
+    Method equals = new Method();
+    equals.makeStatic();
+    equals.name("equals");
+    equals.type(new PrimitiveType("boolean"));
+    equals.implementor(this);
+    equals.addParameter(new ParameterVariable(new QualifiedType("Object"), 
+                                              "other"));
+
+    Method getClass = new Method();
+    getClass.makeStatic();
+    getClass.name("getClass");
+    getClass.type(new QualifiedType("Class"));
+    getClass.implementor(this);
+
+    Method toString = new Method();
+    toString.makeStatic();
+    toString.name("toString");
+    toString.type(new QualifiedType("String"));
+    toString.implementor(this);
+
+    ArrayList<Method> objectMethods = new ArrayList<Method>();
+    objectMethods.add(hashCode);
+    objectMethods.add(equals);
+    objectMethods.add(getClass);
+    objectMethods.add(toString);
+    return objectMethods;
+  }
+
   /**
    * Get class parent.
    *
    * @return class parent.
    */
-  public Klass getParent() {
+  public Klass parent() {
     return this.parent;
   }
 
@@ -279,7 +382,7 @@ public class Klass {
    *  @param parent Parent class to set.
    *  @return this Klass object.
    */
-  public Klass setParent(Klass parent) {
+  public Klass parent(Klass parent) {
     this.parent = parent;
     return this;
   }
@@ -289,7 +392,7 @@ public class Klass {
    *
    * @return methods of the class.
    */
-  public ArrayList<Method> getMethods() {
+  public ArrayList<Method> methods() {
     return this.methods;
   }
 
@@ -298,7 +401,7 @@ public class Klass {
    *
    * @return fields of the class.
    */
-  public ArrayList<Field> getFields() {
+  public ArrayList<Field> fields() {
     return this.fields;
   }
 
@@ -307,7 +410,7 @@ public class Klass {
    *
    * @return type of the class.
    */
-  public Type getType() {
+  public Type type() {
     return this.type;
   }
 
@@ -325,7 +428,8 @@ public class Klass {
    *
    * @return name of the class.
    */
-  public String getName() {
+  public String name() {
     return this.name;
   }
+
 }

@@ -47,7 +47,7 @@ public class ConstructFactory {
     public static final int METHOD_DECLARATION      = 5;
     public static final int QUALIFIFED_IDENTIFIER   = 1;
 
-    // Structures - p. 37
+    // DataLayoutures - p. 37
     public static final int STRUCT                  = 3;
 
     // Declarators - p. 55
@@ -130,6 +130,9 @@ public class ConstructFactory {
 
   }
 
+  /** Current class */
+  Klass currentClass;
+
 
   /**
    * Take a name and determines whether it is a fundamental type
@@ -161,9 +164,9 @@ public class ConstructFactory {
     for (Object o : thePackage.values()) {
       translationUnit
         .add(buildClassDeclaration((Klass)o));
+      currentClass = null;
     }
-
-
+    
     return translationUnit;
   }
 
@@ -184,90 +187,152 @@ public class ConstructFactory {
 
   /** Build class declaration branch. */
   public Node buildClassDeclaration(Klass klass) {                      // DONE
+    Klass currentClass = klass;
     GNode classDeclaration =
       GNode.create("ClassDeclaration",
-          buildPointerTypedef(klass.getName()),      /* 0 */
-          buildStructDeclaration(klass),             /* 1 */
-          buildQualifiedIdentifier(klass.getName()), /* 2 */
-          buildExtension(klass.getParent()),         /* 3 */
-          buildClassBody(klass.getFields(),          /* 4 */
-                         klass.getMethods()));
+          buildPointerTypedef(klass.name()),      /* 0 */
+          buildDataLayoutDeclaration(klass),      /* 1 */
+          buildVTDeclaration(klass),              /* 2 */
+          buildQualifiedIdentifier(klass.name()), /* 3 */
+          buildExtension(klass.parent()),         /* 4 */
+          buildClassBody(klass.fields(),          /* 5 */
+                         klass.methods()));
     return classDeclaration;
   }
 
   /** Build class struct branch. */
-  public Node buildStructDeclaration(Klass klass) {
-    return GNode.create("StructDeclaration",
-      internal(klass.getName()),
-      buildStructClassFields(klass.getFields(), klass.getName()),
-      buildStructConstructor(klass.getMethods()),
-      buildStructImplementedMethods(klass.getMethods()));
+  public Node buildDataLayoutDeclaration(Klass klass) {
+    return GNode.create("DataLayoutDeclaration",
+      internal(klass.name()),
+      buildDataLayoutClassFields(klass.fields(), klass.name()),
+      buildDataLayoutConstructor(klass.methods()),
+      buildDataLayoutImplementedMethods(klass));
   }
 
   // TODO
-  public Node buildStructClassFields(ArrayList<Klass.Field> fields, 
+  public Node buildDataLayoutClassFields(ArrayList<Klass.Field> fields, 
                                      String name) {
-    GNode structClassFields = GNode.create("StructClassFields");
+    GNode structClassFields = GNode.create("DataLayoutClassFields");
    
     // vtable pointer
     structClassFields.add(internal(name) + "_VT* __vptr");
     
     for (Klass.Field field : fields) {
-      structClassFields.add(field.getType().getName() + " " 
-                          + field.getName());
+      structClassFields.add(field.type().name() + " " 
+                          + field.name());
     }
 
     return structClassFields;
   }
 
   // TODO: How do we represent the constructor?
-  public Node buildStructConstructor(ArrayList<Klass.Method> methods) {
-    return GNode.create("StructConstructor");
+  public Node buildDataLayoutConstructor(ArrayList<Klass.Method> methods) {
+    return GNode.create("DataLayoutConstructor");
   }
 
   // TODO
-  public Node buildStructImplementedMethods(ArrayList<Klass.Method> methods) {
-    GNode structImplementedMethods = GNode.create("StructImplementedMethods");
+  public Node buildDataLayoutImplementedMethods(Klass klass) {
+    GNode structImplementedMethods = 
+      GNode.create("DataLayoutImplementedMethods");
 
-    for (Klass.Method method : methods) {
-      structImplementedMethods.add(buildStructImplementedMethod(method));
+    for (Klass.Method method : klass.methods()) {
+      if (method.implementor() == klass) {
+        structImplementedMethods.add(buildDataLayoutImplementedMethod(method));
+      }
     }
 
     return structImplementedMethods;
   }
 
-  // TODO
-  public Node buildStructImplementedMethod(Klass.Method method) {
+  public Node buildDataLayoutImplementedMethod(Klass.Method method) {
     String typename = 
-      (null == method.getType() ? "void" : method.getType().getName());
+      (null == method.type() ? "void" : method.type().name());
 
-    return GNode.create("StructImplementedMethod",
+    return GNode.create("ImplementedMethod",
       method.isStatic(),                             /* 0 */
       typename,                                      /* 1 */
-      method.getName(),                              /* 2 */
-      buildStructImplementedMethodTypes(method));    /* 3 */
+      method.name(),                                 /* 2 */
+      buildMethodParameterTypes(method));            /* 3 */
   }
 
-  public Node buildStructImplementedMethodTypes(Klass.Method method) {
-    GNode structImplementedMethodTypes = 
-      GNode.create("StructImplementedMethodTypes");
+  public Node buildMethodParameterTypes(Klass.Method method) {
+    GNode methodParameterTypes = 
+      GNode.create("MethodParameterTypes");
 
     // always add own as implicit "this"
-    structImplementedMethodTypes.add(method.implementor.getName());
+    methodParameterTypes.add(method.of().name());
 
-    for (ParameterVariable pv : method.getParameters()) {
-      structImplementedMethodTypes.add(pv.getType().getName());
+    for (ParameterVariable pv : method.parameters()) {
+      methodParameterTypes.add(pv.type().qualifiedName());
     }
 
-    return structImplementedMethodTypes;
+    return methodParameterTypes;
   }
 
+  // VTABLE ====================================================================
 
+  // TODO: use methods and constructor call when ready
+  /** Build class struct vtable branch. */
+  public Node buildVTDeclaration(Klass klass) {
+    return GNode.create("VTDeclaration",
+      internal(klass.name()),
+      buildVTMethods(klass),
+      buildVTConstructor(klass));
+  }
 
   // TODO
-  /** Build class struct vtable branch. */
-  public Node buildStructVTDeclaration(Klass klass) {
-    return GNode.create("StructVTDeclaration"); 
+  /** Build class struct vtable methods branch. */
+  public Node buildVTMethods(Klass klass) {
+    GNode vtMethods = GNode.create("VTMethods");
+
+    for (Klass.Method method : klass.methods()) {
+      vtMethods.add(buildVTMethod(method));
+    }
+
+    return vtMethods;
+  }
+
+  /** Build class struct vtable method branch. */
+  public Node buildVTMethod(Klass.Method method) {
+    String returnType = "void";
+    if (null != method.type()) { returnType = method.type().name(); }
+    return GNode.create("VTMethod",
+        returnType,                           /* 0 */
+        method.name(),                        /* 1 */
+        buildMethodParameterTypes(method));   /* 2 */
+  }
+
+  // TODO
+  /** Build vtable constructor branch. */
+  public Node buildVTConstructor(Klass klass) {
+    GNode vtConstructor = GNode.create("VTConstructor",
+        internal(klass.name()),         /* 0 */
+        buildVTInitializations(klass)); /* 1 */
+
+    return vtConstructor;
+  }
+
+  /** Build vtable initializations branch. */
+  public Node buildVTInitializations(Klass klass) {
+    GNode vtInitializatons = GNode.create("VTInitializations");
+
+    for (Klass.Method method : klass.methods()) {
+      vtInitializatons.add(buildVTInitialization(method));
+    }
+
+    return vtInitializatons;
+  }
+
+  // TODO
+  /** Build vtable initializer branch. */
+  public Node buildVTInitialization(Klass.Method method) {
+    String returnType = "void";
+    if (null != method.type()) { returnType = method.type().name(); }
+    return GNode.create("VTInitialization",      
+        method.name(),                          /* 0 */
+        returnType,                             /* 1 */
+        buildMethodParameterTypes(method),      /* 2 */
+        internal(method.implementor().name())); /* 3 */
   }
 
   /** Build class typedef node. */
@@ -286,7 +351,7 @@ public class ConstructFactory {
   public Node buildExtension(Klass parent) {                            // DONE
     if (null == parent) { 
       return GNode.create("Extension", null);
-    } else { return GNode.create("Extension", buildType(parent.getType())); }
+    } else { return GNode.create("Extension", buildType(parent.type())); }
   }
 
   /** Build type branch. */
@@ -296,7 +361,7 @@ public class ConstructFactory {
     if (null == type) {
       return (GNode)typeNode.add(GNode.create("FundamentalType", "void")); /*0*/
     } else { 
-      typeNode.add(formatAsTypeName(type.getName()));                      /*0*/
+      typeNode.add(formatAsTypeName(type.name()));                      /*0*/
       if (type.hasDimensions()) { // TODO: Implement array indication in Type
         typeNode.add(buildDimensions()); /* 1 */
       } else { typeNode.add(null); }     /* 1 */
@@ -310,19 +375,20 @@ public class ConstructFactory {
   public Node buildClassBody(ArrayList<Klass.Field> fields, 
                              ArrayList<Klass.Method> methods) {               
     GNode classBody = GNode.create("ClassBody",
-        buildConstructors(methods),  /* 0 */
-        buildFields(fields),         /* 1 */
-        buildMethods(methods));      /* 2 */
+        buildConstructor(/* TODO */),  /* 0 */
+        buildFields(fields),           /* 1 */
+        buildMethods(methods));        /* 2 */
     return classBody; 
   }
 
+
   // TODO
-  /** Build constructors branch. */
-  public Node buildConstructors(ArrayList<Klass.Method> methods) {
-    //ArrayList<Klass.Method> constructors = extractConstructorsFrom(methods);
-    
-    // initialize same way as a method declaration.
-    return GNode.create("Constructors");
+  /** Build constructor branch. */
+  public Node buildConstructor(/* TODO */) {
+    return GNode.create("Constructor");
+        //constructor.qualifiedName(),
+        //constructor.arguments()
+        //constructor.initializers());
   }
 
 
@@ -345,8 +411,8 @@ public class ConstructFactory {
     GNode fieldDeclaration =
       GNode.create("FieldDeclaration",
           buildModifiers(field.isStatic()),                     /* 0 */
-          buildType(field.getType()),                           /* 1 */
-          buildDeclarators((GNode)field.getInitialization()));  /* 2 */
+          buildType(field.type()),                           /* 1 */
+          buildDeclarators((GNode)field.initialization()));  /* 2 */
     return fieldDeclaration;
   }
 
@@ -389,9 +455,10 @@ public class ConstructFactory {
   public Node buildMethods(ArrayList<Klass.Method> methods) {
     GNode methodsNode = GNode.create("Methods");
 
-    Iterator it = methods.iterator();
-    while (it.hasNext()) {
-      methodsNode.add(buildMethodDeclaration((Klass.Method)it.next()));
+    for (Klass.Method method : methods) {
+      if (method.implementor() == currentClass) {
+        methodsNode.add(buildMethodDeclaration(method));
+      }
     }
 
     return methodsNode;
@@ -401,11 +468,11 @@ public class ConstructFactory {
   public Node buildMethodDeclaration(Klass.Method method) {
     GNode methodDeclaration =
       GNode.create("MethodDeclaration",
-          buildModifiers(method.isStatic()),              /* 0 */
-          buildType(method.getType()),                    /* 1 */
-          method.getName(),                               /* 2 */
-          buildFormalParameters(method.getParameters()),  /* 3 */
-          method.getBody());                              /* 4 */
+          buildModifiers(method.isStatic()),           /* 0 */
+          buildType(method.type()),                    /* 1 */
+          method.name(),                               /* 2 */
+          buildFormalParameters(method.parameters()),  /* 3 */
+          method.body());                              /* 4 */
     return methodDeclaration;
   }
   
@@ -424,8 +491,8 @@ public class ConstructFactory {
   /** Build formal parameter branch. */
   public Node buildFormalParameter(ParameterVariable parameter) {
     GNode parameterNode = GNode.create("FormalParameter",
-        buildType(parameter.getType()),                   /* 0 */
-        parameter.getName());                             /* 1 */
+        buildType(parameter.type()),                   /* 0 */
+        parameter.name());                             /* 1 */
     return parameterNode;
   }
 

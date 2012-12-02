@@ -56,7 +56,7 @@ public class PrimitiveType extends Type {
    *
    * @return translated unqualified C++ primitive type.
    */
-  public String getName() {
+  public String name() {
     return this.ccName;
   }
 
@@ -66,7 +66,7 @@ public class PrimitiveType extends Type {
    *
    * @return translated qualified C++ primitive type.
    */
-  public String getQualifiedName() {
+  public String qualifiedName() {
     return this.ccName;
   }
 }

@@ -3,7 +3,6 @@ package qimpp;
 import xtc.tree.Visitor;
 import xtc.tree.Node;
 import xtc.tree.GNode;
-
 import xtc.tree.Printer;
 
 /**
@@ -242,34 +241,54 @@ public class CCWriter extends Visitor {
   
 
   /** Visit the specified translation unit node. */
-  public void visitCompilationUnit(GNode n) {
+  public void visitTranslationUnit(GNode n) {
     // Reset the state.
     isDeclaration   = false;
     isStatement     = false;
     isNested        = false;
     isIfElse        = false;
-    isStmtAsExpr    = false;
     isFunctionDef   = false;
     precedence      = PREC_BASE;
 
     if (lineUp) printer.line(1);
+    printer.pln("// =========================================================")
+      .pln("//               .cc Implementation file              ")
+      .pln("// ==========================================================")
+      .pln();
 
     visit(n);
   }
 
-  /** Visit the specified assignment expression node. */
-  public void visitAssignmentExpression(GNode n) {
-    int prec1 = startExpression(20);
-    int prec2 = enterContext();
-    visit(n.getNode(0));
-    exitContext(prec2);
+  // TODO: Implementation; overloaded constructors?
+  /** Visit the specified constructor node. */
+  public void visitConstructor(GNode n) {
+    printer.p("n.getString(0)").p('(');
+  
+    // TODO: constructor arguments
+    
+    printer.pln(')').indent()
+      .p(" : __vptr(&__vtable)");
+ 
+    // TODO: object initializations
 
-    printer.p(' ').p(n.getString(1)).p(' ');
-    visit(n.getNode(2));
-    endExpression(prec1);
+    printer.pln("{}"); 
   }
 
 
+  // TODO: When ready, remove the DEBUG from the declaration
+  /** Visit the specified method declaration node. */
+  public void visitMethodDeclarationDEBUG(GNode n) {
+    printer.p(n.getString(0)).p(' ').p(n.getString(1)).p('(');
+    dispatch(n.getGeneric(2));
+    printer.p(')').p(' ').p('{');
+    dispatch(n.getGeneric(3));
+    printer.pln('}').pln();
+  }
+
+  /** Visit specified type node. */
+  public void visitTypeNode(GNode n) {
+    printer.p(n.getString(0)).p(' ');
+  }
 
 
 
@@ -278,6 +297,4 @@ public class CCWriter extends Visitor {
       if (o instanceof Node) dispatch((Node)o);
     }
   }
-
-
 }

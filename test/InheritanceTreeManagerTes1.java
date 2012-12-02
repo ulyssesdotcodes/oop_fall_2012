@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
  * Tests for InheritanceTreeManager. Template. Not done yet
  *
  */
-public class InheritanceTreeManagerTest  {
+public class InheritanceTreeManagerTes1  {
 
         InheritanceTreeManager treeManager;
 

@@ -34,6 +34,15 @@ public class QualifiedType extends Type {
       qualifiedName.append(ancestry[i]);
     }
     this.qualifiedName = qualifiedName.toString();
+
+    // in case already a predefined type
+    if (this.name.equals("Object")) {
+      this.qualifiedName = "::java::lang::Object";
+    } else if (this.name.equals("String")) {
+      this.qualifiedName = "::java::lang::String";
+    } else if (this.name.equals("Class")) {
+      this.qualifiedName = "::java::lang::Class";
+    }
    
     // set context 
     StringBuilder context = new StringBuilder();
@@ -57,15 +66,15 @@ public class QualifiedType extends Type {
   
   // ===========================================================================
 
-  public String getName() {
+  public String name() {
     return this.name;
   }
 
-  public String getQualifiedName() {
+  public String qualifiedName() {
     return this.qualifiedName;
   }
 
-  public String getContext() {
+  public String context() {
     return this.context;
   }
 

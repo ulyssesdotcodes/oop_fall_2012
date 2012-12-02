@@ -11,8 +11,7 @@ files = os.listdir(os.getcwd())
 
 tests = []
 for filename in files:
-  print re.match(r"(.+Test\.java)", filename), filename
-  if os.path.isfile(filename) and re.match(r"(.+Test\.java)", filename):
+  if os.path.isfile(filename) and re.match(r"(.+Test\.java$)", filename):
     tests.append(filename)
 
 count = 0

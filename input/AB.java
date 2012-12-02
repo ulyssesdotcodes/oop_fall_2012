@@ -1,11 +1,9 @@
 
-import java.lang.String;
-
 
 public class A {
 
 }
 
-class B {
+class B extends A {
 
 }

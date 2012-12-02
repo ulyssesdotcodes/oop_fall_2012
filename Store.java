@@ -62,6 +62,9 @@ class Store {
    */
   class Analyzer extends Visitor {
 
+    /** The root Object class. */
+    Klass object = new Klass("Object", null);
+
     /** The current class that we're constructing. */
     Klass currentClass;
 
@@ -115,7 +118,7 @@ class Store {
     /** Visit specified class declaration node and add class. */
     public void visitClassDeclaration(GNode n) {
       buildingClass = true;
-      Klass parent = null; // i.e. Object
+      Klass parent = object;
 
       String extendsName = fetchParentClassName(n.getGeneric(3));
       if (pkg.containsKey(extendsName)) {
@@ -125,7 +128,7 @@ class Store {
       String className = n.getString(Indices.CLASS_NAME);
       if (pkg.containsKey(className)) {
         currentClass = pkg.get(className);
-        currentClass.setParent(parent);
+        currentClass.parent(parent);
       } else { currentClass = new Klass(className, parent); }
 
       visit(n);
@@ -160,6 +163,7 @@ class Store {
 
       visit(n); 
 
+      currentField.incorporate();
       currentField = null;
       buildingField = false;
     }
@@ -167,14 +171,14 @@ class Store {
     /** Visit specified qualified identifier node. */
     public void visitQualifiedIdentifier(GNode n) {
       String typename = n.getString(0);
-      if (buildingField && (null == currentField.getType())) {
-        currentField.setType(new QualifiedType(typename));
+      if (buildingField && (null == currentField.type())) {
+        currentField.type(new QualifiedType(typename));
       } else if (buildingMethod) {
-        if (null == currentMethod.getType()) {
-          currentMethod.setType(new QualifiedType(typename));
+        if (null == currentMethod.type()) {
+          currentMethod.type(new QualifiedType(typename));
         }
         if (buildingParameter) {
-          currentParameter.setType(new QualifiedType(typename));
+          currentParameter.type(new QualifiedType(typename));
         }
       }
     }
@@ -182,14 +186,14 @@ class Store {
     /** Visit specified primitive type node. */
     public void visitPrimitiveType(GNode n) {
       String typename = n.getString(0);
-      if (buildingField && (null == currentField.getType())) {
-        currentField.setType(new PrimitiveType(typename));
+      if (buildingField && (null == currentField.type())) {
+        currentField.type(new PrimitiveType(typename));
       } else if (buildingMethod) {
-        if (null == currentMethod.getType()) {
-          currentMethod.setType(new PrimitiveType(typename));
+        if (null == currentMethod.type()) {
+          currentMethod.type(new PrimitiveType(typename));
         }
         if (buildingParameter) {
-          currentParameter.setType(new PrimitiveType(typename));
+          currentParameter.type(new PrimitiveType(typename));
         }
       }
     }
@@ -199,8 +203,8 @@ class Store {
     /** Visit specified declarator node. */
     public void visitDeclarator(GNode n) {
       if (buildingField) {
-        currentField.setName(n.getString(0));
-        currentField.setInitialization(n.getGeneric(2));
+        currentField.name(n.getString(0));
+        currentField.initialization(n.getGeneric(2));
       }
     }
 
@@ -216,7 +220,7 @@ class Store {
     /** Visit the specified block node. */
     public void visitBlock(GNode n) {
       if (buildingMethod) {
-        currentMethod.setBody(n);
+        currentMethod.body(n);
       }
     }
 
@@ -228,10 +232,11 @@ class Store {
     public void visitMethodDeclaration(GNode n) {
       buildingMethod = true;
       currentMethod = currentClass.new Method();
-      currentMethod.setName(n.getString(3));
+      currentMethod.name(n.getString(3));
 
       visit(n);
 
+      currentMethod.incorporate();
       currentMethod = null;
       buildingMethod = false;
     }
@@ -240,7 +245,7 @@ class Store {
     public void visitConstructorDeclaration(GNode n) {
       buildingMethod = true;
       currentMethod = currentClass.new Method();
-      currentMethod.setName(n.getString(2));
+      currentMethod.name(n.getString(2));
 
       visit(n);
 
@@ -252,7 +257,7 @@ class Store {
     public void visitFormalParameter(GNode n) {
       buildingParameter = true;
       currentParameter = new ParameterVariable();
-      currentParameter.setName(n.getString(3));
+      currentParameter.name(n.getString(3));
       
       visit(n); 
 

@@ -47,6 +47,7 @@ PACKAGE_LOC = qimpp
 
 SOURCE = \
 	CPPAST.java \
+	CCWriter.java \
 	Constants.java \
 	ConstructFactory.java \
 	HWriter.java \
@@ -62,7 +63,6 @@ SOURCE = \
 	SymbolTable.java \
 	Type.java \
 	test/KlassTest.java \
-	test/QimppTest.java \
 	test/StoreTest.java \
 	test/SymbolTableTest.java \
 	test/TypeTest.java \
