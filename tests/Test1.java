@@ -1,4 +1,5 @@
 package qimpp.tests;
+import qimpp.tests.Foo;
 
 
 /** Test inheritance */

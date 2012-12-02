@@ -1,3 +1,5 @@
+import java.util.Hashmap;
+
 public class Foo {
 
   public String zebra;

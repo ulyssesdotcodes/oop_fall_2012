@@ -57,10 +57,14 @@ public class QimppTranslator extends Tool {
     
   GNode currentClass, currentMethod, currentConstructor, parentClassNode;
   String currentClassName;
+  String currentPackageName;
   String parentName;
   CPPAST cppast;
   InheritanceTreeManager treeManager;
   GNode root;
+
+  HashMap<String, String> currentNameMap;
+
   boolean inBlock;
 
   /** Create a new translator. */
@@ -111,12 +115,165 @@ public class QimppTranslator extends Tool {
   }
 
   public void process(Node node) {
+    // Create a hashmap to hold maps of ambiguous names to unambiguous names
+    currentNameMap = new HashMap<String, String>();
+
     /** SYMBOL TABLE */
     SymbolTable table = new SymbolTable();
     table.incorporate(node);
     // Now we can call .getProperty("qimpp.Constants.SCOPE") on certain
     // scope-defining nodes and we'll get back a Scope object (look in
     // SymbolTable).
+    
+    // First, get contextual information with an initial visit of types and the package declaration
+    
+    Visitor initialVisitor = new Visitor () {
+
+        public void visitClassDeclaration(GNode n) {
+        
+          //Add the current class to the cppast, and set it as the current class global variable.
+          String qualifiedClassName = currentPackageName + "." + n.getString(1);
+          currentClass = cppast.addClass(qualifiedClassName);
+          currentClassName = qualifiedClassName;
+          parentClassNode = currentClass;
+          
+          //add the current class to the inheritance tree, but parent it to Object for now
+          String[] qualifiedArray = n.getString(1).split("\\.");
+          treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualifiedArray)), null, currentClass);
+         
+          System.out.println("Inserted class in tree manager"); 
+          visit(n);
+
+        }
+
+        /** Set the current package name context */
+        public void visitPackageDeclaration(GNode n){
+
+          GNode qualifiedIdentifier = n.getGeneric(1);
+          StringBuilder packageNameBuilder = new StringBuilder();
+
+          for ( int i = 0; i < qualifiedIdentifier.size(); i++ ){
+            packageNameBuilder.append(qualifiedIdentifier.getString(i));
+            if ( i < qualifiedIdentifier.size() - 1 ) {
+              packageNameBuilder.append(".");
+            }
+          }
+
+          currentPackageName = packageNameBuilder.toString();
+        }
+
+        //TODO: * imports
+        /** Handle explicit imports */
+        public void visitImportDeclaration(GNode n){
+          //  Assuming it's not a * import
+          GNode qualifiedIdentifier = n.getGeneric(1);
+          StringBuilder qualifiedNameBuilder = new StringBuilder();
+          String unqualifiedName = "";
+
+          for ( int i = 0; i < qualifiedIdentifier.size(); i++ ) {
+            qualifiedNameBuilder.append(qualifiedIdentifier.getString(i));
+
+            if ( i < qualifiedIdentifier.size() - 1 ) {
+              qualifiedNameBuilder.append(".");
+            }
+            else {
+              unqualifiedName = qualifiedIdentifier.getString(i);
+            }
+          }
+
+          // Add the disambiguation to the hashmap
+          currentNameMap.put(unqualifiedName, qualifiedNameBuilder.toString());
+          System.err.println("MAPPED: " + unqualifiedName);
+        }
+
+        /** Visit all types. If it is unknown, process the file for that type. If it is known, fully qualify it */
+        public void visitType(GNode n) {
+          //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
+          visit(n);
+          GNode identifier = n.getGeneric(0);
+          String typename = identifier.getString(0);
+
+          if(identifier.hasName("PrimitiveType")){
+            return;
+          }
+          // Fix this later in treeManager
+          else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
+            GNode type = GNode.create("Type");
+            type.add(Disambiguator.disambiguate(typename));
+            return;
+          } 
+          // If the name is our name map, then replace it with the fully qualified name
+          
+          else {
+            if ( currentNameMap.get(typename) != null ) {
+               // Create a QualifiedIdentifier node for the typename using the now obviously ill-named Disambiguator
+               //TODO: Give Disambiguator a name that reflects its purpose, which is just to construct a type node from a name.
+               // Maybe stick that function in CPPAST
+
+               String qualifiedName = currentNameMap.get(typename);
+               GNode qualifiedIdentifierNode = Disambiguator.disambiguate(qualifiedName);
+               n.set(0, qualifiedIdentifierNode);
+               System.err.println("REPLACING REFERENCE: " + qualifiedName);
+
+               typename = qualifiedName;
+            }
+            
+            //System.err.println("Split: " + typename.split("\\.").length);
+            //System.err.println("Adding typename: " + typename);
+            String[] qualified = typename.split("\\.");
+            
+            // Reset currentClassName when we come back
+            String tempClassName = currentClassName;
+            currentClassName = typename;
+            
+            String tempPackageName = currentPackageName;
+            GNode tempClass = currentClass;
+
+            HashMap<String, String> tempNameMap = currentNameMap;
+            
+            // disambiguate() - figure out the fully qualified name
+            // Later we'll keep track of already-imported types,
+            // and we'll automatically skip those or expand them
+            // as necessary
+            // For now we'll support only explicitly qualified name: "qimpp.Foo" ["qimpp", "Foo"]
+            GNode classTreeNode = treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
+            if (classTreeNode == null){
+                
+                try{
+                  process(typename.replace(".", "/")+".java");
+                }
+
+                catch (Exception e){
+                  System.err.println("Cannot parse " + typename + " " + e);
+                  cppast.printAST();
+                  e.printStackTrace();
+                  System.exit(1);
+                }
+                // Fail and crash with error if the file cannot be located
+
+            }
+            
+            currentClassName = tempClassName;
+            currentPackageName = tempPackageName;
+            currentNameMap = tempNameMap;
+            currentClass = tempClass;
+
+          }
+
+        }
+
+        public void visit(Node n) {
+          
+          //System.err.println("We are currently running " + currentClassName);
+          //
+          for (Object o : n) if (o instanceof Node) dispatch((Node)o);
+
+        }
+
+
+    };
+
+    initialVisitor.dispatch(node);
 
     new Visitor() {
 
@@ -159,19 +316,7 @@ public class QimppTranslator extends Tool {
         visit(n);
       }
         
-      public void visitClassDeclaration(GNode n) {
-        
-        //Add the current class to the cppast, and set it as the current class global variable.
-        currentClass = cppast.addClass(n.getString(1));
-        parentClassNode = currentClass;
-        
-        //add the current class to the inheritance tree, but parent it to Object for now
-        String[] qualified = n.getString(1).split("\\.");
-        treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualified)), null, currentClass);
-       
-        System.out.println("Inserted class in tree manager"); 
-        visit(n);
-      }
+      
       
       public void visitCompilationUnit(GNode n) {
         root = n;     
@@ -208,9 +353,15 @@ public class QimppTranslator extends Tool {
         
         // Assume the name of the parent is fully qualified
         visit(n);
+
+        GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
+        parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
         
         currentClass.getGeneric(1).getGeneric(0).remove(0);
-        currentClass.getGeneric(1).getGeneric(0).addNode((new Disambiguator()).disambiguate(parentClassNode.getString(0)));
+        String parentNameQualified = parentClassNode.getString(0);
+        
+        // Add the parent's type to the current class's Parent Node
+        currentClass.getGeneric(1).getGeneric(0).addNode( Disambiguator.disambiguate(parentNameQualified));
         
         // Add inherited mehthods and fields using the parent's class
         // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
@@ -223,6 +374,8 @@ public class QimppTranslator extends Tool {
         //add the current class to the inheritance tree, but parent it to Object for now
         ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
         ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
+        System.err.println(parentQualified);
+        System.err.println(childQualified);
         treeManager.reparent(childQualified, parentQualified);
         
         
@@ -328,56 +481,20 @@ public class QimppTranslator extends Tool {
         if(identifier.hasName("PrimitiveType")){
           return n;
         }
+
         // Fix this later in treeManager
         else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");
-          type.add((new Disambiguator()).disambiguate(typename));
+          type.add( Disambiguator.disambiguate(typename));
           return type;
         } 
+
         else {
-          
-          //System.err.println("Split: " + typename.split("\\.").length);
-          //System.err.println("Adding typename: " + typename);
-          String[] qualified = typename.split("\\.");
-          
-          // Reset currentClassName when we come back
-          String tempClassName = currentClassName;
-          currentClassName = typename;
-          
-          GNode tempClass = currentClass;
-          
-          parentName = typename;
-          boolean tempInBlock = inBlock;
-          inBlock = false;
-          // disambiguate() - figure out the fully qualified name
-          // Later we'll keep track of already-imported types,
-          // and we'll automatically skip those or expand them
-          // as necessary
-          // For now we'll support only explicitly qualified name: "qimpp.Foo" ["qimpp", "Foo"]
-          GNode classTreeNode = treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
-          if (classTreeNode == null){
-              
-              try{
-                process(typename.replace(".", "/")+".java");
-              }
-
-              catch (Exception e){
-                System.err.println("Cannot parse " + typename + " " + e);
-                cppast.printAST();
-                e.printStackTrace();
-                System.exit(1);
-              }
-              // Fail and crash with error if the file cannot be located
-
-          }
-          
-          currentClassName = tempClassName;
-          currentClass = tempClass;
-          inBlock = tempInBlock;
 
           GNode type = GNode.create("Type");
-          type.add((new Disambiguator()).disambiguate(typename));
+          type.add(Disambiguator.disambiguate(typename));
           return type;
+
         }
       }
       

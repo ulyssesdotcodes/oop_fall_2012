@@ -12,12 +12,13 @@ package qimpp;
 
 import xtc.tree.GNode;
 
+
 public class Disambiguator{
   public static String QUALIFIED_IDENTIFIER = "QualifiedIdentifier";
 
 
   /** Returns c++ qualified identifier for type name string */
-  public GNode disambiguate(String name){
+  public static GNode disambiguate(String name){
   
     GNode fullyQualifiedIdentifier = GNode.create(QUALIFIED_IDENTIFIER);
     
@@ -33,6 +34,18 @@ public class Disambiguator{
     }
     
     return fullyQualifiedIdentifier;
+  }
+
+  public static String getDotDelimitedName(GNode qualifiedIdentifier){
+    StringBuilder nameBuilder = new StringBuilder();
+    for ( int i = 0; i < qualifiedIdentifier.size(); i++ ) {
+      nameBuilder.append(qualifiedIdentifier.getString(i));
+      if ( i < qualifiedIdentifier.size() - 1 ) {
+        nameBuilder.append(".");
+      } 
+    }
+
+    return nameBuilder.toString();
   }
   
   /*
