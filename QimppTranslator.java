@@ -222,6 +222,7 @@ public class QimppTranslator extends Tool {
                typename = qualifiedName;
             }
             
+
             //System.err.println("Split: " + typename.split("\\.").length);
             //System.err.println("Adding typename: " + typename);
             String[] qualified = typename.split("\\.");
@@ -248,10 +249,23 @@ public class QimppTranslator extends Tool {
                 }
 
                 catch (Exception e){
-                  System.err.println("Cannot parse " + typename + " " + e);
-                  cppast.printAST();
-                  e.printStackTrace();
-                  System.exit(1);
+                  // If we can't find it in the source root, then it must be a reference to a file in the current package
+                  try {
+                     String currentPackageQualifiedTypename = currentPackageName + "." + typename;
+                     currentNameMap.put(typename, currentPackageQualifiedTypename);
+                     process(currentPackageQualifiedTypename.replace(".", "/")+".java");
+                     
+                     // Copy-paste yay...
+                     String qualifiedName = currentNameMap.get(typename);
+                     GNode qualifiedIdentifierNode = Disambiguator.disambiguate(qualifiedName);
+                     n.set(0, qualifiedIdentifierNode);
+                  }
+                  catch (Exception f){
+                    System.err.println("Cannot parse " + typename + " " + e);
+                    cppast.printAST();
+                    e.printStackTrace();
+                    System.exit(1);
+                  }
                 }
                 // Fail and crash with error if the file cannot be located
 
