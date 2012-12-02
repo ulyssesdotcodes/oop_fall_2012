@@ -117,6 +117,7 @@ public class QimppTranslator extends Tool {
   public void process(Node node) {
     // Create a hashmap to hold maps of ambiguous names to unambiguous names
     currentNameMap = new HashMap<String, String>();
+    currentPackageName = "";
 
     /** SYMBOL TABLE */
     SymbolTable table = new SymbolTable();
@@ -136,12 +137,15 @@ public class QimppTranslator extends Tool {
           currentClass = cppast.addClass(qualifiedClassName);
           currentClassName = qualifiedClassName;
           parentClassNode = currentClass;
+
+          currentNameMap.put(n.getString(1), qualifiedClassName);
           
           //add the current class to the inheritance tree, but parent it to Object for now
-          String[] qualifiedArray = n.getString(1).split("\\.");
+          String[] qualifiedArray = qualifiedClassName.split("\\.");
           treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualifiedArray)), null, currentClass);
          
-          System.out.println("Inserted class in tree manager"); 
+          System.err.println("Inserted class in tree manager ");
+          System.err.println(new ArrayList<String>(Arrays.asList(qualifiedArray))); 
           visit(n);
 
         }

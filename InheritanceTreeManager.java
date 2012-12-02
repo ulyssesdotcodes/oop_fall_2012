@@ -213,6 +213,7 @@ public class InheritanceTreeManager {
     GNode parentNode = dereference(parent);
     
     if ( null == childNode || null == parentNode ) {
+      System.err.println(this);
       throw new RuntimeException("Failed to reparent");
     } 
     
