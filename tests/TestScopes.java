@@ -3,7 +3,7 @@ package qimpp.tests;
 public class TestScopes {
   static int foo = 3;
   public void Bar(){
-    String bar = "hello";
+    String foo = "hello";
   }
   public static void main ( String[] args ) {
     System.out.println(foo);
