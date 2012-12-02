@@ -78,8 +78,20 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitDeclaration(GNode n){
+    String[] qualifiers = getNameQualifiedArray(n);
+    // Declare the types in the correct namespaces
+    for ( int i = 0; i < qualifiers.length - 1; i++ ) {
+      indentOut().p("namespace ").p(qualifiers[i]).pln(" {");
+      printer.incr();
+    }
+
     writeTypeDeclaration(n);
     writeAlias(n);
+
+    for ( int i = 0; i < qualifiers.length - 1; i++ ) {
+      printer.decr();
+      indentOut().pln("}");
+    }
   }
 
   public void visitClasses(GNode n){
@@ -166,10 +178,10 @@ public class HeaderWriter extends Visitor {
   * @param index the index of the class we are writing
   */
   public void writeTypeDeclaration(GNode node){
-    // ClassDeclaration field 1 is the name of the class
+    indentOut().p("struct ").p("__").p(name(node)).p(";\n");
+    indentOut().p("struct ").p("__").p(name(node)).p("_VT;\n").pln();
+
     
-    indentOut().p("struct __").p(name(node)).p(";\n");
-    indentOut().p("struct __").p(name(node)).p("_VT;\n").pln();
   }
   
   /** Write out the typedefs so pretty-printing class names is easier on the programmer and
@@ -513,6 +525,8 @@ public class HeaderWriter extends Visitor {
     String[] qualifiedType = qualifiedName.split("\\.");
     return qualifiedType;
   }
+
+  
 
   private String getFieldPrefix(GNode n){
     return n.getString(0).replace(".", "_");

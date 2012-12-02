@@ -29,6 +29,11 @@ public class ImplementationPrinter extends Visitor {
 	protected String currentClass;
 
   /**
+   *  The namespace of the current class (with a trailing :: for convenience)
+   */
+  protected String currentNamespace;
+
+  /**
    * The main method that is printed at the end of the C++ file.
    */
   protected GNode mainMethod;
@@ -320,10 +325,11 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified class declaration node. */
 	public void visitClassDeclaration(GNode n) {
-		this.currentClass = n.getString(0);
+		this.currentClass = getClassName(n.getString(0)); 
+    this.currentNamespace =  getNamespace(n.getString(0));
 
 		// .class
-		printer.p("java::lang::Class __").p(this.currentClass)
+		printer.p("java::lang::Class").p(" ").p(currentNamespace).p("__").p(this.currentClass)
 			.pln("::__class() {");
     printer.incr();
     indentOut()
@@ -336,8 +342,8 @@ public class ImplementationPrinter extends Visitor {
 		printer.pln("::__class());").pln("}\n");
 
 		// vtable
-		printer.p("__").p(this.currentClass).p("_VT ")
-			.p("__").p(this.currentClass).pln("::__vtable;\n");
+		printer.p(currentNamespace).p("__").p(this.currentClass).p("_VT ")
+			.p(currentNamespace).p("__").p(this.currentClass).pln("::__vtable;\n");
     
     printer.decr();
 		visit(n.getGeneric(2));
@@ -356,7 +362,7 @@ public class ImplementationPrinter extends Visitor {
 	public void visitConstructorDeclaration(GNode n){
 	  // class constructor
     inConstructor = true;
-	  printer.p("__").p(this.currentClass).p("::__")
+	  printer.p(currentNamespace).p("__").p(this.currentClass).p("::__")
 			.p(this.currentClass)
 			.p("() : __vptr(&__vtable) ");
     printer.incr();
@@ -395,7 +401,7 @@ public class ImplementationPrinter extends Visitor {
     dispatch(n.getGeneric(1)); // return type
 
     if (!inMain) {
-      printer.p(" __").p(this.currentClass);
+      printer.p(" ").p(currentNamespace).p("__").p(this.currentClass);
       printer.p("::").p(n.getString(0)); // method name  
       dispatch(n.getGeneric(2)); // parameters
     } 
@@ -895,6 +901,21 @@ public class ImplementationPrinter extends Visitor {
 
   private Printer indentOut() {
     return printer.indent();
+  }
+
+  private String getNamespace(String qualifiedName) {
+    String[] qualifiers = qualifiedName.split("\\.");
+    StringBuilder namespace = new StringBuilder();
+    for ( int i = 0; i < qualifiers.length - 1; i++ ){
+      namespace.append(qualifiers[i]);
+      namespace.append("::");
+    }
+    return namespace.toString();
+  }
+
+  private String getClassName(String qualifiedName){
+    String[] qualifiers = qualifiedName.split("\\.");
+    return qualifiers[qualifiers.length - 1];
   }
 
 }
