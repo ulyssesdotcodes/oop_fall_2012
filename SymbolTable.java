@@ -92,6 +92,9 @@ public class SymbolTable {
     /** The map from symbols to values, if any. */
     Map<String, Object> symbols;
 
+    /** The node. */
+    Node node;
+
     /**
      * Create a new root scope with the specified name, which may be
      * the empty string.
@@ -505,6 +508,14 @@ public class SymbolTable {
      */
     public String qualify(String symbol) {
       return Utilities.qualify(qName, symbol);
+    }
+
+    public Node node() {
+      return this.node;
+    }
+
+    public Node node(Node node) {
+      this.node = node;
     }
 
     /**
@@ -1037,11 +1048,13 @@ public class SymbolTable {
        */
       public void visitDeclarator(GNode n) {
         table.current().addDefinition(n.getString(0), "declaration");
+        table.current().node(n);
         table.mark(n);
       }
 
       public void visitFormalParameter(GNode n) {
         table.current().addDefinition(n.getString(3), "parameter");
+        table.current().node(n);
         table.mark(n);
       }
 
