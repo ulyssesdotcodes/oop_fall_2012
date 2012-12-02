@@ -312,25 +312,10 @@ public class QimppTranslator extends Tool {
         return type;
       }
         
+      /** Change primitive type names from Java to C names */
       public void visitPrimitiveType(GNode n) {
-        if (n.getProperty("visitcount") == null){
-          n.setProperty("visitcount", new Integer(0));
-        }
-        Integer visitCount = (Integer)n.getProperty("visitcount");
-        visitCount++;
-        n.setProperty("visitcount", visitCount);
         String javaType = n.getString(0);
         String cppType = Type.primitiveType(javaType);
-        if (cppType == null) {
-          System.out.println(javaType);
-          System.out.println("wo this doesn't exist");
-          System.out.print("visits:");
-          System.out.println(visitCount);
-          runtime.console().format(root).pln().flush(); 
-          if ( visitCount > 1 )
-            new Exception().printStackTrace(System.err);
-          System.exit(1);
-        }
         n.set(0, cppType);
       }
       
@@ -344,7 +329,7 @@ public class QimppTranslator extends Tool {
           return n;
         }
         // Fix this later in treeManager
-          else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
+        else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");
           type.add((new Disambiguator()).disambiguate(typename));
           return type;
