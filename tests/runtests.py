@@ -45,7 +45,7 @@ for filename in testFilenames:
   
   # Translate
   
-  os.system( "java qimpp.QimppTranslator " + filename +".java > /dev/null" )
+  os.system( "java qimpp.QimppTranslator " + filename +" > /dev/null" )
 
   # Compile
 
@@ -53,7 +53,7 @@ for filename in testFilenames:
 
   # Run test and put output into file
 
-  os.system( "java qimpp.tests." + filename.split("\\.")[0] + " > java.output" ) 
+  os.system( "java qimpp.tests." + filename.split(".")[0] + " > java.output" ) 
   
   # Check compilation return code
 
