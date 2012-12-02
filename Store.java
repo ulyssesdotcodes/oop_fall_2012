@@ -240,6 +240,13 @@ class Store {
       currentMethod = null;
       buildingMethod = false;
     }
+
+    /** Visit specified void type node. */
+    public void visitVoidType(GNode n) {
+      if (buildingMethod) {
+        currentMethod.type(new PrimitiveType("void"));
+      }
+    }
     
     /** Visit the specified constructor declaration node. Treat as method. */
     public void visitConstructorDeclaration(GNode n) {
@@ -265,6 +272,11 @@ class Store {
       currentParameter = null;
       buildingParameter = false;  
     }
+
+
+    // =========================================================================
+
+    // Let's analyze that class' constructor?
 
 
     // =========================================================================

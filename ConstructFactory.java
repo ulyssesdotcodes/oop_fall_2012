@@ -147,8 +147,28 @@ public class ConstructFactory {
   /**
    * Take a name and prepend "__" to it, making it for internal
    * representation.
+   *
+   * @param name Name to make internal.
    */
   protected String internal(String name) { return "__" + name; }
+
+  /**
+   * Format a Java type by resolving it to the right namespace.
+   * The inputted name could be an internal representation.
+   *
+   * @param name Java type candidate.
+   * @return formatted, resolved type if an Object
+   */
+  protected String formatAsObject(String name) {
+    if (name.endsWith("Object")) { 
+      return Constants.QUALIFIER
+        + "java"
+        + Constants.QUALIFIER
+        + "lang"
+        + Constants.QUALIFIER + name; 
+    }
+    return name;
+  }
 
 
   // ===========================================================================
@@ -205,29 +225,39 @@ public class ConstructFactory {
     return GNode.create("DataLayoutDeclaration",
       internal(klass.name()),
       buildDataLayoutClassFields(klass.fields(), klass.name()),
-      buildDataLayoutConstructor(klass.methods()),
+      buildDataLayoutConstructor(klass),
       buildDataLayoutImplementedMethods(klass));
   }
 
-  // TODO
   public Node buildDataLayoutClassFields(ArrayList<Klass.Field> fields, 
-                                     String name) {
+                                     String className) {
     GNode structClassFields = GNode.create("DataLayoutClassFields");
-   
-    // vtable pointer
-    structClassFields.add(internal(name) + "_VT* __vptr");
+
+    structClassFields.add(internal(className) + "_VT* __vptr");
     
     for (Klass.Field field : fields) {
-      structClassFields.add(field.type().name() + " " 
+      structClassFields.add(field.type().qualifiedName() + " " 
                           + field.name());
     }
 
     return structClassFields;
   }
 
-  // TODO: How do we represent the constructor?
-  public Node buildDataLayoutConstructor(ArrayList<Klass.Method> methods) {
-    return GNode.create("DataLayoutConstructor");
+  public Node buildDataLayoutConstructorArguments(ArrayList<Klass.Field> fields) {
+    GNode constructorArgs = GNode.create("DataLayoutConstructorArguments");
+    
+    for (Klass.Field field : fields) {
+      constructorArgs.add(field.type().qualifiedName() + " " 
+                        + field.name());
+    }
+
+    return constructorArgs;
+  }
+
+  public Node buildDataLayoutConstructor(Klass klass) {
+    return GNode.create("DataLayoutConstructor",
+        internal(klass.name()),
+        buildDataLayoutConstructorArguments(klass.fields()));
   }
 
   // TODO
@@ -246,7 +276,7 @@ public class ConstructFactory {
 
   public Node buildDataLayoutImplementedMethod(Klass.Method method) {
     String typename = 
-      (null == method.type() ? "void" : method.type().name());
+      (null == method.type() ? "void" : method.type().qualifiedName());
 
     return GNode.create("ImplementedMethod",
       method.isStatic(),                             /* 0 */
@@ -260,7 +290,7 @@ public class ConstructFactory {
       GNode.create("MethodParameterTypes");
 
     // always add own as implicit "this"
-    methodParameterTypes.add(method.of().name());
+    methodParameterTypes.add(method.of().type().qualifiedName());
 
     for (ParameterVariable pv : method.parameters()) {
       methodParameterTypes.add(pv.type().qualifiedName());
@@ -295,7 +325,7 @@ public class ConstructFactory {
   /** Build class struct vtable method branch. */
   public Node buildVTMethod(Klass.Method method) {
     String returnType = "void";
-    if (null != method.type()) { returnType = method.type().name(); }
+    if (null != method.type()) { returnType = method.type().qualifiedName(); }
     return GNode.create("VTMethod",
         returnType,                           /* 0 */
         method.name(),                        /* 1 */
@@ -306,8 +336,8 @@ public class ConstructFactory {
   /** Build vtable constructor branch. */
   public Node buildVTConstructor(Klass klass) {
     GNode vtConstructor = GNode.create("VTConstructor",
-        internal(klass.name()),         /* 0 */
-        buildVTInitializations(klass)); /* 1 */
+        Utilities.resolve(klass.name(), true),  /* 0 */
+        buildVTInitializations(klass));         /* 1 */
 
     return vtConstructor;
   }
@@ -327,12 +357,16 @@ public class ConstructFactory {
   /** Build vtable initializer branch. */
   public Node buildVTInitialization(Klass.Method method) {
     String returnType = "void";
-    if (null != method.type()) { returnType = method.type().name(); }
+    if (null != method.type()) { returnType = method.type().qualifiedName(); }
     return GNode.create("VTInitialization",      
         method.name(),                          /* 0 */
         returnType,                             /* 1 */
         buildMethodParameterTypes(method),      /* 2 */
-        internal(method.implementor().name())); /* 3 */
+        Utilities.resolve(method                /* 3 */
+                          .implementor()
+                          .name(), true));
+
+    // ::java::lang::__Object::doThisThing
   }
 
   /** Build class typedef node. */
@@ -361,7 +395,7 @@ public class ConstructFactory {
     if (null == type) {
       return (GNode)typeNode.add(GNode.create("FundamentalType", "void")); /*0*/
     } else { 
-      typeNode.add(formatAsTypeName(type.name()));                      /*0*/
+      typeNode.add(formatAsTypeName(type.qualifiedName()));                      /*0*/
       if (type.hasDimensions()) { // TODO: Implement array indication in Type
         typeNode.add(buildDimensions()); /* 1 */
       } else { typeNode.add(null); }     /* 1 */

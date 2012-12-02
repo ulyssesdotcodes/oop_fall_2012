@@ -133,6 +133,28 @@ public final class Utilities {
   }
 
   /**
+   * Resolve an unqualified class name based on namespace. Main Java objects receive
+   * special treatment. Can optionally make the name for internal use.
+   *
+   * @param name The class
+   *
+   */
+  public static String resolve(String name, boolean internal) {
+    String toResolve = name;
+    if (internal) {
+      toResolve =  "__" + toResolve;  
+    }
+    if (name.equals("Object")
+      || name.equals("String")
+      || name.equals("Class")) { toResolve = Constants.QUALIFIER 
+                                           + "java" + Constants.QUALIFIER
+                                           + "lang" + Constants.QUALIFIER
+                                           + toResolve; }
+    return (toResolve.startsWith(Constants.QUALIFIER)) ? toResolve :
+      Constants.QUALIFIER + toResolve;
+  }
+
+  /**
    * Convert the specified qualified name to its components.
    *
    * @param qname The qualified name.

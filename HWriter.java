@@ -351,7 +351,7 @@ public class HWriter extends Visitor {
 
       printer
         .indent().pln("// The function returning the class object")
-        .indent().pln("static Class __class();").pln()
+        .indent().pln("static ::java::lang::Class __class();").pln()
         .indent().pln("// The vtable")
         .indent().p("static").p(' ').p(n.getString(0)).p("_VT").p(' ')
         .p("__vtable").pln(';');
@@ -369,8 +369,22 @@ public class HWriter extends Visitor {
 
   /** Visit specified struct constructor branch. */
   public void visitDataLayoutConstructor(GNode n) {
-    // TODO
+    printer.indent().pln("// The constructor.");
+    printer.indent().p(n.getString(0)).p('(');
+    visit(n);
+    printer.p(')').pln(';').pln();
   }
+
+  /** Visit specified constructor arguments. */
+  public void visitDataLayoutConstructorArguments(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      printer.p((String)iter.next());
+      if (iter.hasNext()) {
+        printer.p(',').p(' ');
+      }
+    }
+  }
+
 
   /** Visit specified struct implemented methods branch. */
   public void visitDataLayoutImplementedMethods(GNode n) {
@@ -397,9 +411,9 @@ public class HWriter extends Visitor {
   /** Visit specified VT declaration node. */
   public void visitVTDeclaration(GNode n) {
     printer.pln("// vtable layout");
-    printer.p("struct").p(' ').p(n.getString(0)).p("_VT").p(' ').pln('{');
+    printer.p("struct").p(' ').p(n.getString(0)).p("_VT").pln("()");
     printer.incr().indent().pln("::java::lang::Class __isa;");
-    printer.indent().p("void (*__delete)(").p(n.getString(0)).p("*)").pln(';');
+    printer.indent().p("void (*__delete)(::").p(n.getString(0)).p("*)").pln(';');
     visit(n);
     printer.decr().p('}').pln(';').pln();
   }
@@ -419,8 +433,8 @@ public class HWriter extends Visitor {
     printer.pln().indent().p(n.getString(0)).p("_VT").p(' ').pln('{');
     printer.indent().p(':').p(' ').p("__isa(").p(n.getString(0))
       .p(Constants.QUALIFIER).p("__class()").p(')').pln(',').incr();
-    printer.indent().p("__delete(&__rt::__delete").p(n.getString(0)).p('>')
-      .p(')').pln(',');
+    printer.indent().p("__delete(&__rt::__delete").p('<')
+      .p(n.getString(0)).p('>').p(')').pln(',');
 
     visit(n);
 
@@ -443,7 +457,8 @@ public class HWriter extends Visitor {
     printer.indent().p(n.getString(0)).p('(').p('(')
       .p(n.getString(1)).p("(*)").p('(');
     dispatch(n.getGeneric(2)); // MethodParameterTypes
-    printer.p(')').p(')').p('&').p(n.getString(3)).p(')');
+    printer.p(')').p(')').p('&').p(n.getString(3))
+      .p(Constants.QUALIFIER).p(n.getString(0)).p(')');
   }
 
   // ===========================================================================

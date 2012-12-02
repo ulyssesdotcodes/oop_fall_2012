@@ -20,6 +20,7 @@ public class PrimitiveType extends Type {
     put("float", "float");
     put("double", "double");
     put("boolean", "bool");
+    put("void", "void");    // void isn't actually a type
   }};
 
   /** Primitive type names. */

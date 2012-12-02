@@ -19,7 +19,7 @@ public class Klass {
    */
   abstract class Member {
     String name;            // might need to be freshly generated
-                            // TODO: also need a method for generating fully qualified names
+    // TODO: also need a method for generating fully qualified names
     Klass implementor;
     Klass of;
     Type type;
@@ -264,8 +264,6 @@ public class Klass {
       tmp += ')';
       return tmp;
     }
-
-
   }
 
   // ===========================================================================
@@ -273,16 +271,27 @@ public class Klass {
   class Constructor {
     String name;
     String qualifiedName;
-    ArrayList<Node> arguments;     // could be expression, so use GNode
+    ArrayList<ParameterVariable> arguments;
+      // could be expression, so use GNode
     ArrayList<Node> initializers;  // also could be expression
-  }
 
+    public Constructor() {
+      this.name           = Klass.this.name;
+      this.qualifiedName = Klass.this.qualifiedName;
+    }
+
+
+    
+  }
 
 
   // ===========================================================================
 
   /** Class name. */
   String name;
+
+  /** Fully qualified class name. */
+  String qualifiedName;
 
   /** Parent class, if any. */
   Klass parent;
@@ -321,11 +330,12 @@ public class Klass {
       fields = new ArrayList<Field>(parent.fields());
     }
 
-    this.name    = name;
-    this.parent  = parent;
-    this.fields  = fields;
-    this.methods = methods;
-    this.type    = new QualifiedType(name);
+    this.name           = name;
+    this.qualifiedName  = Utilities.resolve(name, false);
+    this.parent         = parent;
+    this.fields         = fields;
+    this.methods        = methods;
+    this.type           = new QualifiedType(name);
   }
 
   public ArrayList<Method> generateObjectMethods() {
@@ -431,5 +441,15 @@ public class Klass {
   public String name() {
     return this.name;
   }
+
+  /**
+   * Get the qualified name of this class.
+   *
+   * @return qualified name of the class.
+   */
+  public String qualifiedName() {
+    return this.qualifiedName;
+  }
+
 
 }
