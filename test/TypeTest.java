@@ -50,34 +50,10 @@ public class TypeTest {
 
   @Test
   public void qualifiedType() throws Exception{
-    assertTrue(new QualifiedType("A").name().equals("A"));
-    assertTrue(new QualifiedType("A", "B").name().equals("B"));
-    assertTrue(new QualifiedType("A", "B", "C").name().equals("C"));
-    assertTrue(new QualifiedType("A", "B", "C", "D").name().equals("D"));
-    assertTrue(new QualifiedType("A", "B", "C", "D", "E").name().equals("E"));
+    // TODO
 
-    assertTrue(new QualifiedType("A")
-        .qualifiedName().equals("::A"));
-    assertTrue(new QualifiedType("A", "B")
-        .qualifiedName().equals("::A::B"));
-    assertTrue(new QualifiedType("A", "B", "C")
-        .qualifiedName().equals("::A::B::C"));
-    assertTrue(new QualifiedType("A", "B", "C", "D")
-        .qualifiedName().equals("::A::B::C::D"));
-    assertTrue(new QualifiedType("A", "B", "C", "D", "E")
-        .qualifiedName().equals("::A::B::C::D::E"));
-
-    // This should help with the internal class usage requirement, i.e. __Foo.
-    assertTrue(new QualifiedType("A")
-        .context().equals("::"));
-    assertTrue(new QualifiedType("A", "B")
-        .context().equals("::A"));
-    assertTrue(new QualifiedType("A", "B", "C")
-        .context().equals("::A::B"));
-    assertTrue(new QualifiedType("A", "B", "C", "D")
-        .context().equals("::A::B::C"));
-    assertTrue(new QualifiedType("A", "B", "C", "D", "E")
-        .context().equals("::A::B::C::D"));
+    // .context() should help with the internal 
+    // class usage requirement, i.e. __Foo.
   }
 
 

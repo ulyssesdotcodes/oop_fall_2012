@@ -183,6 +183,24 @@ class Store {
       }
     }
 
+    /** Visit specified type node. */
+    public void visitType(GNode n) {
+      GNode dimensions = n.getGeneric(1);
+      System.out.println(dimensions);
+      visit(n); // by now, should have type
+      if (null == dimensions) { dimensions = GNode.create("ZeroDimensions"); }
+      if (buildingField) {
+        currentField.type().dimensions(dimensions.size());
+      }
+      if (buildingMethod && !buildingParameter) {
+        currentMethod.type().dimensions(dimensions.size());
+      }
+      if (buildingParameter) {
+        currentParameter.type().dimensions(dimensions.size());
+        System.out.println(currentParameter.type().dimensions);
+      }
+    }
+
     /** Visit specified primitive type node. */
     public void visitPrimitiveType(GNode n) {
       String typename = n.getString(0);

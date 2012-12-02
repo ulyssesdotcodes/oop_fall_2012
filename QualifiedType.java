@@ -22,10 +22,21 @@ public class QualifiedType extends Type {
   /**
    * Constructor
    */
-  public QualifiedType(String ... ancestry) {
+  public QualifiedType(String name) {
+    this(new String[]{name});
+  }
+
+  public QualifiedType(String[] ancestry) {
+    this(ancestry, 0);
+  }
+
+  public QualifiedType(String[] ancestry, int dimensions) {
 
     // set name
     this.name = ancestry[ancestry.length - 1];
+
+    // set dimensions
+    this.dimensions = dimensions;
     
     // set qualified name
     StringBuilder qualifiedName = new StringBuilder();
@@ -67,11 +78,20 @@ public class QualifiedType extends Type {
   // ===========================================================================
 
   public String name() {
-    return this.name;
+    String name = this.name;
+    for (int i = 0; i < this.dimensions(); i++) {
+      name += "[]";
+    }
+    return name;
   }
 
+  // TODO: Handle multiple dimensions.
   public String qualifiedName() {
-    return this.qualifiedName;
+    String qualifiedName = this.qualifiedName;
+    for (int i = 0; i < this.dimensions(); i++) {
+      qualifiedName += "[]";
+    }
+    return qualifiedName;
   }
 
   public String context() {

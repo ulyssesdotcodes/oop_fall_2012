@@ -5,6 +5,8 @@ import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Printer;
 
+import java.util.Iterator;
+
 /**
  * 
  *
@@ -259,31 +261,87 @@ public class CCWriter extends Visitor {
     visit(n);
   }
 
+
+  // CONSTRUCTOR ===============================================================
+  
   // TODO: Implementation; overloaded constructors?
   /** Visit the specified constructor node. */
   public void visitConstructor(GNode n) {
-    printer.p("n.getString(0)").p('(');
+    printer.p(n.getString(0)).p('(');
   
-    // TODO: constructor arguments
+    // constructor arguments
+    dispatch(n.getGeneric(1));
     
     printer.pln(')').indent()
       .p(" : __vptr(&__vtable)");
+    if (n.getGeneric(2).size() == 0) {
+      printer.p(' ');
+    } else { printer.p(',').p(' '); }
  
-    // TODO: object initializations
+    // object initializations
+    dispatch(n.getGeneric(2));
 
-    printer.pln("{}"); 
+    printer.pln("{}").pln(); 
+  }
+
+  /** Visit the specififed constructor arguments node. */
+  public void visitConstructorArguments(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      printer.p((String)iter.next());
+      if (iter.hasNext()) {
+        printer.p(',').p(' ');
+      }
+    }
+  }
+
+  /** Visit the specified constructor initializations node. */
+  public void visitConstructorInitializations(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      String fieldName = (String)iter.next();
+      printer.p(fieldName).p('(').p(fieldName).p(')');
+      if (iter.hasNext()) {
+        printer.p(',').p(' ');
+      } else { printer.p(' '); }
+    }
   }
 
 
-  // TODO: When ready, remove the DEBUG from the declaration
-  /** Visit the specified method declaration node. */
-  public void visitMethodDeclarationDEBUG(GNode n) {
-    printer.p(n.getString(0)).p(' ').p(n.getString(1)).p('(');
-    dispatch(n.getGeneric(2));
-    printer.p(')').p(' ').p('{');
-    dispatch(n.getGeneric(3));
+  /** Visit the specified methods node. */
+  public void visitMethods(GNode n) {
+    visit(n);
+
+    printer.pln("// Internal accessor for this class.")
+      .p("::java::lang::Class").p(' ')
+      .p(n.getString(0)).p("()").p(' ').pln('{')
+      .incr().indent();
+    printer.pln("static ::java::lang::Class k =");
+    printer.incr().indent().p("new ::java::lang::__Class(__rt::literal")
+      .p('(').p('"').p(n.getString(1)).p('"').p(')').p(',').p(' ')
+      .p(n.getString(2)).p("()").p(')').pln(';').decr();
+    printer.pln("return k;").decr().pln();
     printer.pln('}').pln();
   }
+
+  /** Visit the specified method declaration node. */
+  public void visitMethodDeclaration(GNode n) {
+    printer.p(n.getString(0)).p(' ').p(n.getString(1)).p('(');
+    dispatch(n.getGeneric(2)); // FormalParameters
+    printer.p(')').p(' ').p('{');
+    dispatch(n.getGeneric(3)); // MethodBody
+    printer.pln('}').pln();
+  }
+
+  /** Visit the formal parameters node. */
+  public void visitFormalParameters(GNode n) {
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      String parameter = (String)iter.next();
+      printer.p(parameter);
+      if (iter.hasNext()) {
+        printer.p(',').p(' ');
+      }
+    }
+  }
+
 
   /** Visit specified type node. */
   public void visitTypeNode(GNode n) {

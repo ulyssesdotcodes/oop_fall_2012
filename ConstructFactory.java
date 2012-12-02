@@ -130,9 +130,6 @@ public class ConstructFactory {
 
   }
 
-  /** Current class */
-  Klass currentClass;
-
 
   /**
    * Take a name and determines whether it is a fundamental type
@@ -184,7 +181,6 @@ public class ConstructFactory {
     for (Object o : thePackage.values()) {
       translationUnit
         .add(buildClassDeclaration((Klass)o));
-      currentClass = null;
     }
     
     return translationUnit;
@@ -207,7 +203,6 @@ public class ConstructFactory {
 
   /** Build class declaration branch. */
   public Node buildClassDeclaration(Klass klass) {                      // DONE
-    Klass currentClass = klass;
     GNode classDeclaration =
       GNode.create("ClassDeclaration",
           buildPointerTypedef(klass.name()),      /* 0 */
@@ -215,8 +210,7 @@ public class ConstructFactory {
           buildVTDeclaration(klass),              /* 2 */
           buildQualifiedIdentifier(klass.name()), /* 3 */
           buildExtension(klass.parent()),         /* 4 */
-          buildClassBody(klass.fields(),          /* 5 */
-                         klass.methods()));
+          buildClassBody(klass));                 /* 5 */
     return classDeclaration;
   }
 
@@ -275,12 +269,9 @@ public class ConstructFactory {
   }
 
   public Node buildDataLayoutImplementedMethod(Klass.Method method) {
-    String typename = 
-      (null == method.type() ? "void" : method.type().qualifiedName());
-
     return GNode.create("ImplementedMethod",
       method.isStatic(),                             /* 0 */
-      typename,                                      /* 1 */
+      method.type().qualifiedName(),                 /* 1 */
       method.name(),                                 /* 2 */
       buildMethodParameterTypes(method));            /* 3 */
   }
@@ -390,39 +381,53 @@ public class ConstructFactory {
 
   /** Build type branch. */
   public Node buildType(Type type) {                                    // DONE
-    GNode typeNode = GNode.create("Type", NS.TYPE);
-
-    if (null == type) {
-      return (GNode)typeNode.add(GNode.create("FundamentalType", "void")); /*0*/
-    } else { 
-      typeNode.add(formatAsTypeName(type.qualifiedName()));                      /*0*/
-      if (type.hasDimensions()) { // TODO: Implement array indication in Type
-        typeNode.add(buildDimensions()); /* 1 */
-      } else { typeNode.add(null); }     /* 1 */
-    }
-
-    return typeNode;
+    return GNode.create("Type",
+        formatAsTypeName(type.qualifiedName()),
+        buildDimensions(type.dimensions()));
   }
+
+  // CLASS BODY ================================================================
 
   // TODO
   /** Build class body branch. */
-  public Node buildClassBody(ArrayList<Klass.Field> fields, 
-                             ArrayList<Klass.Method> methods) {               
+  public Node buildClassBody(Klass klass) {               
     GNode classBody = GNode.create("ClassBody",
-        buildConstructor(/* TODO */),  /* 0 */
-        buildFields(fields),           /* 1 */
-        buildMethods(methods));        /* 2 */
+        buildConstructor(klass),               /* 0 */
+        buildMethods(klass));        /* 1 */
     return classBody; 
   }
 
 
-  // TODO
   /** Build constructor branch. */
-  public Node buildConstructor(/* TODO */) {
-    return GNode.create("Constructor");
-        //constructor.qualifiedName(),
-        //constructor.arguments()
-        //constructor.initializers());
+  public Node buildConstructor(Klass klass) {
+    return GNode.create("Constructor",
+        Utilities.resolve(klass.name(), true)
+      + Constants.QUALIFIER + internal(klass.name()),
+        buildConstructorArguments(klass.fields()),
+        buildConstructorInitializations(klass.fields()));
+  }
+
+  /** Build constructor arguments branch. */
+  public Node buildConstructorArguments(ArrayList<Klass.Field> fields) {
+    GNode constructorArguments = GNode.create("ConstructorArguments");
+    
+    for (Klass.Field field : fields) {
+      constructorArguments.add(field.type().qualifiedName() + " " 
+                          + field.name());
+    }
+
+    return constructorArguments;
+  }
+
+  /** Build constructor initializers branch. */
+  public Node buildConstructorInitializations(ArrayList<Klass.Field> fields) {
+    GNode constructorInitializations = GNode.create("ConstructorInitializations");
+    
+    for (Klass.Field field : fields) {
+      constructorInitializations.add(field.name());
+    }
+
+    return constructorInitializations;
   }
 
 
@@ -467,9 +472,14 @@ public class ConstructFactory {
     return modifiers;
   }
 
+  // Probably can remove this.
   /** Build dimensions node. */
-  public Node buildDimensions() {
-    return GNode.create("Dimensions", "[");
+  public Node buildDimensions(int dimensions) {
+    String dims = "";
+    for (int i = 0; i < dimensions; i++) {
+      dims += "[]";
+    }
+    return GNode.create("Dimensions", dims);
   }
 
   /**
@@ -483,52 +493,65 @@ public class ConstructFactory {
     return GNode.create("Declarators", declarator);
   } 
 
-  // ===========================================================================
+  // METHODS ===================================================================
 
   /** Build methods branch. */
-  public Node buildMethods(ArrayList<Klass.Method> methods) {
-    GNode methodsNode = GNode.create("Methods");
+  public Node buildMethods(Klass klass) {
+    return GNode.create("Methods",
+        Utilities.resolve(klass.name(), true)
+      + Constants.QUALIFIER + "__class",     /* 0 */
+      "TODO:fully qualified java classname", /* 1 */
+        Utilities.resolve(klass.parent().name(), true)
+      + Constants.QUALIFIER + "__class",     /* 2 */
+      buildMethodDeclarations(klass));       /* 3 */
+  }
+     
 
-    for (Klass.Method method : methods) {
-      if (method.implementor() == currentClass) {
-        methodsNode.add(buildMethodDeclaration(method));
+  /** Build methods declarations branch. */
+  public Node buildMethodDeclarations(Klass klass) {
+    GNode methodDeclarations = GNode.create("MethodDeclarations");
+
+    for (Klass.Method method : klass.methods()) {
+      if (method.implementor() == klass) {
+        methodDeclarations.add(buildMethodDeclaration(method));
       }
     }
 
-    return methodsNode;
+    return methodDeclarations;
   }
   
   /** Build method declaration branch. */
   public Node buildMethodDeclaration(Klass.Method method) {
     GNode methodDeclaration =
       GNode.create("MethodDeclaration",
-          buildModifiers(method.isStatic()),           /* 0 */
-          buildType(method.type()),                    /* 1 */
-          method.name(),                               /* 2 */
-          buildFormalParameters(method.parameters()),  /* 3 */
-          method.body());                              /* 4 */
+          method.type().qualifiedName(),                /* 1 */
+          Utilities.resolve(method.of().name(), true)
+        + Constants.QUALIFIER + method.name(),          /* 2 */
+          buildFormalParameters(method.parameters(),
+                                method.of()
+                                  .qualifiedName()),    /* 3 */
+          method.body());                               /* 4 */
     return methodDeclaration;
   }
   
   /** Build formal parameters branch. */
-  public Node buildFormalParameters(ArrayList<ParameterVariable> parameters) {
+  public Node buildFormalParameters(ArrayList<ParameterVariable> parameters,
+                                    String qualifiedType) {
     GNode formalParameters = GNode.create("FormalParameters");
+
+    // implicit "this"
+    formalParameters.add(qualifiedType + " __this");
 
     Iterator it = parameters.iterator();
     while (it.hasNext()) {
-      formalParameters.add(buildFormalParameter((ParameterVariable)it.next()));
+      ParameterVariable parameter = (ParameterVariable)it.next();
+      formalParameters.add(parameter.type().qualifiedName()
+          + " " + parameter.name());
     }
 
     return formalParameters;
   }
 
-  /** Build formal parameter branch. */
-  public Node buildFormalParameter(ParameterVariable parameter) {
-    GNode parameterNode = GNode.create("FormalParameter",
-        buildType(parameter.type()),                   /* 0 */
-        parameter.name());                             /* 1 */
-    return parameterNode;
-  }
 
   // ===========================================================================
 
