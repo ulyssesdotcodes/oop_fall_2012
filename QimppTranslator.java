@@ -190,21 +190,80 @@ public class QimppTranslator extends Tool {
           System.err.println("MAPPED: " + unqualifiedName);
         }
 
+        /** Adds the field to the CPPAST */
+        public void visitFieldDeclaration(GNode n) {
+          //Get the string by dispatching the Type GNode
+          
+          
+          GNode type = (GNode)dispatch(n.getGeneric(1));
+          //Create a new GNode to hold all of the declarators;
+          GNode declarators = n.getGeneric(2);
+
+          //Loop through all declarators in this field declaration, dispatch them, and add each returned string plus type as its own field to the currentClass
+          //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
+          for(int i = 0; i < declarators.size(); i++){
+            String name = (String)dispatch(declarators.getGeneric(i));
+            if (!inBlock) {
+              cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
+            }
+          }
+        }
+
+        public void visitMethodDeclaration(GNode n) {
+          //TODO: math names and remove
+          try{
+            String methodName = n.getString(3);
+            if (methodName.equals("main")) {
+              n.set(2, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
+
+            }
+            GNode returnType = (GNode)dispatch(n.getGeneric(2));
+            currentMethod = cppast.addMethod(methodName, returnType, currentClass);
+            //Add the method params gotten by dispatching the formalParameters node
+            cppast.setMethodParameters((GNode)dispatch(n.getGeneric(4)), currentMethod);
+            //Add the method block gotten by dispatching the block node
+
+          //System.out.println("getGeneric(7): " + n.getGeneric(7));
+          //System.out.println(dispatch(n.getGeneric(7)));
+          GNode block = n.getGeneric(7);
+          cppast.setMethodInstructions(block, currentMethod);
+           
+          } catch(Exception e) { e.printStackTrace(); }
+        }
+
+        public GNode visitFormalParameter(GNode n){
+          
+          //Create a parameter by getting the name and dispatching the type
+          GNode param = GNode.create("FormalParameter");
+          param.add(n.getString(3));
+          param.addNode((GNode)dispatch(n.getGeneric(1)));
+          return param;
+        }
+ 
+        public GNode visitFormalParameters(GNode n){
+          //Loop through all the params dispatching them and adding the result to a parameters GNode
+          GNode parameters = GNode.create("FormalParameters");
+          for(Object o : n){
+            parameters.add((GNode)dispatch((GNode)o));
+          }
+          return parameters;
+        }
+
         /** Visit all types. If it is unknown, process the file for that type. If it is known, fully qualify it */
-        public void visitType(GNode n) {
+        public GNode visitType(GNode n) {
           //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
           visit(n);
           GNode identifier = n.getGeneric(0);
           String typename = identifier.getString(0);
 
           if(identifier.hasName("PrimitiveType")){
-            return;
+            return n;
           }
           // Fix this later in treeManager
           else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
             GNode type = GNode.create("Type");
             type.add(Disambiguator.disambiguate(typename));
-            return;
+            return type;
           } 
           // If the name is our name map, then replace it with the fully qualified name
           
@@ -276,6 +335,8 @@ public class QimppTranslator extends Tool {
             currentNameMap = tempNameMap;
             currentClass = tempClass;
 
+            return n;
+
           }
 
         }
@@ -303,11 +364,9 @@ public class QimppTranslator extends Tool {
         /*
         for (Object o : n) {
           //dispatches each ExpressionStatement, ReturnStatement, etc.
-          block.add(getValidGNode(dispatch(getValidGNode(o))));
         } */
         visit(n);
         //for (Object o : n) {
-        //  visit(getValidGNode(o));
         //}
         //TODO: CHNANGE THIS BACK
         // return block;
@@ -316,7 +375,7 @@ public class QimppTranslator extends Tool {
         return n;
       }
 
-      public GNode visitCallExpression(GNode n) {
+      /*public GNode visitCallExpression(GNode n) {
         // if this is a system call
         if (n.getGeneric(0).getGeneric(0).getString(0).equals("System")) {
           // if this is system.out
@@ -328,7 +387,7 @@ public class QimppTranslator extends Tool {
           }
         }
         return n;
-      }
+      }*/
 
       public void visitClassBody(GNode n){
         visit(n);
@@ -357,9 +416,9 @@ public class QimppTranslator extends Tool {
         //Add a constructor to currentClass and get the associated GNode
         currentConstructor = cppast.addConstructor(currentClass);
         //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
-        if(n.getGeneric(4) != null) cppast.setConstructorParameters(getValidGNode(dispatch(n.getGeneric(4))), currentConstructor);
+        if(n.getGeneric(4) != null) cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
         //If there are instructions in the block, visit them and add them to the constructor
-        if(n.getGeneric(5) != null) cppast.setConstructorInstructions(getValidGNode(dispatch(n.getGeneric(5))), currentConstructor);
+        if(n.getGeneric(5) != null) cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
       }
 
       public String visitDeclarator(GNode n) {
@@ -410,64 +469,9 @@ public class QimppTranslator extends Tool {
         visit(n);
       }
                       
-      public void visitFieldDeclaration(GNode n) {
-        //Get the string by dispatching the Type GNode
-        
-        
-        GNode type = (GNode)dispatch(n.getGeneric(1));
-        //Create a new GNode to hold all of the declarators;
-        GNode declarators = n.getGeneric(2);
-        //Loop through all declarators in this field declaration, dispatch them, and add each returned string plus type as its own field to the currentClass
-        //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
-        for(int i = 0; i < declarators.size(); i++){
-          String name = (String)dispatch(declarators.getGeneric(i));
-          if (!inBlock) {
-            cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
-          }
-        }
-      }
-      
-      public GNode visitFormalParameter(GNode n){
-        //Create a parameter by getting the name and dispatching the type
-        GNode param = GNode.create("FormalParameter");
-        param.add(n.getString(3));
-        param.addNode((GNode)dispatch(n.getGeneric(1)));
-        return param;
-      }
- 
-      public GNode visitFormalParameters(GNode n){
-        //Loop through all the params dispatching them and adding the result to a parameters GNode
-        GNode parameters = GNode.create("FormalParameters");
-        for(Object o : n){
-          parameters.add(getValidGNode(dispatch(getValidGNode(o))));
-        }
-        return parameters;
-      }
-
       public void visitNewClassExpression(GNode n) {       
         visit(n);
       }  
-
-      public void visitMethodDeclaration(GNode n) {
-        //TODO: math names and remove
-        try{
-          String methodName = n.getString(3);
-          if (methodName.equals("main")) {
-            n.set(2, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
-
-          }
-          currentMethod = cppast.addMethod(n.getString(3), (GNode)dispatch(n.getGeneric(2)), currentClass);
-          //Add the method params gotten by dispatching the formalParameters node
-          cppast.setMethodParameters(getValidGNode(dispatch(n.getGeneric(4))), currentMethod);
-          //Add the method block gotten by dispatching the block node
-
-        //System.out.println("getGeneric(7): " + n.getGeneric(7));
-        //System.out.println(dispatch(n.getGeneric(7)));
-        //System.out.println("valid gnode: " + getValidGNode(dispatch(n.getGeneric(7))));  
-        cppast.setMethodInstructions(getValidGNode(dispatch(n.getGeneric(7))), currentMethod);
-         
-        } catch(Exception e) { e.printStackTrace(); }
-      }
 
       public void visitPackageDeclaration(GNode n){
         System.out.println("Package " + dispatch(n.getGeneric(1)));
@@ -524,20 +528,6 @@ public class QimppTranslator extends Tool {
         //System.err.println("We are currently running " + currentClassName);
         //
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-      }
-      
-      //Takes an object, if it's a GNode returns it otherwise puts the object on a container with the name "something went wrong"
-      public GNode getValidGNode(Object o){
-        if(o instanceof GNode) {
-          System.out.println(o);
-          return (GNode)o;
-        }
-        else {
-          GNode container = GNode.create("Something went wrong parsing");
-          container.add(o);
-          System.out.println(container);
-          return container;
-        }
       }
 
     }.dispatch(node);
