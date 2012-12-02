@@ -47,6 +47,7 @@ PACKAGE_LOC = qimpp
 
 SOURCE = \
 	CPPAST.java \
+	ArrayTemplatePrinter.java \
 	HeaderWriter.java \
 	HeaderWriterTest.java \
 	ImplementationPrinter.java \
