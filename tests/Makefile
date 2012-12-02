@@ -48,7 +48,19 @@ PACKAGE_LOC = qimpp/tests
 SOURCE = \
 	Test1.java \
 	Test2.java \
-	Test3.java
+	Test3.java \
+	TestArithmetic.java \
+	TestArrays.java \
+	TestForLoops.java \
+	TestInheritance.java \
+	TestMethodChaining.java \
+	TestMethodOverloading.java \
+	TestMethodOverloadingWithInheritance.java \
+	TestMultidimensionalArrays.java \
+	TestNestedForLoops.java \
+	TestStrings.java \
+	TestScopes.java \
+	TestWhileLoops.java \
 
 JNI_SOURCE =
 
