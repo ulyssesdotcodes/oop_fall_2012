@@ -16,6 +16,8 @@ import xtc.tree.Visitor;
  *
  * @author QIMPP
  */
+
+
 public class ImplementationPrinter extends Visitor {
 
   /**
@@ -299,7 +301,9 @@ public class ImplementationPrinter extends Visitor {
 	public void visitCompilationUnit(GNode n) {
 		printer.p("#include <iostream>\n");
     printer.p("#include <sstream>\n");
-		printer.p("#include \"out.h\"\n");
+		printer.p("#include \"out.h\"\n\n");
+    printer.p("#define SSTR( x ) dynamic_cast< std::ostringstream & >(");
+    printer.p("( std::ostringstream() << std::dec << x ) ).str()\n");
     printer.pln();
     visit(n);
     		printer.flush();
@@ -438,6 +442,7 @@ public class ImplementationPrinter extends Visitor {
       inPrintStatement = true;
       visit(n);  
       inPrintStatement = false;
+     // printer.p(")");
     }
     else if (
         //n.getGeneric(0) != null && n.getString(0) != null &&
@@ -505,6 +510,9 @@ public class ImplementationPrinter extends Visitor {
    // }
     else {
       final int prec = startExpression(160);
+      //if (inPrintStatement) {
+      //  printer.p("std::to_string(");
+      //}
       if (inMain) {
         printer.p(n.getString(0));
       }
@@ -514,6 +522,9 @@ public class ImplementationPrinter extends Visitor {
       else {
         printer.p("this->").p(n.getString(0));
       }
+      //if (inPrintStatement) {
+      //  printer.p(")");
+      //}
       endExpression(prec);
     }
 	}
@@ -527,11 +538,11 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified string literal node. */
 	public void visitStringLiteral(GNode n) {
 		final int prec = startExpression(160);
-    if (!inPrintStatement) 
-      printer.p("__rt::literal(");
+    // if (!inPrintStatement) 
+    printer.p("__rt::literal(");
     printer.p(n.getString(0));
-    if (!inPrintStatement)
-      printer.p(')');
+    //if (!inPrintStatement)
+    printer.p(")");
 	  endExpression(prec);
   }
 
@@ -633,14 +644,16 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified arguments. */
   public void visitArguments(GNode n) {
-    printer.p('(');
+    if (!inPrintStatement)
+      printer.p('(');
     for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
       final int prec = enterContext(PREC_LIST);
       printer.p((Node)iter.next());
       exitContext(prec);
       if (iter.hasNext()) printer.p(", ");
     }
-    printer.p(')');
+    if(!inPrintStatement)
+      printer.p(')');
   } 
 
 
@@ -666,7 +679,14 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
-    printer.p(n.getNode(0)).p(' ').p(n.getString(1)).p(' ');
+    printer.p(n.getNode(0)).p(' ');
+    if (!inPrintStatement)
+      printer.p(n.getString(1));
+    else {
+      printer.p("<<");
+      
+    }
+    printer.p(' ');
 
     final int prec2 = enterContext();
     printer.p(n.getNode(2));
@@ -808,7 +828,11 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified integer literal. */
   public void visitIntegerLiteral(GNode n) {
     final int prec = startExpression(160);
+    //if (inPrintStatement)
+    //  printer.p("std::to_string(");
     printer.p(n.getString(0));
+    //if (inPrintStatement)
+    //  printer.p(")");
     endExpression(prec);
   }
 
