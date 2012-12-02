@@ -32,6 +32,8 @@ except TypeError as e:
 except:
     pass # No first argument
 
+# Change directory to the source root
+os.chdir("../..")
 
 # Loop through all test files, or if a single one is specified, do that
 # one
@@ -42,17 +44,17 @@ for filename in testFilenames:
   print "Testing " + filename 
   print "----------------------------\n"
 
-  
+
+  os.system("pwd")  
   # Translate
-  
-  os.system( "java qimpp.QimppTranslator " + filename +" > /dev/null" )
+
+  os.system( "java qimpp.QimppTranslator qimpp/tests/" + filename +" > /dev/null" )
 
   # Compile
 
-  compile_succeded = (0 == os.system("g++ java_lang.cc out.cc"))
+  compile_succeded = (0 == os.system("g++ out.cc java_lang.cc"))
 
   # Run test and put output into file
-
   os.system( "java qimpp.tests." + filename.split(".")[0] + " > java.output" ) 
   
   # Check compilation return code

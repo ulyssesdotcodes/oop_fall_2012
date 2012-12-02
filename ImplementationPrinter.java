@@ -297,9 +297,9 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified compilation unit node. */
 	public void visitCompilationUnit(GNode n) {
-		printer.p("#include \"out.h\"\n");
 		printer.p("#include <iostream>\n");
     printer.p("#include <sstream>\n");
+		printer.p("#include \"out.h\"\n");
     printer.pln();
     visit(n);
     		printer.flush();
