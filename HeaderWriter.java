@@ -360,13 +360,15 @@ public class HeaderWriter extends Visitor {
     printer.pln(); 
     printer.incr();
       // initialize __isa
-      indentOut().p("java::lang::Class __isa;\n");  
+      indentOut().pln("java::lang::Class __isa;\n");
+      indentOut().p("void (*__delete)(__").p(name(node)).p("*);");  
       writeInheritedVTMethods(node);
       writeVTMethods(node);
       
       printer.pln();
       writeVTConstructor(node);
-      indentOut().p(": __isa(__").p(name(node)).p("::__class()),\n");
+      indentOut().p(": __isa(__").p(name(node)).pln("::__class()),\n");
+      indentOut().p("__delete(&__rt::__delete<__").p(name(node)).p(" >),");
         // writeObjectInheritedVTAddresses(node);
         printer.incr();
         writeInheritedVTAddresses(node);
