@@ -204,7 +204,7 @@ public class QimppTranslator extends Tool {
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
             if (!inBlock) {
-              cppast.addField(currentClass.getString(0) + "_" + name, type, currentClass);
+              cppast.addField(name, type, currentClass);
             }
           }
         }
@@ -341,6 +341,11 @@ public class QimppTranslator extends Tool {
 
         }
 
+        public String visitDeclarator(GNode n) {
+          //A declarator just needs to return the name of it right now
+          return n.getString(0);
+        }
+
         public void visitPrimaryIdentifier(GNode n) {
           // Check if this is a ambiguous name, and if it is, replace it with the fully qualified name
           String name = n.getString(0);
@@ -429,10 +434,7 @@ public class QimppTranslator extends Tool {
         if(n.getGeneric(5) != null) cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
       }
 
-      public String visitDeclarator(GNode n) {
-        //A declarator just needs to return the name of it right now
-        return n.getString(0);
-      }
+      
       
       public GNode visitExtension(GNode n){
         
