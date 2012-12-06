@@ -341,6 +341,14 @@ public class QimppTranslator extends Tool {
 
         }
 
+        public void visitPrimaryIdentifier(GNode n) {
+          // Check if this is a ambiguous name, and if it is, replace it with the fully qualified name
+          String name = n.getString(0);
+          if (currentNameMap.get(name) != null){
+            n.set(0, currentNameMap.get(name));
+          }
+        }
+
         public void visit(Node n) {
           
           //System.err.println("We are currently running " + currentClassName);
