@@ -128,21 +128,29 @@ public class InheritanceTreeManager {
   }
 
   /** Takes a class name and gets the fully qualified class name, 
-   *  or null if it cannot be found.
-   *
-   *  @param className the name of the class e.g. "Foo" or "String"
-   *  @returns An array containing the fully qualified name 
-   *  e.g. ["qimmp","Foo"] for qimpp.Foo or ["java", "lang", 
-   *  "String" ]
+   *  or null if it cannot be found.   
+   *  *  
    *  */
   public ArrayList<String> disambiguate( String className ) {
-    return null;
+    return new ArrayList<String>(Arrays.asList(className.split("\\.")));
   } 
 
   /** Figure out which class we're referring to, and get its
    *  ClassTreeNode to know its inheritance hierarchy */
   public GNode getClassTreeNode(String className){
     return dereference(disambiguate(className));
+  }
+
+  /**
+   * Utility function return the ClassDeclaration for a given name
+   * @return the ClassDeclaration GNode
+   */
+  public GNode getClassDeclarationNode(String className) {
+    GNode classTreeNode = getClassTreeNode(className);
+    if (classTreeNode != null){
+      return (GNode)classTreeNode.getProperty(CLASS_DECLARATION);
+    }
+    return null;
   }
   
   /** An overload-alias to minimize necessary brain-space */

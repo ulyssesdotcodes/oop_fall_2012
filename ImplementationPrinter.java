@@ -1,6 +1,7 @@
 package qimpp;
 
 import java.util.Iterator;
+import java.util.HashMap;
 
 import xtc.tree.LineMarker;
 import xtc.tree.Node;
@@ -29,6 +30,11 @@ public class ImplementationPrinter extends Visitor {
 	 * The current class in the traversal.
 	 */
 	protected String currentClass;
+
+  /**
+   * The GNode of the current class
+   */
+  protected GNode currentClassNode;
 
   /**
    *  The namespace of the current class (with a trailing :: for convenience)
@@ -102,6 +108,9 @@ public class ImplementationPrinter extends Visitor {
   /** The flag for an if-else statement. */
   public static final int STMT_IF_ELSE = 2;
 
+  /** The inheritance tree */
+  public InheritanceTreeManager inheritanceTree;
+
 
   /** 
 	 * Create a new C++ printer.
@@ -110,9 +119,10 @@ public class ImplementationPrinter extends Visitor {
    * @param lineUp The flag for whether to line up declarations and 
    * statements with their source locations.
 	 */
-	public ImplementationPrinter(Printer printer) {
+	public ImplementationPrinter(Printer printer, InheritanceTreeManager inheritanceTree) {
 		this.printer = printer;
 		this.lineUp = true;
+    this.inheritanceTree = inheritanceTree;
     printer.register(this);
 	}
 
@@ -331,6 +341,7 @@ public class ImplementationPrinter extends Visitor {
 	public void visitClassDeclaration(GNode n) {
 		this.currentClass = getClassName(n.getString(0)); 
     this.currentNamespace =  getNamespace(n.getString(0));
+    this.currentClassNode = n;
 
 		// .class
 		printer.p("java::lang::Class").p(" ").p(currentNamespace).p("__").p(this.currentClass)
@@ -496,11 +507,15 @@ public class ImplementationPrinter extends Visitor {
     printer.pln(";");
   }
 
-  /** Visit the specified primary identifier node. */
-	public void visitPrimaryIdentifier(GNode n) {
+  /** Visit
+
+  /** Visit the specified primary identifier node.
+   *  @return A node containing the name, the Type, and whether this variable is stack allocated GNode("Name", Type(...), true) */
+	public GNode visitPrimaryIdentifier(GNode n) {
     //TODO:HACK
     if(n.getString(0).equals("System")) {
-      return;
+      // This is a "System" function, we don't want to do anything
+      return null;
     }
     
     //if (inPrintStatement) {
@@ -513,19 +528,46 @@ public class ImplementationPrinter extends Visitor {
       //if (inPrintStatement) {
       //  printer.p("std::to_string(");
       //}
-      if (inMain) {
-        printer.p(n.getString(0));
-      }
-      else if (!inConstructor) {
-		    printer.p("__this->").p(n.getString(0));
+      //if (inMain) {
+      //  printer.p(n.getString(0));
+      //}
+      //else if (!inConstructor) {
+		  //  printer.p("__this->").p(n.getString(0));
+      //}
+      //else {
+      //  printer.p("this->").p(n.getString(0));
+      //}
+      ////if (inPrintStatement) {
+      ////  printer.p(")");
+      ////}
+      endExpression(prec);
+
+      GNode classDeclaration = inheritanceTree.getClassDeclarationNode(n.getString(0));
+      if (classDeclaration != null ) {
+        // Disambiguator produces a QualifiedIdentifier
+        GNode typeNode = GNode.create("Type", Disambiguator.disambiguate(n.getString(0)));
+        return GNode.create(n.getString(0), typeNode, new Boolean(false));
+      } 
+
+      GNode stackFieldDeclarationNode = resolveScopes(n);
+      System.err.println("Found");
+      System.err.println(stackFieldDeclarationNode);
+      // If this primary identifier is not on the stack
+      if (stackFieldDeclarationNode == null) {
+        GNode classFieldDeclarationNode = resolveClassField(n.getString(0));
+        try{
+          return GNode.create(n.getString(0), classFieldDeclarationNode.getGeneric(0), new Boolean(false));
+        }
+        catch (Exception e){
+          System.err.println("Tried getting node " + n.getString(0));
+          e.printStackTrace(System.err);
+          System.exit(1);
+        }
       }
       else {
-        printer.p("this->").p(n.getString(0));
+        return GNode.create(n.getString(0), stackFieldDeclarationNode.getGeneric(0), new Boolean(true));
       }
-      //if (inPrintStatement) {
-      //  printer.p(")");
-      //}
-      endExpression(prec);
+      return null;
     }
 	}
 
@@ -922,6 +964,22 @@ public class ImplementationPrinter extends Visitor {
 
 
   /** Utility methods **/
+
+  private GNode resolveScopes(GNode primaryIdentifier){
+    SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
+    
+    GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
+    if (result == null){
+      System.err.println("Could not locate " + primaryIdentifier.getString(0));
+    }
+    return result;
+  }
+
+  private GNode resolveClassField(String fieldName){
+    HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)currentClassNode.getProperty("FieldMap");
+    GNode fieldDeclaration = fieldNameMap.get(fieldName);
+    return fieldDeclaration;
+  }
 
   private Printer indentOut() {
     return printer.indent();

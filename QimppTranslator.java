@@ -418,7 +418,7 @@ public class QimppTranslator extends Tool {
         try{
           new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
           cppast.printAST();
-          new ImplementationPrinter(new Printer(new PrintWriter("out.cc"))).dispatch(cppast.compilationUnit);
+          new ImplementationPrinter(new Printer(new PrintWriter("out.cc")), treeManager).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
           //System.out.println("Uh oh... " + e);
           e.printStackTrace();
