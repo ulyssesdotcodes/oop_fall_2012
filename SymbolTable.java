@@ -92,7 +92,7 @@ public class SymbolTable {
     /** The map from symbols to values, if any. */
     Map<String, Object> symbols;
 
-    /** The node. */
+    /** The node where the scope is declared (to get Type and other info ) */
     Node node;
 
     /**
@@ -104,6 +104,8 @@ public class SymbolTable {
     Scope(String name) {
       this.name  = name;
       this.qName = name;
+      // the root scope has no declaration
+      this.node = null;
     }
 
     /**
@@ -112,11 +114,12 @@ public class SymbolTable {
      *
      * @param name The unqualified name.
      * @param parent The parent.
+     * @param node the AST Node where this scope starts / is declared
      * @throws IllegalArgumentException
      *   Signals that the specified parent already has a nested scope
      *   with the specified name.
      */
-    Scope(String name, Scope parent) {
+    Scope(String name, Scope parent, Node node) {
       if ((null != parent.scopes) && parent.scopes.containsKey(name)) {
         throw new IllegalArgumentException("Scope " + parent.qName +
                                            " already contains scope " + name);
@@ -124,6 +127,7 @@ public class SymbolTable {
       this.name   = name;
       this.qName  = Utilities.qualify(parent.qName, name);
       this.parent = parent;
+      this.node = node;
       if (null == parent.scopes) {
         parent.scopes = new HashMap<String, Scope>();
       }
@@ -450,6 +454,7 @@ public class SymbolTable {
      * @param value The value.
      */
     public void define(String symbol, Object value) {
+
       if (null == symbols) {
         symbols = new HashMap<String, Object>();
       }
@@ -778,12 +783,13 @@ public class SymbolTable {
    * the scope with that name becomes the current scope.
    *
    * @param name The unqualified name.
+   * @param node The node where the scope begins
    */
-  public void enter(String name) {
+  public void enter(String name, Node node) {
     Scope parent = current;
     Scope child  = parent.getNested(name);
     if (null == child) {
-      child      = new Scope(name, parent);
+      child      = new Scope(name, parent, node);
     }
     current = child;
   }
@@ -961,6 +967,8 @@ public class SymbolTable {
       //  the class.
       // 3. Keep track of class versus stack scope.
 
+      // State variables
+      boolean inMethod = false;
 
       // root of static scope tree
       public void visitCompilationUnit(GNode n) {
@@ -968,7 +976,7 @@ public class SymbolTable {
       }
 
       public void visitClassDeclaration(GNode n) {
-        table.enter(n.getString(1));
+        table.enter(n.getString(1), n);
         table.mark(n);
         visit(n.getNode(5));
         table.exit();
@@ -976,14 +984,14 @@ public class SymbolTable {
 
       // TODO: Handle interfaces?
       public void visitInterfaceDeclaration(GNode n) {
-        table.enter(table.freshCId(n.getName()));
+        table.enter(table.freshCId(n.getName()), n);
         table.mark(n);
         visit(n.getNode(4));
         table.exit();
       }
 
       public void visitConstructorDeclaration(GNode n) {
-        table.enter(table.freshCId("constructor"));
+        table.enter(table.freshCId("constructor"), n);
         table.mark(n);
         visit(n.getNode(5)); // block
         visit(n.getNode(3)); // parameters
@@ -993,7 +1001,7 @@ public class SymbolTable {
       public void visitMethodDeclaration(GNode n) {
         Node parameters = n.getNode(4);
         if (parameters.size() > 0) {
-          table.enter(n.getString(3));
+          table.enter(n.getString(3), n);
           table.mark(n);
           visit(parameters);
           table.exit();
@@ -1001,15 +1009,17 @@ public class SymbolTable {
 
         Node body = n.getNode(7);
         if (null != body) {
-          table.enter(n.getString(3));
+          table.enter(n.getString(3), n);
           table.mark(n);
+          this.inMethod = true;
           visit(body);
+          this.inMethod = false;
           table.exit();
         }
       }
 
       public void visitBlock(GNode n) {
-        table.enter(table.freshCId());
+        table.enter(table.freshCId(), n);
         table.mark(n);
         visit(n);
         table.exit();
@@ -1019,7 +1029,7 @@ public class SymbolTable {
         // if any declarations. TODO: Handle multiple declarations
         Node declarators = n.getNode(1);
         if (null != declarators) {
-          table.enter(table.freshCId("for"));
+          table.enter(table.freshCId("for"), n);
           table.mark(n);
           visit(n);
           table.exit();
@@ -1029,7 +1039,7 @@ public class SymbolTable {
       public void visitNewClassExpression(GNode n) {
         Node body = n.getNode(4);
         if (null != body) {
-          table.enter(table.freshCId(n.getName()));
+          table.enter(table.freshCId(n.getName()), n);
           table.mark(n);
           visit(body);
           table.exit();
@@ -1046,16 +1056,47 @@ public class SymbolTable {
        * scopes.
        *
        */
-      public void visitDeclarator(GNode n) {
-        table.current().addDefinition(n.getString(0), "declaration");
-        table.current().node(n);
+      public String visitDeclarator(GNode n) {
+        //table.current().node(n);
         table.mark(n);
+
+        // return the declarator name
+        return n.getString(0);
+      }
+
+      /**
+       * Visit all declarators (usually for a FieldDeclaration) and return a list of their names.
+       * @returns an ArrayList containing the names
+       */
+      public ArrayList<String> visitDeclarators(GNode n) {
+        ArrayList<String> names = new ArrayList<String>();
+        // Return the name of the first declarator. This works for fields.
+        for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
+          names.add((String)dispatch((GNode)iter.next()));
+        }       
+        return names;
       }
 
       public void visitFormalParameter(GNode n) {
-        table.current().addDefinition(n.getString(3), "parameter");
-        table.current().node(n);
+        table.current().addDefinition(n.getString(3), n);
+        //table.current().node(n);
         table.mark(n);
+      }
+
+      /**
+       * Visits FieldDeclarations, and adds the proper field name to the current scope,
+       * if we are inside a method.
+       *
+       * Class-level fields are resolved in the ClassDeclaration node's "FieldMap" property
+       */
+      public void visitFieldDeclaration(GNode n) {
+        if (inMethod) {
+          ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
+          for ( String name : fieldNames ) {
+            // Associate the name with its field declaration
+            table.current().addDefinition(name, n);
+          }
+        }
       }
 
       // ======================================================================
