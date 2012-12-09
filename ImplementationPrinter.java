@@ -443,32 +443,24 @@ public class ImplementationPrinter extends Visitor {
   boolean inPrintStatement = false;
 
   public void visitCallExpression(GNode n) {
-    if (
-        //n.getGeneric(0) != null && n.getString(0) != null &&
-        //n.getGeneric(0).getGeneric(0).getString(0).equals("String") && 
-        n.getString(2).equals("print")
-       )
+    //If we're using a local call
+    if (n.getGeneric(0) == null){
+      //Print the call
+    }
+    else if (n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER)
     {
-      printer.p("std::cout << ");
+      indentOut().p("std::cout << ");
       inPrintStatement = true;
       visit(n);  
       inPrintStatement = false;
      // printer.p(")");
-    }
-    else if (
-        //n.getGeneric(0) != null && n.getString(0) != null &&
-        //n.getGeneric(0).getGeneric(0).getString(0).equals("String") && 
-        n.getString(2).equals("println")
-       )
-    {
-      printer.p("std::cout << ");
-      inPrintStatement = true;
-      visit(n);
-      inPrintStatement = false;
-      printer.p(" << std::endl ");
+      if (n.getString(2).equals("println")){
+        printer.p(" << std::endl");
+      } 
     }
 
     else {
+      // Print the correct call here
       visit(n);
     }
     printer.flush();
@@ -510,76 +502,43 @@ public class ImplementationPrinter extends Visitor {
   int selectionExpressionDepth = 0;
 
   /** Visit a SelectionExpression node, and print at the most shallow level */
-  public GNode visitSelectionExpression(GNode n){
+  public void visitSelectionExpression(GNode n){
+    // Don't do anything for print commands
+    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER)
+      return;
+
     selectionExpressionDepth++;
     GNode type = (GNode)dispatch(n.getGeneric(0));
     selectionExpressionDepth--;
 
-    // Fix this to detect namespaces soon
-    indentOut().pln("->" + n.getString(1));
-    return type;
+    String childIdentifierType = n.getGeneric(0).getStringProperty(Constants.IDENTIFIER_TYPE);
+    GNode childIdentifierDeclaration = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION); 
+    // Note: Speeding up String comparisons since we're using constants. USE THEM!
+    if (childIdentifierType == Constants.CLASS_IDENTIFIER 
+        || childIdentifierType == Constants.STACKVAR_IDENTIFIER
+        || childIdentifierType == Constants.FIELD_IDENTIFIER
+        || childIdentifierType == Constants.FOREIGN_CLASS_FIELD_IDENTIFIER)
+    {
+      printer.p("->").p(n.getString(1));
+    }
+    else if ( childIdentifierType == Constants.QUALIFIED_CLASS_IDENTIFIER ) {
+      printer.p("::").p(n.getString(1));
+    } 
+    
   } 
 
   /** Visit the specified primary identifier node.
    *  @return A node containing the name, the Type, and whether this variable is stack allocated GNode("Name", Type(...), true) */
-	public GNode visitPrimaryIdentifier(GNode n) {
-    //TODO:HACK
-    if(n.getString(0).equals("System")) {
-      // This is a "System" function, we don't want to do anything
-      return null;
+	public void visitPrimaryIdentifier(GNode n) {
+    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER){
+      if (inConstructor)
+        printer.p("this->");
+      else 
+        printer.p("__this->");
     }
-    
-    //if (inPrintStatement) {
-    //  final int prec = startExpression(160);
-    //  printer.p(n.getString(0));
-    //  endExpression(prec);
-   // }
-    else {
-      final int prec = startExpression(160);
-      //if (inPrintStatement) {
-      //  printer.p("std::to_string(");
-      //}
-      //if (inMain) {
-      //  printer.p(n.getString(0));
-      //}
-      //else if (!inConstructor) {
-		  //  printer.p("__this->").p(n.getString(0));
-      //}
-      //else {
-      //  printer.p("this->").p(n.getString(0));
-      //}
-      ////if (inPrintStatement) {
-      ////  printer.p(")");
-      ////}
-      endExpression(prec);
 
-      GNode classDeclaration = inheritanceTree.getClassDeclarationNode(n.getString(0));
-      if (classDeclaration != null ) {
-        // Disambiguator produces a QualifiedIdentifier
-        GNode typeNode = GNode.create("Type", Disambiguator.disambiguate(n.getString(0)));
-        return GNode.create("RetInfo", n.getString(0), typeNode, new Boolean(false));
-      } 
-
-      GNode stackFieldDeclarationNode = resolveScopes(n);
-      System.err.println("Found");
-      System.err.println(stackFieldDeclarationNode);
-      // If this primary identifier is not on the stack
-      if (stackFieldDeclarationNode == null) {
-        GNode classFieldDeclarationNode = resolveClassField(n.getString(0));
-        try{
-          return GNode.create("RetInfo", n.getString(0), classFieldDeclarationNode.getGeneric(0), new Boolean(false));
-        }
-        catch (Exception e){
-          System.err.println("Tried getting node " + n.getString(0));
-          e.printStackTrace(System.err);
-          System.exit(1);
-        }
-      }
-      else {
-        return GNode.create("RetInfo", n.getString(0), stackFieldDeclarationNode.getGeneric(0), new Boolean(true));
-      }
-      return null;
-    }
+    // Make sure to delimit fully-qualified names correctly
+    printer.p(n.getString(0).replace("\\.", "::"));     
 	}
 
   /** Visit the specified instance node. */
@@ -633,7 +592,7 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified primitive type node. */
   public void visitPrimitiveType(GNode n) {
-    printer.p(n.getString(0));
+    printer.p(Type.primitiveType(n.getString(0)));
   }
 
   /** Visit the specified qualified identifier node. */
@@ -732,17 +691,18 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
-    printer.p(n.getNode(0)).p(' ');
+    printer.p(' ');
+    dispatch(n.getGeneric(0));
     if (!inPrintStatement)
-      printer.p(n.getString(1));
+      printer.p(" ").p(n.getString(1)).p(" ");
     else {
-      printer.p("<<");
+      printer.p(" ").p("<<").p(" ");
       
     }
     printer.p(' ');
 
     final int prec2 = enterContext();
-    printer.p(n.getNode(2));
+    dispatch(n.getGeneric(2)); 
     exitContext(prec2);
 
     endExpression(prec1);
@@ -752,15 +712,9 @@ public class ImplementationPrinter extends Visitor {
   public void visitMultiplicativeExpression(GNode n) {
     final int prec1 = startExpression(130); 
     //printer.p(((GNode)dispatch(n.getGeneric(0))).getString(0)).p(' ').p(n.getString(1)).p(' ');
-    if (n.getGeneric(0).getName().equals("PrimaryIdentifier")){
-      printer.p(n.getGeneric(0).getString(0));
-    }
-    
+    dispatch(n.getGeneric(0)); 
     printer.p(" ").p(n.getString(1)).p(" ");
-
-    if (n.getGeneric(2).getName().equals("PrimaryIdentifier")){
-      printer.p(n.getGeneric(2).getString(0));
-    }
+    dispatch(n.getGeneric(2));
 
     final int prec2 = enterContext();
     //printer.p(((GNode)dispatch(n.getGeneric(2))).getString(0));

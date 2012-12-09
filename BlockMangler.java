@@ -49,7 +49,9 @@ public class BlockMangler {
       public String visitPrimaryIdentifier(GNode n){
         String identifier = n.getString(0);
 
-        selectionExpressionBuilder.insert(0, identifier);
+        if (selectionExpressionBuilder != null){
+          selectionExpressionBuilder.insert(0, identifier);
+        }
 
         GNode classDeclaration = inheritanceTree.getClassDeclarationNode(identifier);
         GNode stackVar = resolveScopes(n);
@@ -83,6 +85,18 @@ public class BlockMangler {
         }
 
       }
+      
+      public String visitThisExpression(GNode n){
+        // Just to be consistent for ThisExpressions
+        if (selectionExpressionBuilder != null){
+          selectionExpressionBuilder.insert(0, "__this");
+        }
+        
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+        n.setProperty(Constants.IDENTIFIER_DECLARATION, cppClass);
+
+        return Constants.CLASS_IDENTIFIER;
+      }
 
       private int selectionExpressionDepth = 0;
       private StringBuilder selectionExpressionBuilder;
@@ -98,6 +112,12 @@ public class BlockMangler {
 
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
+        //TODO: Debug code
+        if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == null){
+          System.err.println(n);
+          throw new NullPointerException();
+        }
+        // End debug code
         n.setProperty(Constants.IDENTIFIER_DECLARATION, n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION));
         selectionExpressionDepth--;
 
@@ -113,7 +133,7 @@ public class BlockMangler {
         // If our child is a CLASS_IDENTIFIER, and we're still in a SelectionExpression, we must be referring to some accessible field
         else if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.CLASS_IDENTIFIER)) {
            n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FOREIGN_CLASS_FIELD_IDENTIFIER);
-           GNode foreignFieldDeclaration = resolveClassField(selectionExpressionBuilder.toString());
+           GNode foreignFieldDeclaration = resolveClassField(n.getString(1), (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION));
            // Debug
            if (foreignFieldDeclaration == null) {
               throw new RuntimeException("Failed to identify field " + selectionExpressionBuilder.toString());

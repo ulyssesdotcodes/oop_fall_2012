@@ -353,13 +353,6 @@ public class QimppTranslator extends Tool {
           return type;
         }
 
-        /** Change primitive type names from Java to C names */
-        public void visitPrimitiveType(GNode n) {
-          String javaType = n.getString(0);
-          String cppType = Type.primitiveType(javaType);
-          n.set(0, cppType);
-        }
-
         public void visit(Node n) {
           
           //System.err.println("We are currently running " + currentClassName);
