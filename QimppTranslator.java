@@ -181,14 +181,14 @@ public class QimppTranslator extends Tool {
 
           // Add the disambiguation to the hashmap
           currentNameMap.put(unqualifiedName, qualifiedNameBuilder.toString());
-          System.err.println("MAPPED: " + unqualifiedName);
         }
 
         /** Adds the field to the CPPAST */
         public void visitFieldDeclaration(GNode n) {
           //Get the string by dispatching the Type GNode
-          
-          
+          dispatch(n.getGeneric(0));
+          dispatch(n.getGeneric(2));
+                    
           GNode type = (GNode)dispatch(n.getGeneric(1));
           //Create a new GNode to hold all of the declarators;
           GNode declarators = n.getGeneric(2);
@@ -198,7 +198,7 @@ public class QimppTranslator extends Tool {
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
             if (!inBlock) {
-              cppast.addField(currentClassName + "_" + name, name, type, currentClass);
+              cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
             }
           }
         }
@@ -242,6 +242,17 @@ public class QimppTranslator extends Tool {
             parameters.add((GNode)dispatch((GNode)o));
           }
           return parameters;
+        }
+        
+        /**
+         * NewClassExpression hold a QualifiedIdentifier not wrapped by a type. We need to disambiguate it if possible
+         */
+        public void visitNewClassExpression(GNode n){
+          String typename = n.getGeneric(2).getString(0);
+          String mappedName = currentNameMap.get(typename);
+          if (mappedName != null){
+            n.set(2, Disambiguator.disambiguate(mappedName));
+          }
         }
 
         /** Visit all types. If it is unknown, process the file for that type. If it is known, fully qualify it */

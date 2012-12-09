@@ -478,11 +478,20 @@ public class ImplementationPrinter extends Visitor {
 
     else {
       // Print the correct call here
-      printer.p(n.getString(2)).p("(");
+      dispatch(n.getGeneric(0));
+      printer.p("->").p(n.getString(2)).p("(");
       dispatch(n.getGeneric(3));
       printer.p(")");
     }
     printer.flush();
+  }
+
+  public void visitNewClassExpression(GNode n){
+    printer.p(" new ");
+    dispatch(n.getGeneric(2));
+    printer.p("(");
+    dispatch(n.getGeneric(3));
+    printer.p(")");
   }
 
   boolean inReturnType = false;
