@@ -119,13 +119,6 @@ public class QimppTranslator extends Tool {
     currentNameMap = new HashMap<String, String>();
     currentPackageName = "";
 
-    /** SYMBOL TABLE */
-    SymbolTable table = new SymbolTable();
-    table.incorporate(node);
-    // Now we can call .getProperty("qimpp.Constants.SCOPE") on certain
-    // scope-defining nodes and we'll get back a Scope object (look in
-    // SymbolTable).
-    
     // First, get contextual information with an initial visit of types and the package declaration
     
     Visitor initialVisitor = new Visitor () {
@@ -353,6 +346,19 @@ public class QimppTranslator extends Tool {
             n.set(0, currentNameMap.get(name));
           }
         }
+        
+        public GNode visitVoidType(GNode n){
+          GNode type = GNode.create("Type");
+          type.addNode(GNode.create("PrimitiveType")).getGeneric(0).add("void");
+          return type;
+        }
+
+        /** Change primitive type names from Java to C names */
+        public void visitPrimitiveType(GNode n) {
+          String javaType = n.getString(0);
+          String cppType = Type.primitiveType(javaType);
+          n.set(0, cppType);
+        }
 
         public void visit(Node n) {
           
@@ -367,22 +373,26 @@ public class QimppTranslator extends Tool {
 
     initialVisitor.dispatch(node);
 
+    /** SYMBOL TABLE */
+    SymbolTable table = new SymbolTable();
+    table.incorporate(node);
+    // Now we can call .getProperty("qimpp.Constants.SCOPE") on certain
+    // scope-defining nodes and we'll get back a Scope object (look in
+    // SymbolTable).
+    
+    final BlockMangler mangler = new BlockMangler(currentClass, treeManager, new MethodResolver());
+
     new Visitor() {
 
+      /**
+       * Visit a block of code, and mangle it appropriately before we print it
+       * Do not visit deeper here
+       */
       public GNode visitBlock(GNode n) {
-        //Visits a Block (a set of instructions in Java) and figures out how to translate it. Returns the GNode of the whole translated Block
         inBlock = true;
         GNode block = GNode.create("Block");
         
-        /*
-        for (Object o : n) {
-          //dispatches each ExpressionStatement, ReturnStatement, etc.
-        } */
-        visit(n);
-        //for (Object o : n) {
-        //}
-        //TODO: CHNANGE THIS BACK
-        // return block;
+        mangler.mangle(n);
         inBlock = false;
 
         return n;
@@ -491,18 +501,8 @@ public class QimppTranslator extends Tool {
         visit(n);
       }
         
-      public GNode visitVoidType(GNode n){
-        GNode type = GNode.create("Type");
-        type.addNode(GNode.create("PrimitiveType")).getGeneric(0).add("void");
-        return type;
-      }
         
-      /** Change primitive type names from Java to C names */
-      public void visitPrimitiveType(GNode n) {
-        String javaType = n.getString(0);
-        String cppType = Type.primitiveType(javaType);
-        n.set(0, cppType);
-      }
+      
       
       public GNode visitType(GNode n) {
         //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)

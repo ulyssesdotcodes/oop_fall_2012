@@ -29,6 +29,7 @@ public class Constants {
   public static final String STACKVAR_IDENTIFIER = "qimpp.Constants.StackvarIdentifier";
   public static final String QUALIFIED_CLASS_IDENTIFIER = "qimpp.Constants.QualifiedClassIdentifier";
   public static final String FOREIGN_CLASS_FIELD_IDENTIFIER = "qimpp.Constants.ForeignClassFieldIdentifier";
+  public static final String PRINT_IDENTIFIER = "qimpp.Constants.PrintIdentifier";
 
   // ============================================================
 

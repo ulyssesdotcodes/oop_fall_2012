@@ -94,17 +94,18 @@ public class BlockMangler {
         if (selectionExpressionDepth == 0)
           selectionExpressionBuilder = new StringBuilder();
 
-        selectionExpressionBuilder.insert(0, n.getString(1)+".");
+        selectionExpressionBuilder.append("." + n.getString(1));
 
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
         n.setProperty(Constants.IDENTIFIER_DECLARATION, n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION));
         selectionExpressionDepth--;
 
+        String expression = selectionExpressionBuilder.toString();
         // Part of the way in, we may find that we have a fully qualified type. In that case set the IDENTIFIER_TYPE to CLASS_IDENTIFIER
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER)){
           GNode classDeclaration = inheritanceTree.getClassDeclarationNode(selectionExpressionBuilder.toString());
-          if (classDeclaration == null){
+          if (classDeclaration != null){
             n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
             n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
           }
@@ -133,9 +134,19 @@ public class BlockMangler {
 
            n.setProperty(Constants.IDENTIFIER_DECLARATION, fieldDeclaration);
         }
+        
+        if (expression.equals("System.out")) {
+           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRINT_IDENTIFIER);
+           //TODO:Hack
+           n.setProperty(Constants.IDENTIFIER_DECLARATION, new Object());
+        } 
 
         // Bye this point we should have figured out what the selectionExpression is referring to
         if (selectionExpressionDepth == 0 && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
+          System.err.println(n.getStringProperty(Constants.IDENTIFIER_TYPE));
+          System.err.println(n.getGeneric(0).getStringProperty(Constants.IDENTIFIER_TYPE));
+          System.err.println(expression);
+          System.err.println(n);
           throw new RuntimeException("Selected unknown class or field!");
         }
 
@@ -199,11 +210,15 @@ public class BlockMangler {
 
   private GNode resolveScopes(GNode primaryIdentifier){
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
-    
+    if (scope == null) {
+      return null;
+    }
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
+    
     if (result == null){
       System.err.println("Could not locate " + primaryIdentifier.getString(0));
     }
+    System.err.println(result);
     return result;
   }
 

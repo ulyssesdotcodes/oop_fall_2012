@@ -516,7 +516,7 @@ public class ImplementationPrinter extends Visitor {
     selectionExpressionDepth--;
 
     // Fix this to detect namespaces soon
-    indentOut().pln("->" + n.getString(0));
+    indentOut().pln("->" + n.getString(1));
     return type;
   } 
 
@@ -557,7 +557,7 @@ public class ImplementationPrinter extends Visitor {
       if (classDeclaration != null ) {
         // Disambiguator produces a QualifiedIdentifier
         GNode typeNode = GNode.create("Type", Disambiguator.disambiguate(n.getString(0)));
-        return GNode.create(n.getString(0), typeNode, new Boolean(false));
+        return GNode.create("RetInfo", n.getString(0), typeNode, new Boolean(false));
       } 
 
       GNode stackFieldDeclarationNode = resolveScopes(n);
@@ -567,7 +567,7 @@ public class ImplementationPrinter extends Visitor {
       if (stackFieldDeclarationNode == null) {
         GNode classFieldDeclarationNode = resolveClassField(n.getString(0));
         try{
-          return GNode.create(n.getString(0), classFieldDeclarationNode.getGeneric(0), new Boolean(false));
+          return GNode.create("RetInfo", n.getString(0), classFieldDeclarationNode.getGeneric(0), new Boolean(false));
         }
         catch (Exception e){
           System.err.println("Tried getting node " + n.getString(0));
@@ -576,7 +576,7 @@ public class ImplementationPrinter extends Visitor {
         }
       }
       else {
-        return GNode.create(n.getString(0), stackFieldDeclarationNode.getGeneric(0), new Boolean(true));
+        return GNode.create("RetInfo", n.getString(0), stackFieldDeclarationNode.getGeneric(0), new Boolean(true));
       }
       return null;
     }
@@ -751,10 +751,19 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified multiplicative expression. */
   public void visitMultiplicativeExpression(GNode n) {
     final int prec1 = startExpression(130); 
-    printer.p(((GNode)dispatch(n.getGeneric(0))).getString(0)).p(' ').p(n.getString(1)).p(' ');
+    //printer.p(((GNode)dispatch(n.getGeneric(0))).getString(0)).p(' ').p(n.getString(1)).p(' ');
+    if (n.getGeneric(0).getName().equals("PrimaryIdentifier")){
+      printer.p(n.getGeneric(0).getString(0));
+    }
     
+    printer.p(" ").p(n.getString(1)).p(" ");
+
+    if (n.getGeneric(2).getName().equals("PrimaryIdentifier")){
+      printer.p(n.getGeneric(2).getString(0));
+    }
+
     final int prec2 = enterContext();
-    printer.p(((GNode)dispatch(n.getGeneric(2))).getString(0));
+    //printer.p(((GNode)dispatch(n.getGeneric(2))).getString(0));
     exitContext(prec2);
 
     endExpression(prec1);
@@ -979,6 +988,10 @@ public class ImplementationPrinter extends Visitor {
   private GNode resolveScopes(GNode primaryIdentifier){
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
     
+    if ( scope == null ){
+      return null;
+    }
+
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     if (result == null){
       System.err.println("Could not locate " + primaryIdentifier.getString(0));
