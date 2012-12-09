@@ -507,7 +507,18 @@ public class ImplementationPrinter extends Visitor {
     printer.pln(";");
   }
 
-  /** Visit
+  int selectionExpressionDepth = 0;
+
+  /** Visit a SelectionExpression node, and print at the most shallow level */
+  public GNode visitSelectionExpression(GNode n){
+    selectionExpressionDepth++;
+    GNode type = (GNode)dispatch(n.getGeneric(0));
+    selectionExpressionDepth--;
+
+    // Fix this to detect namespaces soon
+    indentOut().pln("->" + n.getString(0));
+    return type;
+  } 
 
   /** Visit the specified primary identifier node.
    *  @return A node containing the name, the Type, and whether this variable is stack allocated GNode("Name", Type(...), true) */
@@ -740,10 +751,10 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified multiplicative expression. */
   public void visitMultiplicativeExpression(GNode n) {
     final int prec1 = startExpression(130); 
-    printer.p((GNode)dispatch(n.getGeneric(0))).p(' ').p(n.getString(1)).p(' ');
+    printer.p(((GNode)dispatch(n.getGeneric(0))).getString(0)).p(' ').p(n.getString(1)).p(' ');
     
     final int prec2 = enterContext();
-    printer.p((GNode)dispatch(n.getGeneric(2)));
+    printer.p(((GNode)dispatch(n.getGeneric(2))).getString(0));
     exitContext(prec2);
 
     endExpression(prec1);

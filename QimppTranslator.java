@@ -514,6 +514,7 @@ public class QimppTranslator extends Tool {
           return n;
         }
 
+
         // Fix this later in treeManager
         else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");

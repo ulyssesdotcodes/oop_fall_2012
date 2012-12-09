@@ -61,7 +61,9 @@ SOURCE = \
 	TranslatorTest.java \
 	Type.java \
 	TypeTest.java \
-	Utilities.java
+	Utilities.java \
+	MethodResolver.java\
+	BlockMangler.java
 
 JNI_SOURCE =
 

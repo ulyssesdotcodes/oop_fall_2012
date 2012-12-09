@@ -1,3 +1,4 @@
+package qimpp;
 import xtc.tree.*;
 
 public class MethodResolver {

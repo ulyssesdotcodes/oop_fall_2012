@@ -19,6 +19,17 @@ public class Constants {
 
   public static final String TYPE = "qimpp.Constants.Type";
 
+
+  // Constants for the classification of PrimaryIdentifiers and SelectionExpressions
+  public static final String IDENTIFIER_TYPE = "qimpp.Constants.IdentifierType";
+  public static final String IDENTIFIER_DECLARATION = "qimpp.Constants.IdentifierDeclaration";
+
+  public static final String CLASS_IDENTIFIER = "qimpp.Constants.ClassIdentifier";
+  public static final String FIELD_IDENTIFIER = "qimpp.Constants.FieldIdentifier";
+  public static final String STACKVAR_IDENTIFIER = "qimpp.Constants.StackvarIdentifier";
+  public static final String QUALIFIED_CLASS_IDENTIFIER = "qimpp.Constants.QualifiedClassIdentifier";
+  public static final String FOREIGN_CLASS_FIELD_IDENTIFIER = "qimpp.Constants.ForeignClassFieldIdentifier";
+
   // ============================================================
 
   /** Output header. */
