@@ -442,10 +442,27 @@ public class ImplementationPrinter extends Visitor {
   //TODO: HACK
   boolean inPrintStatement = false;
 
+  public void visitArguments(GNode n){
+    for (int i = 0; i < n.size(); i++){
+      if (n.get(i) instanceof String){
+        printer.p(n.getString(i));
+      }
+      else {
+        dispatch(n.getNode(i));
+      }
+      if ( i < (n.size() - 1))
+        printer.p(", ");
+    }
+  }
+
   public void visitCallExpression(GNode n) {
     //If we're using a local call
     if (n.getGeneric(0) == null){
       //Print the call
+      printer.p(n.getString(2));
+      printer.p("(");
+      dispatch(n.getGeneric(3));
+      printer.p(")");
     }
     else if (n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER)
     {
@@ -461,7 +478,9 @@ public class ImplementationPrinter extends Visitor {
 
     else {
       // Print the correct call here
-      visit(n);
+      printer.p(n.getString(2)).p("(");
+      dispatch(n.getGeneric(3));
+      printer.p(")");
     }
     printer.flush();
   }
@@ -662,6 +681,7 @@ public class ImplementationPrinter extends Visitor {
   }
 
   /** Visit the specified arguments. */
+  /*
   public void visitArguments(GNode n) {
     if (!inPrintStatement)
       printer.p('(');
@@ -674,7 +694,7 @@ public class ImplementationPrinter extends Visitor {
     if(!inPrintStatement)
       printer.p(')');
   } 
-
+*/
 
 
 // TODO: CHANGE THIS BACK

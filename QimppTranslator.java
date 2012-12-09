@@ -356,6 +356,41 @@ public class QimppTranslator extends Tool {
           return type;
         }
 
+        public GNode visitExtension(GNode n){
+        
+          // Assume the name of the parent is fully qualified
+          visit(n);
+
+          GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
+          parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
+          
+          currentClass.getGeneric(1).getGeneric(0).remove(0);
+          String parentNameQualified = parentClassNode.getString(0);
+          
+          // Add the parent's type to the current class's Parent Node
+          currentClass.getGeneric(1).getGeneric(0).addNode( Disambiguator.disambiguate(parentNameQualified));
+          
+          // Add inherited mehthods and fields using the parent's class
+          // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
+          // should only be one argument to addAllInheritedMethods
+          cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
+
+          cppast.addAllInheritedFields(parentClassNode, currentClass); 
+          parentClassNode = currentClass;
+          
+          //add the current class to the inheritance tree, but parent it to Object for now
+          ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
+          ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
+          System.err.println(parentQualified);
+          System.err.println(childQualified);
+          treeManager.reparent(childQualified, parentQualified);
+          
+          
+          
+          return null; 
+        }
+
+
         public void visit(Node n) {
           
           //System.err.println("We are currently running " + currentClassName);
@@ -442,40 +477,7 @@ public class QimppTranslator extends Tool {
 
       
       
-      public GNode visitExtension(GNode n){
-        
-        // Assume the name of the parent is fully qualified
-        visit(n);
-
-        GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
-        parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
-        
-        currentClass.getGeneric(1).getGeneric(0).remove(0);
-        String parentNameQualified = parentClassNode.getString(0);
-        
-        // Add the parent's type to the current class's Parent Node
-        currentClass.getGeneric(1).getGeneric(0).addNode( Disambiguator.disambiguate(parentNameQualified));
-        
-        // Add inherited mehthods and fields using the parent's class
-        // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
-        // should only be one argument to addAllInheritedMethods
-        cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
-
-        cppast.addAllInheritedFields(parentClassNode, currentClass); 
-        parentClassNode = currentClass;
-        
-        //add the current class to the inheritance tree, but parent it to Object for now
-        ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
-        ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
-        System.err.println(parentQualified);
-        System.err.println(childQualified);
-        treeManager.reparent(childQualified, parentQualified);
-        
-        
-        
-        return null; 
-      }
-
+      
       public GNode visitExpressionStatement(GNode n) {
         //TODO: figure out what we need to do to the expressionstatements to make them parseable including fetching needed files
         return n;
