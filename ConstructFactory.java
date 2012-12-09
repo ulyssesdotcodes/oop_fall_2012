@@ -37,7 +37,6 @@ import java.util.HashMap;
  */
 public class ConstructFactory {
 
-  // TODO: Clean up constants that aren't actually implemented.
   // NS => "NodeSizes"
   class NS {
     // Declarations - p. 23
@@ -255,7 +254,7 @@ public class ConstructFactory {
         buildDataLayoutConstructorArguments(klass.fields()));
   }
 
-  // TODO
+
   public Node buildDataLayoutImplementedMethods(Klass klass) {
     GNode structImplementedMethods = 
       GNode.create("DataLayoutImplementedMethods");
@@ -293,7 +292,6 @@ public class ConstructFactory {
 
   // VTABLE ====================================================================
 
-  // TODO: use methods and constructor call when ready
   /** Build class struct vtable branch. */
   public Node buildVTDeclaration(Klass klass) {
     return GNode.create("VTDeclaration",
@@ -302,7 +300,6 @@ public class ConstructFactory {
       buildVTConstructor(klass));
   }
 
-  // TODO
   /** Build class struct vtable methods branch. */
   public Node buildVTMethods(Klass klass) {
     GNode vtMethods = GNode.create("VTMethods");
@@ -324,7 +321,6 @@ public class ConstructFactory {
         buildMethodParameterTypes(method));   /* 2 */
   }
 
-  // TODO
   /** Build vtable constructor branch. */
   public Node buildVTConstructor(Klass klass) {
     GNode vtConstructor = GNode.create("VTConstructor",
@@ -345,7 +341,6 @@ public class ConstructFactory {
     return vtInitializatons;
   }
 
-  // TODO
   /** Build vtable initializer branch. */
   public Node buildVTInitialization(Klass.Method method) {
     String returnType = "void";
@@ -389,15 +384,13 @@ public class ConstructFactory {
 
   // CLASS BODY ================================================================
 
-  // TODO
   /** Build class body branch. */
   public Node buildClassBody(Klass klass) {               
     GNode classBody = GNode.create("ClassBody",
         buildConstructor(klass),               /* 0 */
-        buildMethods(klass));        /* 1 */
+        buildMethods(klass));                  /* 1 */
     return classBody; 
   }
-
 
   /** Build constructor branch. */
   public Node buildConstructor(Klass klass) {
@@ -484,13 +477,7 @@ public class ConstructFactory {
     return GNode.create("Dimensions", dims);
   }
 
-  /**
-   * Build declarators branch. 
-   *
-   * TODO: This only holds one declarator at the moment,
-   * but it should hold more when we can handle definitions like
-   * double i, j = 3;
-   */
+  /** Build declarators branch. */
   public Node buildDeclarators(GNode declarator) {
     return GNode.create("Declarators", declarator);
   } 

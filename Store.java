@@ -173,7 +173,6 @@ class Store {
 
     // Let's analyze that class' fields!
 
-    // TODO: Handle the case of "int i, j;" 
     /** 
      * Visit specified field declaration node and add field to class.
      * This applies solely to instance and class fields.
@@ -237,8 +236,6 @@ class Store {
       }
     }
 
-    // TODO: Handle the case of "int i, j;" See #visitFieldDeclaration
-    //  i.e. Java: double x, y, z; => C++: double x; double y; double z;
     /** Visit specified declarator node. */
     public void visitDeclarator(GNode n) {
       if (buildingField) {

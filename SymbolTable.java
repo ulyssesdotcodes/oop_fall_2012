@@ -261,8 +261,6 @@ public class SymbolTable {
      * contents of this scope and all nested scopes with the specified
      * printer. 
      *
-     * TODO: Perhaps print a bit nicer?
-     *
      * @param printer The printer, which need not be registered with a
      *   visitor.
      */
@@ -651,7 +649,6 @@ public class SymbolTable {
       }
 
       public void visitForStatement(GNode n) {
-        // if any declarations. TODO: Handle multiple declarations
         Node declarators = n.getNode(1);
         if (null != declarators) {
           table.enter(table.freshCId("for"));

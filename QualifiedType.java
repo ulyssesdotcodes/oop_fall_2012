@@ -7,9 +7,6 @@ import java.util.Arrays;
 /**
  * Extends abstract Type class to represent qualified types.
  *
- * TODO: Understand relationship between Klass and Type.
- *  Right now a Klass has-a QualifiedType. Does QualifiedType have-a Klass?
- *
  * @author Qimpp
  */
 public class QualifiedType extends Type {

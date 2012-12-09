@@ -1,9 +1,6 @@
 
 package qimpp;
 
-// TODO: Each variable should have a scope field
-// TODO: Code duplication. Is there a better way?
-
 /**
  * A generic variable.
  * 

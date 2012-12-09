@@ -12,17 +12,6 @@ import java.util.Iterator;
  * It might help with debugging to put our comments in the 
  * actual outputted code.
  *
- * TODO: Remove all the p(' ') with something like s().
- *  It's clearer and less visually confusing.
- *
- * TODO: There MUST be a better way to do indenting. Calling 
- *  indent() every single time is horrible.
- *
- * TODO: (11/30) Vivek's remaining work on this is:
- *  1) ordering of declarations
- *  2) constructor initialization
- *  3) vtable struct
- *
  * @author Qimpp
  */
 public class HWriter extends Visitor {
@@ -119,25 +108,6 @@ public class HWriter extends Visitor {
   }
 
   // ===========================================================================
-
-  // TODO: Probably can remove some of this, as it's not relevant to the header.
-  /**
-   * Print an expression as a truth value. This method prints the
-   * specified node. If that node represents an assignment expression and
-   * {@link #EXTRA_PARENTHESES} is <code>true</code>, this method adds an
-   * extra set of parentheses around the expression to avoid gcc warnings.
-   *
-   * @param n The node to print
-   */ 
-  protected void formatAsTruthValue(Node n) {
-    if (GNode.cast(n).hasName("AssignmentExpression")) {
-      printer.p('(');
-      visit(n);
-      printer.p(')');
-    } else {
-      visit(n);
-    }
-  }
 
   /** DOC */
   protected boolean startStatement(int kind, Node node) {
@@ -332,7 +302,6 @@ public class HWriter extends Visitor {
     endClassDeclaration();
   }
 
-  // TODO
   /** Visit specified struct declaration branch. */
   public void visitDataLayoutDeclaration(GNode n) {
     if (forwardDeclareStruct) {
@@ -512,12 +481,7 @@ public class HWriter extends Visitor {
     if (writingField) { printer.p(n.getString(0)).p(' '); }
   }
 
-  /** 
-   * Visit specified declarator node.
-   * TODO: Note, we only can handle single declarations
-   *  in a single line, at this point. See Store.Analyzer
-   *  to learn more.
-   */
+  /** Visit specified declarator node. */
   public void visitDeclarator(GNode n) {
     if (writingField) { printer.p(n.getString(0)).pln(';'); }
   }

@@ -244,7 +244,6 @@ public class CCWriter extends Visitor {
     visit(n);
 
     // main
-    // TODO: Fix this. Main method must be outside, it seems.
     printer.pln("// main method!");
     printer.pln("int main() {").incr()
       .indent().pln("return 0;").decr().pln('}');
@@ -254,7 +253,6 @@ public class CCWriter extends Visitor {
 
   // CONSTRUCTOR ===============================================================
   
-  // TODO: Implementation; overloaded constructors?
   /** Visit the specified constructor node. */
   public void visitConstructor(GNode n) {
     printer.p(n.getString(0)).p('(');

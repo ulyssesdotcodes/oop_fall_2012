@@ -5,9 +5,6 @@ import org.junit.*;
 
 import java.util.ArrayList;
 
-// TODO: Implement and test the setting of field initializations
-// TODO: Implement and test the setting of method bodies
-
 /**
  * Test suite for Klass.java.
  * 

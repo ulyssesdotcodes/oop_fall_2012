@@ -40,7 +40,6 @@ public class Resolver {
   public boolean isAccessible(Klass.Method matched) {
     return (matched.of() == currentClass) ||
       (/* matched.accessModifier() keeps things visible */ true);
-    // TODO: assuming everything is public (for now)!
   }
 
   public static String freshId(String identifier) {
@@ -77,7 +76,6 @@ public class Resolver {
       }
     }
     
-    // TODO: make method.name(), method.identifier()
     for (Klass.Method method : currentClass.methods()) {
       if (method.name().equals(invocation.identifier())) {
         matchedMethods.add(method);
@@ -91,8 +89,6 @@ public class Resolver {
    * Filter the methods by accessibility and applicability.
    * 
    * @return this.
-
-    // choose the methods that match on name.
    */
   public Resolver filter() {
     for (int i = 0; i < matchedMethods.size(); i++) {

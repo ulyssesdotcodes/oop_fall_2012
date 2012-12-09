@@ -18,7 +18,6 @@ public class Klass {
    */
   abstract class Member {
     String name;            // might need to be freshly generated
-    // TODO: also need a method for generating fully qualified names
     Klass implementor;
     Klass of;
     Node body;
@@ -150,7 +149,6 @@ public class Klass {
      */
     public void incorporate() {
       for (Field field : Klass.this.fields) {
-        // TODO: match implementations on more than just name
         if (field.name().equals(this.name)) {
           field.implementor = Klass.this;
           field.body(this.body());
@@ -200,7 +198,6 @@ public class Klass {
      */
     public void incorporate() {
       for (Method method : Klass.this.methods) {
-        // TODO: match implementations on more than just name
         if (method.name().equals(this.name) &&
             method.parameters().size() == this.parameters.size()) {
           method.implementor = Klass.this;
@@ -232,8 +229,6 @@ public class Klass {
     /**
      * Determines whether this method is more specific than the
      * specified method. Assumes the method is applicable.
-     *
-     * TODO: Hacky casting.
      *
      * @param m2 Method to compare.
      * @return whether this method is more specific than the specified method.
@@ -276,7 +271,6 @@ public class Klass {
 
   // ===========================================================================
 
-  // TODO: Might delete.
   class Constructor {
     String name;
     String qualifiedName;
@@ -287,10 +281,7 @@ public class Klass {
     public Constructor() {
       this.name           = Klass.this.name;
       this.qualifiedName = Klass.this.qualifiedName;
-    }
-
-
-    
+    }    
   }
 
 
@@ -331,7 +322,6 @@ public class Klass {
    */
   public Klass(String name, Klass parent) {
     // copy methods and fields from parent if it exists
-    // TODO: only inherit accessible fields (i.e. not private ones)
     ArrayList<Method> methods = generateObjectMethods();
     ArrayList<Field> fields = new ArrayList<Field>();
     if (null != parent) { 
@@ -407,12 +397,9 @@ public class Klass {
 
   /**
    * Set class parent.
-   * TODO: Can we figure out a way to get rid of this?
-   *  It's powerful but it seems like it could 
-   *  potentially cause issues in class linking.
    *
-   *  @param parent Parent class to set.
-   *  @return this Klass object.
+   * @param parent Parent class to set.
+   * @return this Klass object.
    */
   public Klass parent(Klass parent) {
     this.parent = parent;
