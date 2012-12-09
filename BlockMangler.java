@@ -68,6 +68,7 @@ public class BlockMangler {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.STACKVAR_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, stackVar);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE, stackVar.getGeneric(1));
+
           return Constants.STACKVAR_IDENTIFIER; 
         }
 
@@ -76,11 +77,16 @@ public class BlockMangler {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FIELD_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classField);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE, classField.getGeneric(1));
+
+          // Set the value of the reference to the value of the field declaration
+          n.set(0, classField.getString(0));
+
           return Constants.FIELD_IDENTIFIER;
         }
 
         // It must be a fully qualified class
         else {
+
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, null);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE, null);
@@ -211,8 +217,13 @@ public class BlockMangler {
            GNode foreignFieldDeclaration = resolveClassField(n.getString(1), (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION));
            // Debug
            if (foreignFieldDeclaration == null) {
-              throw new RuntimeException("Failed to identify field " + selectionExpressionBuilder.toString());
+              System.err.println(n.getProperty(Constants.IDENTIFIER_DECLARATION));
+              System.err.println(((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("FieldMap"));
+              throw new RuntimeException("Failed to identify field " + n.getString(1));
            }
+           // Reset the field to its proper name
+           n.set(1, foreignFieldDeclaration.getString(0));
+
            n.setProperty(Constants.IDENTIFIER_DECLARATION, foreignFieldDeclaration);
            n.setProperty(Constants.IDENTIFIER_TYPE_NODE, foreignFieldDeclaration.getGeneric(1));
         }
@@ -227,6 +238,9 @@ public class BlockMangler {
            if (fieldDeclaration == null) {
               throw new NullPointerException();
            }
+
+           // Set the value of the reference to the value of the field declaration
+           n.set(1, fieldDeclaration.getString(0));
 
            n.setProperty(Constants.IDENTIFIER_DECLARATION, fieldDeclaration);
            n.setProperty(Constants.IDENTIFIER_TYPE, fieldDeclaration.getGeneric(1));

@@ -143,19 +143,31 @@ public class CPPAST {
   /**
    * Add field node.
    *
-   * @param name Name of node.
+   * @param fullName Name of node, prepended with the fully qualified class name of the class that owns it
+   * @param ambigName the ambiguous name, no prepend, to be entered into the field map
    * @param type Type node.
    * @param classNode ClassDeclaration node.
    * @returns field node.
    */ 
-  GNode addField(String name, GNode type, GNode classNode){
+  GNode addField(String fullName, String ambigName, GNode type, GNode classNode){
     //Get the fields node
-    String classFieldName = classNode.getString(0) + "_" + name;
+    //String classFieldName = classNode.getString(0) + "_" + name;
     GNode fieldNode = GNode.create("FieldDeclaration");
-    fieldNode.add(classFieldName);
+    fieldNode.add(fullName);
     fieldNode.addNode(type);
     classNode.getGeneric(3).addNode(fieldNode);
-    currentFieldMap.put(name, fieldNode);
+    currentFieldMap.put(ambigName, fieldNode);
+    return fieldNode;
+  }
+
+  /**
+   * Overload without adding the name to the field map
+   */
+  GNode addField(String name, GNode type, GNode classNode){
+    GNode fieldNode = GNode.create("FieldDeclaration");
+    fieldNode.add(name);
+    fieldNode.addNode(type);
+    classNode.getGeneric(3).addNode(fieldNode);
     return fieldNode;
   }
   

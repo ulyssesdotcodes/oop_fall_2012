@@ -197,7 +197,7 @@ public class QimppTranslator extends Tool {
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
             if (!inBlock) {
-              cppast.addField(name, type, currentClass);
+              cppast.addField(currentClassName + "_" + name, name, type, currentClass);
             }
           }
         }
