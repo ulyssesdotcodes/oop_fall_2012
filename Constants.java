@@ -23,6 +23,7 @@ public class Constants {
   // Constants for the classification of PrimaryIdentifiers and SelectionExpressions
   public static final String IDENTIFIER_TYPE = "qimpp.Constants.IdentifierType";
   public static final String IDENTIFIER_DECLARATION = "qimpp.Constants.IdentifierDeclaration";
+  public static final String IDENTIFIER_TYPE_NODE = "qimpp.Constants.IdentifierTypeNode";
 
   public static final String CLASS_IDENTIFIER = "qimpp.Constants.ClassIdentifier";
   public static final String FIELD_IDENTIFIER = "qimpp.Constants.FieldIdentifier";
@@ -30,6 +31,7 @@ public class Constants {
   public static final String QUALIFIED_CLASS_IDENTIFIER = "qimpp.Constants.QualifiedClassIdentifier";
   public static final String FOREIGN_CLASS_FIELD_IDENTIFIER = "qimpp.Constants.ForeignClassFieldIdentifier";
   public static final String PRINT_IDENTIFIER = "qimpp.Constants.PrintIdentifier";
+  public static final String PRIMITIVE_TYPE_IDENTIFIER = "qimpp.Constants.PrimitiveTypeIdentifier";
 
   // ============================================================
 

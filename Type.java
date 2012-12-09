@@ -38,6 +38,22 @@ class Type {
     put("boolean", "bool");
   }};
 
+  static String[] priorities = 
+  { "double", "float", "long", "int", "short", "byte", "char", "boolean" };
+
+  /**
+   * Get the higher priority of two types
+   */
+  static String compare(String type1, String type2){
+    for (int i = 0; i < priorities.length; i++){
+      if (type1.equals(priorities[i]))
+        return type1;
+      if (type2.equals(priorities[i]))
+        return type2;
+    }
+    return null;
+  }
+
   /**
    * Get C++ equivalent of primative type.
    *
@@ -58,4 +74,6 @@ class Type {
     if(type.equals("String")) return "java::lang::String";
     else return type;
   }
+
+  
 }

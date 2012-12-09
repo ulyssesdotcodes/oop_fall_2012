@@ -541,6 +541,13 @@ public class ImplementationPrinter extends Visitor {
     printer.p(n.getString(0).replace("\\.", "::"));     
 	}
 
+  public void visitThisExpression(GNode n){
+    if (inConstructor)
+      printer.p("this->");
+    else
+      printer.p("__this->");
+  }
+
   /** Visit the specified instance node. */
 	public void visitInstance(GNode n) {
 		printer.p("__this->");
@@ -693,11 +700,11 @@ public class ImplementationPrinter extends Visitor {
     final int prec1 = startExpression(120);
     printer.p(' ');
     dispatch(n.getGeneric(0));
-    if (!inPrintStatement)
-      printer.p(" ").p(n.getString(1)).p(" ");
+    if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.CLASS_IDENTIFIER){
+      printer.p(" << ");
+    }
     else {
-      printer.p(" ").p("<<").p(" ");
-      
+      printer.p(" ").p(n.getString(1)).p(" ");
     }
     printer.p(' ');
 

@@ -60,12 +60,14 @@ public class BlockMangler {
         if (classDeclaration != null){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0))));
           return Constants.CLASS_IDENTIFIER;
         }
 
         else if (stackVar != null){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.STACKVAR_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, stackVar);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, stackVar.getGeneric(1));
           return Constants.STACKVAR_IDENTIFIER; 
         }
 
@@ -73,6 +75,7 @@ public class BlockMangler {
         else if (classField != null){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FIELD_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classField);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, classField.getGeneric(1));
           return Constants.FIELD_IDENTIFIER;
         }
 
@@ -80,11 +83,80 @@ public class BlockMangler {
         else {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, null);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, null);
           return Constants.QUALIFIED_CLASS_IDENTIFIER;
 
         }
 
       }
+
+      public String visitIntegerLiteral(GNode n){
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        //TODO: Handle longs
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", "int")));
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;
+      }
+      
+      public String visitFloatingPointLiteral(GNode n){
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        //TODO: Handle float
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", "double")));
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;
+      }
+
+      public String visitMultiplicativeExpression(GNode n){
+        // A multiplicative expression always returns a primitive type
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+         
+        dispatch(n.getGeneric(0));
+        dispatch(n.getGeneric(2));
+        
+        String leftType = ((GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0).getString(0);
+
+        String rightType = ((GNode)n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0).getString(0);
+
+        String resultType = Type.compare(leftType, rightType);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", resultType)));
+
+        return Constants.IDENTIFIER_TYPE;
+      }
+
+      public String visitAdditiveExpression(GNode n){
+
+        if (n.get(0) instanceof String || n.get(2) instanceof String){
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+          return Constants.CLASS_IDENTIFIER;
+        }
+  
+        dispatch(n.getGeneric(0));
+        dispatch(n.getGeneric(2));
+
+        GNode leftTypeNode = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        GNode rightTypeNode = (GNode) n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+
+        if (leftTypeNode.getGeneric(0).getString(0).equals("QualifiedIdentifier") ||
+            rightTypeNode.getGeneric(0).getString(0).equals("QualifiedIdentifier"))
+        {
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+          return Constants.CLASS_IDENTIFIER; 
+        }
+         
+        String leftType = leftTypeNode.getGeneric(0).getString(0);
+        String rightType = rightTypeNode.getGeneric(0).getString(0);
+
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        
+        String resultType = Type.compare(leftType, rightType);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", resultType)));
+        
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;    
+      }
+
+
       
       public String visitThisExpression(GNode n){
         // Just to be consistent for ThisExpressions
@@ -94,6 +166,7 @@ public class BlockMangler {
         
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
         n.setProperty(Constants.IDENTIFIER_DECLARATION, cppClass);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0))));
 
         return Constants.CLASS_IDENTIFIER;
       }
@@ -119,6 +192,7 @@ public class BlockMangler {
         }
         // End debug code
         n.setProperty(Constants.IDENTIFIER_DECLARATION, n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE));
         selectionExpressionDepth--;
 
         String expression = selectionExpressionBuilder.toString();
@@ -128,6 +202,7 @@ public class BlockMangler {
           if (classDeclaration != null){
             n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
             n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
+            n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0))));
           }
         }
         // If our child is a CLASS_IDENTIFIER, and we're still in a SelectionExpression, we must be referring to some accessible field
@@ -139,6 +214,7 @@ public class BlockMangler {
               throw new RuntimeException("Failed to identify field " + selectionExpressionBuilder.toString());
            }
            n.setProperty(Constants.IDENTIFIER_DECLARATION, foreignFieldDeclaration);
+           n.setProperty(Constants.IDENTIFIER_TYPE_NODE, foreignFieldDeclaration.getGeneric(1));
         }
 
         // If we're referring to some foreign class, we want to search it for this field's declaration
@@ -153,6 +229,7 @@ public class BlockMangler {
            }
 
            n.setProperty(Constants.IDENTIFIER_DECLARATION, fieldDeclaration);
+           n.setProperty(Constants.IDENTIFIER_TYPE, fieldDeclaration.getGeneric(1));
         }
         
         if (expression.equals("System.out")) {

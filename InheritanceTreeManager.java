@@ -70,6 +70,17 @@ public class InheritanceTreeManager {
     this.rootClassName = rootClass;
 
     insertClass(rootClass, rootClassTreeNode);
+
+
+    // Insert dummy classes for java.lang parented to Object
+    GNode stringClassDeclaration = GNode.create("ClassDeclaration");
+    stringClassDeclaration.add("java.lang.String");
+    GNode classClassDeclaration = GNode.create("ClassDeclaration");
+    classClassDeclaration.add("java.lang.Class");
+    String[] stringQualified = {"java", "lang", "String"};
+    String[] classQualified = {"java", "lang", "Class"};
+    insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, stringClassDeclaration);
+    insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, classClassDeclaration);
   }
 
   private ArrayList<String> rootClassName; 
