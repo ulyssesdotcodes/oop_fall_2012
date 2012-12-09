@@ -110,6 +110,13 @@ public class BlockMangler {
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
+      public String visitStringLiteral(GNode n){
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+        n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+        return Constants.CLASS_IDENTIFIER;
+      }
+
       public String visitMultiplicativeExpression(GNode n){
         // A multiplicative expression always returns a primitive type
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
@@ -142,8 +149,9 @@ public class BlockMangler {
         GNode leftTypeNode = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
         GNode rightTypeNode = (GNode) n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
 
-        if (leftTypeNode.getGeneric(0).getString(0).equals("QualifiedIdentifier") ||
-            rightTypeNode.getGeneric(0).getString(0).equals("QualifiedIdentifier"))
+        System.err.println(n);        
+        if (leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier") ||
+            rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
         {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
@@ -264,6 +272,58 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+
+      public String visitCallExpression(GNode n){
+        visit(n);
+        
+        GNode caller = n.getGeneric(0);
+        GNode callerType;
+
+        if (caller != null){
+          if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER){
+            //Ignore print expressions, they are evil :P
+            return null;
+          }
+          callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        }
+        else{
+          callerType = cppClass; 
+        }
+        GNode argumentTypes = GNode.create("ArgumentTypes");
+        for ( Object o : n.getGeneric(3)) {
+          argumentTypes.add(((GNode)o).getProperty(Constants.IDENTIFIER_TYPE_NODE));
+        }
+
+        GNode callInfo = null;
+        try {
+          callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree);
+        }
+        catch (Exception e) {
+          System.err.println(n);
+          System.err.println(callerType);
+          e.printStackTrace(System.err);
+          System.exit(1);
+        }
+
+        // Rename the call
+        n.set(2, callInfo.getString(0));
+
+        GNode returnType = callInfo.getGeneric(1);
+        
+        if (returnType.getGeneric(0).getName().equals("QualifiedIdentifier")){
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(returnType.getGeneric(0))));
+        }
+
+        else {
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        }
+
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, returnType);
+
+        return n.getStringProperty(Constants.IDENTIFIER_TYPE);
+      }
+
       /* 
       public void tempVisitCallExpression(GNode n) {
         if (n.getGeneric(0).getGeneric(0).getString(0).equals("System")
@@ -329,7 +389,6 @@ public class BlockMangler {
     if (result == null){
       System.err.println("Could not locate " + primaryIdentifier.getString(0));
     }
-    System.err.println(result);
     return result;
   }
 

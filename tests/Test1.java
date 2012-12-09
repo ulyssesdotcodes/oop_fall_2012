@@ -7,7 +7,7 @@ public class Test1 extends Foo {
   public String elephant;
           
   public Test1(){
-    super();
+    //super();
     elephant = "In the room";
     this.zebra = "Away";
   }

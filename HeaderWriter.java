@@ -276,7 +276,7 @@ public class HeaderWriter extends Visitor {
     System.out.println(n);
     GNode type = n.getGeneric(1).getGeneric(0);
     if (type.getName().equals("PrimitiveType")) {
-      return type.getString(0);
+      return Type.primitiveType(type.getString(0));
     }
     else if (type.getName().equals("QualifiedIdentifier")) {
       if (type.size() == 1 && isPointer == false)

@@ -132,6 +132,7 @@ public class QimppTranslator extends Tool {
           parentClassNode = currentClass;
 
           currentNameMap.put(n.getString(1), qualifiedClassName);
+          System.err.println("Put " + n.getString(1) + ", Qualified: " + qualifiedClassName);
           
           //add the current class to the inheritance tree, but parent it to Object for now
           String[] qualifiedArray = qualifiedClassName.split("\\.");
@@ -218,6 +219,7 @@ public class QimppTranslator extends Tool {
 
           //System.out.println("getGeneric(7): " + n.getGeneric(7));
           //System.out.println(dispatch(n.getGeneric(7)));
+          dispatch(n.getGeneric(7));
           GNode block = n.getGeneric(7);
           cppast.setMethodInstructions(block, currentMethod);
            
@@ -335,6 +337,7 @@ public class QimppTranslator extends Tool {
         }
 
         public String visitDeclarator(GNode n) {
+          visit(n);
           //A declarator just needs to return the name of it right now
           return n.getString(0);
         }
@@ -413,9 +416,9 @@ public class QimppTranslator extends Tool {
       
       public void visitCompilationUnit(GNode n) {
         root = n;     
-        System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
+        //System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
         visit(n);
-        System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
+        //System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
         //Print the AST after we're done for debugging
         //cppast.printAST();
         try{
@@ -487,7 +490,7 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitPackageDeclaration(GNode n){
-        System.out.println("Package " + dispatch(n.getGeneric(1)));
+        //System.out.println("Package " + dispatch(n.getGeneric(1)));
       }
 
       public void visitStringLiteral(GNode n){

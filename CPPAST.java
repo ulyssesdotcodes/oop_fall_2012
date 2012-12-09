@@ -37,6 +37,8 @@ import xtc.tree.Printer;
 
 import xtc.util.Tool;
 
+import java.util.ArrayList;
+
 /**
  * A translator from (a subset of) Java to (a subset of) C++.
  *
@@ -47,6 +49,7 @@ public class CPPAST {
   public GNode compilationUnit, directives, declarations, classes;
   HashMap<String, GNode> classesMap;
   HashMap<String, GNode> currentFieldMap; 
+  HashMap<String, ArrayList<GNode> > currentMethodMap;
 
   /** Constructor */  
   public CPPAST() {
@@ -122,6 +125,9 @@ public class CPPAST {
     currentFieldMap = new HashMap<String,GNode>();
     classNode.setProperty("FieldMap", currentFieldMap);
 
+    currentMethodMap = new HashMap<String, ArrayList<GNode> >();
+    classNode.setProperty("MethodMap", currentMethodMap);
+
     classes.addNode(classNode);
     
     System.out.println("Class added");
@@ -166,7 +172,7 @@ public class CPPAST {
   GNode addField(String name, GNode type, GNode classNode){
     GNode fieldNode = GNode.create("FieldDeclaration");
     fieldNode.add(name);
-    fieldNode.addNode(type);
+    fieldNode.add(type);
     classNode.getGeneric(3).addNode(fieldNode);
     return fieldNode;
   }
@@ -259,6 +265,7 @@ public class CPPAST {
       GNode method = methodsNode.getGeneric(i);
       if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
       if(method.getString(0).equals(name)){
+        //TODO: Check for exact match
         methodsNode.set(i, methodNode);
         overridingMethod = true;
         break;
@@ -273,7 +280,7 @@ public class CPPAST {
   }
 
   /**
-   * Add method node.
+   * Add method node. Overload for inherited methods
    *
    * @param name Name of method node.
    * @param returnType Return type node for method.
@@ -525,7 +532,7 @@ public class CPPAST {
     //Hashcode
     GNode objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("hashCode");
-    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int32_t");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int");
     objectMethod.addNode(GNode.create("FormalParameters"));
     //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
     objectMethod.addNode(GNode.create("Block"));
@@ -534,7 +541,7 @@ public class CPPAST {
     //equals
     objectMethod = GNode.create("ImplementedMethodDeclaration");
     objectMethod.add("equals");
-    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("bool");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("boolean");
     objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
     //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
     objectMethod.addNode(GNode.create("Block"));
