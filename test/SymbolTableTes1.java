@@ -91,7 +91,7 @@ public class SymbolTableTest extends Tool {
     table.setScope(table.root());
   };
 
-  @Test
+  //@Test
   public void classes() {
     assertTrue(null != table.lookupScope("A"));
     assertTrue(null != table.lookupScope("B"));
@@ -100,7 +100,7 @@ public class SymbolTableTest extends Tool {
     assertTrue(null != table.lookupScope("E"));
   }
 
-  @Test
+  //@Test
   public void methods() {
     table.enter("A");     // class
     table.enter("foo");   // method
@@ -136,14 +136,14 @@ public class SymbolTableTest extends Tool {
     assertTrue(null == table.getScope("E::baz")); // note, need to fully resolve
   }
 
-  @Test
+  //@Test
   public void getScope() {
     SymbolTable.Scope scope = table.current().getNested("A");
     assertTrue(scope.getName().equals("A"));
     assertTrue(scope.getQualifiedName().equals("::A"));
   }
 
-  @Test
+  //@Test
   public void incorporateSecondFile() throws IOException, ParseException {
     run(secondFileToParse);
     table.incorporate(this.tree);

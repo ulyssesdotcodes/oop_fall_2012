@@ -13,7 +13,7 @@ import xtc.tree.Visitor;
  * Decompose and store Java AST as classes.
  * This assumes that the input's classes all
  * exist within one package. This is a key assumption
- * underlying the project (11/28/2012).
+ * (Vivek, 11/28/2012).
  *
  * @author Qimpp
  */
@@ -27,7 +27,10 @@ class Store {
    * means slight duplication in using className to key
    * and also instantiate the Klass object.
    */
-  private HashMap<String, Klass> pkg;
+  private static HashMap<String, Klass> pkg;
+
+  /** Main method. */
+  GNode mainMethod;
 
   public Store() {
     pkg = new HashMap<String, Klass>();
@@ -43,12 +46,33 @@ class Store {
   }
 
   /**
+   * Get the main method of the program.
+   *
+   * @return the main method.
+   */
+  public Node getMain() {
+    return this.mainMethod;
+  }
+
+  /**
    * Create an iterator for the classes.
    *
    * @return an iterator of thePackage.
    */
   public Iterator unpack() {
     return pkg.entrySet().iterator();
+  }
+
+  /**
+   * Get a class by name.
+   *
+   * @return class or null if class isn't found.
+   */
+  public static Klass getClass(String name) {
+    for (Klass k : pkg.values()) {
+      if (k.name().equals(name)) return k;
+    }
+    return null;
   }
 
   // ===========================================================================
@@ -107,12 +131,6 @@ class Store {
 
     // =========================================================================
 
-    class Indices {
-      public static final int CLASS_NAME          = 1;
-    }
-
-    // =========================================================================
-
     // Let's analyze a class!
 
     /** Visit specified class declaration node and add class. */
@@ -125,7 +143,7 @@ class Store {
         parent = pkg.get(extendsName); 
       }
       
-      String className = n.getString(Indices.CLASS_NAME);
+      String className = n.getString(1);
       if (pkg.containsKey(className)) {
         currentClass = pkg.get(className);
         currentClass.parent(parent);
@@ -156,16 +174,21 @@ class Store {
     // Let's analyze that class' fields!
 
     // TODO: Handle the case of "int i, j;" 
-    /** Visit specified field declaration node and add field to class. */    
+    /** 
+     * Visit specified field declaration node and add field to class.
+     * This applies solely to instance and class fields.
+     */    
     public void visitFieldDeclaration(GNode n) {
-      buildingField = true;
-      currentField = currentClass.new Field();
+      if (!buildingMethod) {
+        buildingField = true;
+        currentField = currentClass.new Field();
 
-      visit(n); 
+        visit(n); 
 
-      currentField.incorporate();
-      currentField = null;
-      buildingField = false;
+        currentField.incorporate();
+        currentField = null;
+        buildingField = false;
+      }
     }
 
     /** Visit specified qualified identifier node. */
@@ -186,7 +209,6 @@ class Store {
     /** Visit specified type node. */
     public void visitType(GNode n) {
       GNode dimensions = n.getGeneric(1);
-      System.out.println(dimensions);
       visit(n); // by now, should have type
       if (null == dimensions) { dimensions = GNode.create("ZeroDimensions"); }
       if (buildingField) {
@@ -197,7 +219,6 @@ class Store {
       }
       if (buildingParameter) {
         currentParameter.type().dimensions(dimensions.size());
-        System.out.println(currentParameter.type().dimensions);
       }
     }
 
@@ -222,7 +243,7 @@ class Store {
     public void visitDeclarator(GNode n) {
       if (buildingField) {
         currentField.name(n.getString(0));
-        currentField.initialization(n.getGeneric(2));
+        currentField.body(n.getGeneric(2));
       }
     }
 
@@ -233,12 +254,11 @@ class Store {
           currentField.makeStatic();
         }
       }
-    }
 
-    /** Visit the specified block node. */
-    public void visitBlock(GNode n) {
-      if (buildingMethod) {
-        currentMethod.body(n);
+      if (buildingMethod && (!currentMethod.isStatic())) {
+        if (n.getString(0).equals("static")) {
+          currentMethod.makeStatic();
+        }
       }
     }
 
@@ -248,9 +268,14 @@ class Store {
    
     /** Visit specified method declaration node. */ 
     public void visitMethodDeclaration(GNode n) {
+      if (n.getString(3).equals("main")) {
+        Store.this.mainMethod = n.getGeneric(7); 
+        return;
+      }
       buildingMethod = true;
       currentMethod = currentClass.new Method();
       currentMethod.name(n.getString(3));
+      currentMethod.body(n.getGeneric(7));
 
       visit(n);
 
@@ -291,12 +316,6 @@ class Store {
       buildingParameter = false;  
     }
 
-
-    // =========================================================================
-
-    // Let's analyze that class' constructor?
-
-
     // =========================================================================
 
     public void visitCompilationUnit(GNode n) { visit(n); }
@@ -305,14 +324,18 @@ class Store {
     public void visit(Node n) {
       for (Object o : n) {
         if (o instanceof Node) dispatch((Node)o);
-      }  
+      }
     }
-  }
+  } // Analyzer
 
   public HashMap<String, Klass> decomposeJavaAST(Node n) {
-    new Analyzer().dispatch(n);
-    return this.pkg;
+    new Analyzer().dispatch(n); 
+    
+    // All classes should be in the package by now, so analyze their bodies:
+    for (Object o : this.getPackage().values()) {
+      ((Klass)o).restructureBodies();
+    }
+
+    return this.getPackage();
   }
-
-
-}
+} // Store

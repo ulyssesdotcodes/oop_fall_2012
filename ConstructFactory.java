@@ -172,7 +172,8 @@ public class ConstructFactory {
 
   // translationUnit is more accurate than compilationUnit
   // http://stackoverflow.com/questions/1106149/what-is-a-translation-unit-in-c
-  public Node buildTranslationUnit(HashMap<String,Klass> thePackage) {       // DONE
+  public Node buildTranslationUnit(HashMap<String,Klass> thePackage,
+                                   Node mainMethod) {
     GNode translationUnit =
       GNode.create("TranslationUnit");
 
@@ -187,12 +188,12 @@ public class ConstructFactory {
   }
 
   /** Build default directives. */
-  public Node buildDefaultDirectives() {                                // DONE
+  public Node buildDefaultDirectives() {
     GNode pragma = GNode.create("Pragma", "once");
 
     GNode include = GNode.create("IncludeDirectives");
     include.add(GNode.create("QuotedForm", "java_lang.h"));
-    include.add(GNode.create("AngleBracketForm", "stdint"));
+    include.add(GNode.create("QuotedForm", "ptr.h"));
     include.add(GNode.create("AngleBracketForm", "sstream"));
 
     return GNode.create("Directives", pragma, include);
@@ -202,7 +203,7 @@ public class ConstructFactory {
   // ===========================================================================
 
   /** Build class declaration branch. */
-  public Node buildClassDeclaration(Klass klass) {                      // DONE
+  public Node buildClassDeclaration(Klass klass) {
     GNode classDeclaration =
       GNode.create("ClassDeclaration",
           buildPointerTypedef(klass.name()),      /* 0 */
@@ -281,7 +282,7 @@ public class ConstructFactory {
       GNode.create("MethodParameterTypes");
 
     // always add own as implicit "this"
-    methodParameterTypes.add(method.of().type().qualifiedName());
+    methodParameterTypes.add(method.implementor().type().qualifiedName());
 
     for (ParameterVariable pv : method.parameters()) {
       methodParameterTypes.add(pv.type().qualifiedName());
@@ -327,7 +328,7 @@ public class ConstructFactory {
   /** Build vtable constructor branch. */
   public Node buildVTConstructor(Klass klass) {
     GNode vtConstructor = GNode.create("VTConstructor",
-        Utilities.resolve(klass.name(), true),  /* 0 */
+        internal(klass.name()),                 /* 0 */
         buildVTInitializations(klass));         /* 1 */
 
     return vtConstructor;
@@ -421,7 +422,8 @@ public class ConstructFactory {
 
   /** Build constructor initializers branch. */
   public Node buildConstructorInitializations(ArrayList<Klass.Field> fields) {
-    GNode constructorInitializations = GNode.create("ConstructorInitializations");
+    GNode constructorInitializations = 
+      GNode.create("ConstructorInitializations");
     
     for (Klass.Field field : fields) {
       constructorInitializations.add(field.name());
@@ -449,9 +451,9 @@ public class ConstructFactory {
   public Node buildFieldDeclaration(Klass.Field field) {
     GNode fieldDeclaration =
       GNode.create("FieldDeclaration",
-          buildModifiers(field.isStatic()),                     /* 0 */
-          buildType(field.type()),                           /* 1 */
-          buildDeclarators((GNode)field.initialization()));  /* 2 */
+          buildModifiers(field.isStatic()),                 /* 0 */
+          buildType(field.type()),                          /* 1 */
+          buildDeclarators((GNode)field.body()));           /* 2 */
     return fieldDeclaration;
   }
 
@@ -498,12 +500,17 @@ public class ConstructFactory {
   /** Build methods branch. */
   public Node buildMethods(Klass klass) {
     return GNode.create("Methods",
-        Utilities.resolve(klass.name(), true)
-      + Constants.QUALIFIER + "__class",     /* 0 */
-      "TODO:fully qualified java classname", /* 1 */
+        (Utilities.resolve(klass.name(), true)
+      + Constants.QUALIFIER + "__class")
+        .substring(Constants.QUALIFIER.length()), /* 0 */
+        Utilities.resolve(klass.name(), false)
+          .replaceAll(Constants.QUALIFIER,
+                      Constants.JAVA_QUALIFIER)
+          .substring(1),                          /* 1 */
         Utilities.resolve(klass.parent().name(), true)
-      + Constants.QUALIFIER + "__class",     /* 2 */
-      buildMethodDeclarations(klass));       /* 3 */
+      + Constants.QUALIFIER + "__class",          /* 2 */
+        internal(klass.name()),                   /* 3 */
+      buildMethodDeclarations(klass));            /* 4 */
   }
      
 
@@ -525,10 +532,10 @@ public class ConstructFactory {
     GNode methodDeclaration =
       GNode.create("MethodDeclaration",
           method.type().qualifiedName(),                /* 1 */
-          Utilities.resolve(method.of().name(), true)
+          internal(method.implementor().name())
         + Constants.QUALIFIER + method.name(),          /* 2 */
           buildFormalParameters(method.parameters(),
-                                method.of()
+                                method.implementor()
                                   .qualifiedName()),    /* 3 */
           method.body());                               /* 4 */
     return methodDeclaration;
@@ -545,8 +552,9 @@ public class ConstructFactory {
     Iterator it = parameters.iterator();
     while (it.hasNext()) {
       ParameterVariable parameter = (ParameterVariable)it.next();
-      formalParameters.add(parameter.type().qualifiedName()
-          + " " + parameter.name());
+      String pStr = parameter.type().qualifiedName(false) + " "
+        + parameter.name() + parameter.type().dimensionsTag();
+      formalParameters.add(pStr);
     }
 
     return formalParameters;

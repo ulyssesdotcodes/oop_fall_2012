@@ -96,25 +96,6 @@ public class CCWriter extends Visitor {
 
   // ===========================================================================
 
-  // TODO: Probably can remove some of this, as it's not relevant to the header.
-  /**
-   * Print an expression as a truth value. This method prints the
-   * specified node. If that node represents an assignment expression and
-   * {@link #EXTRA_PARENTHESES} is <code>true</code>, this method adds an
-   * extra set of parentheses around the expression to avoid gcc warnings.
-   *
-   * @param n The node to print
-   */ 
-  protected void formatAsTruthValue(Node n) {
-    if (GNode.cast(n).hasName("AssignmentExpression")) {
-      printer.p('(');
-      visit(n);
-      printer.p(')');
-    } else {
-      visit(n);
-    }
-  }
-
   /** DOC */
   protected boolean startStatement(int kind, Node node) {
     if (isIfElse && ((STMT_IF == kind) || (STMT_IF_ELSE == kind))) {
@@ -258,7 +239,16 @@ public class CCWriter extends Visitor {
       .pln("// ==========================================================")
       .pln();
 
+    printer.pln("#include \"out.h\"").pln();
+
     visit(n);
+
+    // main
+    // TODO: Fix this. Main method must be outside, it seems.
+    printer.pln("// main method!");
+    printer.pln("int main() {").incr()
+      .indent().pln("return 0;").decr().pln('}');
+    
   }
 
 
@@ -318,8 +308,14 @@ public class CCWriter extends Visitor {
     printer.incr().indent().p("new ::java::lang::__Class(__rt::literal")
       .p('(').p('"').p(n.getString(1)).p('"').p(')').p(',').p(' ')
       .p(n.getString(2)).p("()").p(')').pln(';').decr();
-    printer.pln("return k;").decr().pln();
+    printer.indent().pln("return k;").decr();
     printer.pln('}').pln();
+
+    printer.p("// The vtable for ").p(n.getString(1)).p('.').p(' ').pln("Note that this");
+    printer.pln("// definition invokes the default no-arg vtable constructor.");
+    printer.p(n.getString(3)).p("_VT").p(' ').p(n.getString(3))
+      .p("::__vtable").pln(';').pln().pln();
+
   }
 
   /** Visit the specified method declaration node. */

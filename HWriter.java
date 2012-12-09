@@ -411,7 +411,7 @@ public class HWriter extends Visitor {
   /** Visit specified VT declaration node. */
   public void visitVTDeclaration(GNode n) {
     printer.pln("// vtable layout");
-    printer.p("struct").p(' ').p(n.getString(0)).p("_VT").pln("()");
+    printer.p("struct").p(' ').p(n.getString(0)).p("_VT").p(' ').pln('{');
     printer.incr().indent().pln("::java::lang::Class __isa;");
     printer.indent().p("void (*__delete)(::").p(n.getString(0)).p("*)").pln(';');
     visit(n);
@@ -430,11 +430,11 @@ public class HWriter extends Visitor {
   /** Visit specified VT constructor node. */
   public void visitVTConstructor(GNode n) {
     // print the isa and delete methods first
-    printer.pln().indent().p(n.getString(0)).p("_VT").p(' ').pln('{');
+    printer.pln().indent().p(n.getString(0)).p("_VT").p(' ').pln("()");
     printer.indent().p(':').p(' ').p("__isa(").p(n.getString(0))
       .p(Constants.QUALIFIER).p("__class()").p(')').pln(',').incr();
-    printer.indent().p("__delete(&__rt::__delete").p('<')
-      .p(n.getString(0)).p('>').p(')').pln(',');
+    printer.indent().p("__delete(&__rt::__delete").p('<').p(' ')
+      .p(n.getString(0)).p(' ').p('>').p(')').pln(',');
 
     visit(n);
 

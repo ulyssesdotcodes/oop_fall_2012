@@ -20,7 +20,10 @@ package qimpp;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.Reader;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 import xtc.lang.JavaFiveParser;
 
@@ -44,11 +47,21 @@ import qimpp.SymbolTable;
  */
 public class Qimpp extends Tool {
 
+  /** Symbol table. */
   SymbolTable symbolTable;
 
+  File ccFile;
+  File hFile;
+  FileOutputStream ccOut;
+  FileOutputStream hOut;
+  Printer hPrinter;
+  Printer ccPrinter;
+  Printer terminal;
+
   /** Create a new translator. */
-  public Qimpp() {
-    symbolTable = new SymbolTable();
+  public Qimpp() throws IOException {
+    this.symbolTable = new SymbolTable();
+    prepareStreams(); 
   }
 
   public String getName() {
@@ -73,6 +86,16 @@ public class Qimpp extends Tool {
       .bool("writeSource", "writeSource", true, "Write source to out");
   }
 
+  public void prepareStreams() throws FileNotFoundException {
+    this.ccFile         = new File(Constants.OUTPUT_IMPLEMENTATION_FILE);
+    this.ccOut          = new FileOutputStream(ccFile);
+    this.hFile          = new File(Constants.OUTPUT_HEADER_FILE);
+    this.hOut           = new FileOutputStream(hFile);
+    this.hPrinter       = new Printer(hOut);
+    this.ccPrinter      = new Printer(ccOut);
+    this.terminal       = new Printer(System.out);
+  }
+  
   public void prepare() {
     super.prepare();
   }
@@ -104,22 +127,27 @@ public class Qimpp extends Tool {
     store.decomposeJavaAST(node);
    
     ConstructFactory factory = new ConstructFactory(); 
-    GNode cNode = (GNode)factory.buildTranslationUnit(store.getPackage());
+    GNode cNode = 
+      (GNode)factory.buildTranslationUnit(store.getPackage(), store.getMain());
 
-    Printer printer = new Printer(System.out);
 
     if (runtime.test("printCppAST")) {
       runtime.console().format(cNode).pln().flush(); 
     }
 
     if (runtime.test("writeSource")) {
-      new HWriter(printer).dispatch(cNode);
-      printer.flush();
-      new CCWriter(printer).dispatch(cNode);
-      printer.flush();
+      new HWriter(hPrinter).dispatch(cNode);
+      new HWriter(terminal).dispatch(cNode);
+      terminal.flush();
+      hPrinter.flush();
+
+      new CCWriter(ccPrinter).dispatch(cNode);
+      new CCWriter(terminal).dispatch(cNode);
+      terminal.flush();
+      ccPrinter.flush();
     }
 
-    System.out.println("*** Translated ***");
+    //System.out.println("*** Translated ***");
   }
 
   /**
@@ -127,7 +155,7 @@ public class Qimpp extends Tool {
    *
    * @param args The command line arguments.
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     new Qimpp().run(args);
   }
 

@@ -43,7 +43,7 @@ public class StoreTest extends Tool {
   protected HashMap<String, Klass> pkg;
 
   /** File to parse. */
-  private String fileToParse = "./input/ABCDE.java";
+  private String fileToParse = "../input/ABCDE.java";
 
   // ===========================================================================
 
@@ -132,7 +132,7 @@ public class StoreTest extends Tool {
     assertTrue(methods.size() == 10);
 
     assertTrue(methods.get(4).name().equals("f1"));
-    assertTrue(null == methods.get(4).type()); // void
+    assertTrue(methods.get(4).type().name().equals("void")); // void
 
     assertTrue(methods.get(5).name().equals("f2"));
     assertTrue(null != methods.get(5).type());

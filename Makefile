@@ -46,6 +46,7 @@ PACKAGE     = qimpp
 PACKAGE_LOC = qimpp
 
 SOURCE = \
+	BodyAnalyzer.java \
 	CPPAST.java \
 	CCWriter.java \
 	Constants.java \
@@ -55,6 +56,7 @@ SOURCE = \
 	ImplementationWriter.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
+	Resolver.java \
 	Klass.java \
 	PrimitiveType.java \
 	Qimpp.java \
@@ -64,7 +66,6 @@ SOURCE = \
 	Type.java \
 	test/KlassTest.java \
 	test/StoreTest.java \
-	test/SymbolTableTest.java \
 	test/TypeTest.java \
 	Variable.java \
 	StaticVariable.java \

@@ -15,17 +15,17 @@ for filename in files:
     tests.append(filename)
 
 count = 0
-os.chdir("..")
 
 for test in tests:
   print "\n\n----------------------------"
   print "Testing " + test
   print "----------------------------\n"
   
-  # Run the tests (make sure to remove the ".java" extension
+  # Run the tests (make sure to remove the ".java" extension)
   os.system( "java org.junit.runner.JUnitCore qimpp." + test[:-5] )
 
   count += 1
   
-
-print "Ran " + str(count) + " tests"
+print "Ran " + str(count) + " tests\n\n"
+print "======================================================================\n"
+os.chdir("..")

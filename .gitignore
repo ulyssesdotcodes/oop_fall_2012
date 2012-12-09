@@ -1,3 +1,6 @@
 #Ignore temp files
 *~
 *.swp
+out.cc
+out.h
+a.out

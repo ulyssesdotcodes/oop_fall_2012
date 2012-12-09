@@ -13,7 +13,6 @@ import qimpp.SymbolTable.Scope;
  * @author Qimpp
  */
 public class Klass {
-
   /**
    * Member of a class.
    */
@@ -22,9 +21,9 @@ public class Klass {
     // TODO: also need a method for generating fully qualified names
     Klass implementor;
     Klass of;
+    Node body;
     Type type;
     boolean isStatic;
-
 
     /**
      * Accessor for name.
@@ -109,6 +108,24 @@ public class Klass {
     public Klass of() {
       return this.of;
     }
+    
+    /** 
+     * Accessor for method body.
+     *
+     * @return method body.
+     */
+    public Node body() {
+      return this.body;
+    }
+
+    /**
+     * Set method body.
+     *
+     * @param body Node method body.
+     */
+    public void body(Node body) {
+      this.body = body;
+    }
   }
 
   // ===========================================================================
@@ -118,14 +135,11 @@ public class Klass {
    */
   class Field extends Member {
 
-    /** Field initialization. */
-    Node initialization;
-
     public Field() {
       this.implementor    = Klass.this;
       this.name           = null;
       this.type           = null;
-      this.initialization = null;
+      this.body           = null;
       this.isStatic       = false;
       this.of             = Klass.this;
     }
@@ -138,32 +152,14 @@ public class Klass {
       for (Field field : Klass.this.fields) {
         // TODO: match implementations on more than just name
         if (field.name().equals(this.name)) {
-          Field implemented = field;
           field.implementor = Klass.this;
+          field.body(this.body());
           return;
         }  
       }
       Klass.this.fields.add(this);
     }
 
-    /**
-     * Accessor for field initialization block.
-     *
-     * @return field initialization block.
-     */
-    public Node initialization() {
-      return this.initialization;
-    }
-
-    /**
-     * Setter for field initialization block.
-     *
-     * @param field initialization block.
-     */
-    public void initialization(Node initialization) {
-      this.initialization = initialization;
-    }
-  
     public String toString() {
       return this.type.qualifiedName() + ' ' +
         this.name + ';';
@@ -180,15 +176,15 @@ public class Klass {
     /** Method parameters list. */
     ArrayList<ParameterVariable> parameters;
 
-    /** Body. */
-    // TODO: Right now, I'm just copying the method block.
-    Node body;
+    /** Resolved name. */
+    String resolvedName;
 
     public Method() {
       this.implementor  = Klass.this;
-      this.type         = null; // to set in Analyze.java via setType
-      this.name         = null; // to set in Analyze.java via setName
-      this.body         = null; // to set in Analyze.java via setBody
+      this.type         = null; // to set in Analyze.java via type(..)
+      this.name         = null; // to set in Analyze.java via name(..)
+      this.body         = null; // to set in Analyze.java via body(..)
+      this.resolvedName = this.name;
       this.parameters   = new ArrayList<ParameterVariable>();
       this.isStatic     = false;
       this.of           = Klass.this;
@@ -205,9 +201,10 @@ public class Klass {
     public void incorporate() {
       for (Method method : Klass.this.methods) {
         // TODO: match implementations on more than just name
-        if (method.name().equals(this.name)) {
-          Method implemented = method;
-          implemented.implementor = Klass.this;
+        if (method.name().equals(this.name) &&
+            method.parameters().size() == this.parameters.size()) {
+          method.implementor = Klass.this;
+          method.body(this.body());
           return;
         }  
       }
@@ -232,22 +229,33 @@ public class Klass {
       this.parameters.add(parameter); 
     }
 
-    /** 
-     * Accessor for method body.
-     *
-     * @return method body.
-     */
-    public Node body() {
-      return this.body;
-    }
-
     /**
-     * Set method body.
+     * Determines whether this method is more specific than the
+     * specified method. Assumes the method is applicable.
      *
-     * @param body Node method body.
+     * TODO: Hacky casting.
+     *
+     * @param m2 Method to compare.
+     * @return whether this method is more specific than the specified method.
      */
-    public void body(Node body) {
-      this.body = body;
+    public boolean isMoreSpecificThan(Method m2) {
+      Method m1 = this; 
+      ArrayList<ParameterVariable> m1P = m1.parameters();
+      ArrayList<ParameterVariable> m2P = m2.parameters();
+
+      for (int i = 0 ; i < m1P.size(); i++) {
+        Type t1 = m1P.get(i).type();
+        Type t2 = m2P.get(i).type();
+        if (t1 instanceof QualifiedType && t2 instanceof QualifiedType) {
+          if (((QualifiedType)t1).inheritsFrom((QualifiedType)t2)) return false;
+        } else if (t1 instanceof PrimitiveType && t2 instanceof PrimitiveType) {
+          if (((PrimitiveType)t1).inheritsFrom((PrimitiveType)t2)) return false;
+        } else {
+          return false;
+        }
+      }
+
+      return true;
     }
 
     public String toString() {
@@ -268,6 +276,7 @@ public class Klass {
 
   // ===========================================================================
 
+  // TODO: Might delete.
   class Constructor {
     String name;
     String qualifiedName;
@@ -297,7 +306,7 @@ public class Klass {
   Klass parent;
 
   /** Type of class. */
-  Type type;
+  QualifiedType type;
 
   /** Class fields. */
   ArrayList<Field> fields;
@@ -375,6 +384,19 @@ public class Klass {
   }
 
   /**
+   * Analyze member bodies.
+   */
+  public void restructureBodies() {
+    for (Method m : methods()) {
+      BodyAnalyzer.restructure(m);
+    }
+
+    for (Field f : fields()) {
+      BodyAnalyzer.restructure(f);
+    }
+  }
+
+  /**
    * Get class parent.
    *
    * @return class parent.
@@ -420,7 +442,7 @@ public class Klass {
    *
    * @return type of the class.
    */
-  public Type type() {
+  public QualifiedType type() {
     return this.type;
   }
 
@@ -450,6 +472,4 @@ public class Klass {
   public String qualifiedName() {
     return this.qualifiedName;
   }
-
-
 }

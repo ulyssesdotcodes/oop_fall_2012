@@ -10,16 +10,20 @@ package qimpp;
  * @author Qimpp
  */
 public abstract class Type {
-  // Nothing to see here.
-
   /** Unqualified C++ name. */
-  abstract String name();
-
+  String name;
+  
   /** Qualified C++ name. */
-  abstract String qualifiedName();
-
+  String qualifiedName;
+  
   /** Dimensions of array. */
   int dimensions;
+
+  abstract String name();
+  abstract String name(boolean withDimensions);
+
+  abstract String qualifiedName();
+  abstract String qualifiedName(boolean withDimensions);
 
   public int dimensions() {
     return this.dimensions;
@@ -28,5 +32,13 @@ public abstract class Type {
   public void dimensions(int dims) {
     if (this.name().equals("void")) { return; }
     this.dimensions = dims;
+  }
+
+  public String dimensionsTag() {
+    StringBuilder dims = new StringBuilder();
+    for (int i = 0; i < dimensions; i++) {
+      dims.append("[]");
+    }
+    return dims.toString();
   }
 }

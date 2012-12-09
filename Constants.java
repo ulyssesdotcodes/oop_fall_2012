@@ -7,8 +7,8 @@ public class Constants {
 
   public static final boolean DEBUG = false;
 
-
   public static final String QUALIFIER = "::";
+  public static final String JAVA_QUALIFIER = ".";
 
   public static final char START_OPAQUE = '(';
   public static final char END_OPAQUE = ')';
@@ -16,7 +16,6 @@ public class Constants {
   public static final char JAVA_ESCAPE = 0x08;
 
   public static final String SCOPE = "qimpp.Constants.Scope";
-
   public static final String TYPE = "qimpp.Constants.Type";
 
   // ============================================================

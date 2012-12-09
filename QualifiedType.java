@@ -7,15 +7,48 @@ import java.util.Arrays;
 /**
  * Extends abstract Type class to represent qualified types.
  *
+ * TODO: Understand relationship between Klass and Type.
+ *  Right now a Klass has-a QualifiedType. Does QualifiedType have-a Klass?
+ *
  * @author Qimpp
  */
 public class QualifiedType extends Type {
 
   /** Qualified C++ type names. */
-  private String name;
-  private String qualifiedName;
   private String context;
   private String[] ancestry;
+
+  // ===========================================================================
+
+  /**
+   * Determines whether this QualifiedType instance is a java.lang object.
+   *
+   * @return whether this QualifiedType instance is a java.lang object.
+   */
+  public boolean isPredefinedType() {
+    return (this.qualifiedName().equals("::java::lang::Object")) ||
+           (this.qualifiedName().equals("::java::lang::String")) ||
+           (this.qualifiedName().equals("::java::lang::Class"));
+  }
+
+  /**
+   * Determine whether this QualifiedType instance inherits from the
+   * specified QualifiedType object.
+   *
+   * @param qt2 qualified type ancestor candidate.
+   * @return whether this QualifiedType instance inherits from the
+   * specified QualifiedType object.
+   */
+  public boolean inheritsFrom(QualifiedType qt2) {
+    QualifiedType qt1 = this;
+    while (null != qt1) {
+      if (qt1.qualifiedName().equals(qt2.qualifiedName())) return true;
+      if (!qt1.isPredefinedType()) {
+        qt1 = Store.getClass(this.name).parent().type();
+      } else { qt1 = null; }
+    }
+    return false;
+  }
 
   // ===========================================================================
 
@@ -78,18 +111,29 @@ public class QualifiedType extends Type {
   // ===========================================================================
 
   public String name() {
+    return name(true);
+  }
+
+  public String name(boolean withDimensions) {
     String name = this.name;
-    for (int i = 0; i < this.dimensions(); i++) {
-      name += "[]";
+    if (withDimensions) {
+      for (int i = 0; i < this.dimensions(); i++) {
+        name += "[]";
+      }
     }
     return name;
   }
 
-  // TODO: Handle multiple dimensions.
   public String qualifiedName() {
+    return qualifiedName(true);
+  }
+
+  public String qualifiedName(boolean withDimensions) {
     String qualifiedName = this.qualifiedName;
-    for (int i = 0; i < this.dimensions(); i++) {
-      qualifiedName += "[]";
+    if (withDimensions) {
+      for (int i = 0; i < this.dimensions(); i++) {
+        qualifiedName += "[]";
+      }
     }
     return qualifiedName;
   }

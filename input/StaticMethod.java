@@ -8,7 +8,7 @@ public class StaticMethod {
     ObjectCounter o1 = new ObjectCounter();
     System.out.println(o1.getNumberOfObjects());
     ObjectCounter o2 = new ObjectCounter();
-    System.out.println(o2,getNumberOfObjects());
+    System.out.println(o2.getNumberOfObjects());
   }
 }
 
@@ -29,4 +29,4 @@ class ObjectCounter {
     return counter;
   }
 
-
+}
