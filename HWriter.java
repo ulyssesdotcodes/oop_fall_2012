@@ -363,8 +363,7 @@ public class HWriter extends Visitor {
         Node m = (Node)o;
         if (m.getName().equals("ImplementedMethod")) {
           printer.indent();
-          // TODO: Should static be toggleable?
-          printer.p("static").p(' ');
+          if (m.getBoolean(0)) { printer.p("static").p(' '); }
           printer.p(m.getString(1)).p(' ');
           printer.p(m.getString(2))
             .p('(');

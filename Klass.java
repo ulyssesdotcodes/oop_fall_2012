@@ -580,6 +580,15 @@ public class Klass extends Type {
     return this.qualifiedName;
   }
 
+  /**
+   * Get the encoding for a klass.
+   * 
+   * @return encoding.
+   */
+  public char encoding() {
+    return 'L';
+  }
+
   public String toString() {
     return name();
   }

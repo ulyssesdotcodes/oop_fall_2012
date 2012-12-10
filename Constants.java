@@ -40,5 +40,18 @@ public class Constants {
   public static final String JAVA_LANG_OBJECT = "::java::lang::Object";
   public static final String JAVA_LANG_CLASS = "::java::lang::Class";
 
+  /** Primitive encoding characters. */
+  public static final HashMap<String, Character> ENCODING = 
+    new HashMap<String, Character>() {{
+      put("boolean", 'Z');
+      put("byte", 'B');
+      put("char", 'C');
+      put("double", 'D');
+      put("float", 'F');
+      put("int", 'I');
+      put("long", 'J');
+      put("short", 'S');
+  }};
+
 
 }

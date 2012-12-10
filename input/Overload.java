@@ -3,11 +3,11 @@
 
 public class Overload {
 
-  public int two(int i, Object o) {
+  public static int two(int i, Object o) {
     return 0;
   }
 
-  public int two(int i, String s) {
+  public static int two(int i, String s) {
     return 1;
   }
 

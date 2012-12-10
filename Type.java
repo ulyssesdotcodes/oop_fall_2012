@@ -21,6 +21,7 @@ public abstract class Type {
 
   abstract String name();
   abstract String qualifiedName();
+  abstract char   encoding();
 
   public int dimensions() {
     return this.dimensions;

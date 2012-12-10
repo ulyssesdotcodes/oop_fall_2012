@@ -464,12 +464,7 @@ public class ConstructFactory {
     return fieldDeclaration;
   }
 
-  /** 
-   * Build modifiers branch. Since there we're going from the more constrained
-   * private notion in Java to the less constrained C++, we can skip worrying
-   * about private / public / protected modifiers. We DO need to care about
-   * static modifiers though.
-   */
+  /** Build modifiers branch. */
   public Node buildModifiers(boolean isStatic) {
     GNode modifiers = GNode.create("Modifiers");
     
@@ -573,7 +568,7 @@ public class ConstructFactory {
     GNode runtime       = GNode.create("Runtime");
     GNode arrayTemplate = GNode.create("ArrayTemplate",
         klass.qualifiedName(),                                /* 0 */
-        Utilities.resolve(klass.name(), false)
+        klass.encoding() + Utilities.resolve(klass.name(), false)
           .replaceAll(Constants.QUALIFIER,
                       Constants.JAVA_QUALIFIER)
           .substring(Constants.JAVA_QUALIFIER.length()),      /* 1 */
