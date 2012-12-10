@@ -12,25 +12,26 @@ import qimpp.SymbolTable.Scope;
  *
  * @author Qimpp
  */
-public class Klass {
+public class Klass extends Type {
   /**
    * Member of a class.
    */
   abstract class Member {
-    String name;            // might need to be freshly generated
+    String identifier;
     Klass implementor;
     Klass of;
     Node body;
     Type type;
     boolean isStatic;
+    String access;
 
     /**
      * Accessor for name.
      *
      * @return field name.
      */
-    public String name() {
-      return this.name;
+    public String identifier() {
+      return this.identifier;
     } 
 
     /**
@@ -39,8 +40,8 @@ public class Klass {
      * @param field name.
      * @return member.
      */
-    public Member name(String name) {
-      this.name = name;
+    public Member identifier(String identifier) {
+      this.identifier = identifier;
       return this;
     }
 
@@ -136,7 +137,7 @@ public class Klass {
 
     public Field() {
       this.implementor    = Klass.this;
-      this.name           = null;
+      this.identifier     = null;
       this.type           = null;
       this.body           = null;
       this.isStatic       = false;
@@ -149,7 +150,7 @@ public class Klass {
      */
     public void incorporate() {
       for (Field field : Klass.this.fields) {
-        if (field.name().equals(this.name)) {
+        if (field.identifier().equals(this.identifier)) {
           field.implementor = Klass.this;
           field.body(this.body());
           return;
@@ -160,7 +161,7 @@ public class Klass {
 
     public String toString() {
       return this.type.qualifiedName() + ' ' +
-        this.name + ';';
+        this.identifier + ';';
     }
   }
 
@@ -175,17 +176,40 @@ public class Klass {
     ArrayList<ParameterVariable> parameters;
 
     /** Resolved name. */
-    String resolvedName;
+    String resolvedIdentifier;
 
     public Method() {
-      this.implementor  = Klass.this;
-      this.type         = null; // to set in Analyze.java via type(..)
-      this.name         = null; // to set in Analyze.java via name(..)
-      this.body         = null; // to set in Analyze.java via body(..)
-      this.resolvedName = this.name;
-      this.parameters   = new ArrayList<ParameterVariable>();
-      this.isStatic     = false;
-      this.of           = Klass.this;
+      this.implementor        = Klass.this;
+      this.type               = null; // to set in Analyze.java via type(..)
+      this.identifier         = null; // to set in Analyze.java via name(..)
+      this.body               = null; // to set in Analyze.java via body(..)
+      this.resolvedIdentifier = null; // to set in BodyAnalyze.java
+      this.parameters         = new ArrayList<ParameterVariable>();
+      this.isStatic           = false;
+      this.of                 = Klass.this;
+    }
+
+    /**
+     * Test if two methods' are equivalent, as measured by identifier,
+     * parameter size and type.
+     *
+     * @return whether two methods are effectively equivalent.
+     */
+    public boolean isEquivalentTo(Method m2) {
+      Method m1 = this;
+      boolean b1 = m2.identifier().equals(m1.identifier);
+      boolean b2 = m2.parameters().size() == m1.parameters.size();
+      if (!(b1 && b2)) { return false; }
+      else {
+        for (int i = 0; i < m1.parameters().size(); i++) {
+          Type t1 = m1.parameters().get(i).type();
+          Type t2 = m2.parameters().get(i).type();
+          if (!t1.equals(t2)) {
+             return false;
+          }
+        }
+        return true;
+      }
     }
 
     /** 
@@ -198,8 +222,7 @@ public class Klass {
      */
     public void incorporate() {
       for (Method method : Klass.this.methods) {
-        if (method.name().equals(this.name) &&
-            method.parameters().size() == this.parameters.size()) {
+        if (this.isEquivalentTo(method)) {
           method.implementor = Klass.this;
           method.body(this.body());
           return;
@@ -227,34 +250,119 @@ public class Klass {
     }
 
     /**
-     * Determines whether this method is more specific than the
-     * specified method. Assumes the method is applicable.
+     * Test whether an invocation's argument types are convertible
+     * to this method's parameter types. Assumes arguments size
+     * matches this method's parameter size.
      *
-     * @param m2 Method to compare.
-     * @return whether this method is more specific than the specified method.
+     * @return whether an invocation's argument types are convertible
+     *  to this method's parameter types.
      */
-    public boolean isMoreSpecificThan(Method m2) {
-      Method m1 = this; 
-      ArrayList<ParameterVariable> m1P = m1.parameters();
-      ArrayList<ParameterVariable> m2P = m2.parameters();
+    public boolean areParametersConvertible(ArrayList<Type> arguments) {
 
-      for (int i = 0 ; i < m1P.size(); i++) {
-        Type t1 = m1P.get(i).type();
-        Type t2 = m2P.get(i).type();
-        if (t1 instanceof QualifiedType && t2 instanceof QualifiedType) {
-          if (((QualifiedType)t1).inheritsFrom((QualifiedType)t2)) return false;
-        } else if (t1 instanceof PrimitiveType && t2 instanceof PrimitiveType) {
-          if (((PrimitiveType)t1).inheritsFrom((PrimitiveType)t2)) return false;
-        } else {
-          return false;
-        }
+      for (int i = 0; i < arguments.size(); i++) {
+        Type argType    = arguments.get(i);
+        Type paramType  = this.parameters().get(i).type();
+        boolean convertible = true;
+
+        if (argType instanceof PrimitiveType
+         && paramType instanceof PrimitiveType) {
+
+          convertible = argType.equals(paramType);
+
+        } else if (argType instanceof Klass
+                && paramType instanceof Klass) {
+
+          Klass argQualifiedType    = (Klass)argType;
+          Klass paramQualifiedType  = (Klass)paramType;
+          convertible = argQualifiedType
+            .hasParent(paramQualifiedType); 
+
+        } else { return false; }
+        if (!convertible) { return false; }
       }
 
       return true;
     }
 
+    /**
+     * Determines whether this method is more specific than the
+     * specified method. Assumes the method is applicable and
+     * all of the parameters can be converted.
+     *
+     *
+     * @param m2 Method to compare.
+     * @return whether this method is more specific than the specified method.
+     */
+    public boolean isMoreSpecificThan(Method m2) {
+      if (this == m2) { return false; }
+      Method m1 = this; 
+      ArrayList<ParameterVariable> m1p = m1.parameters();
+      ArrayList<ParameterVariable> m2p = m2.parameters();
+
+      for (int i = 0; i < m1p.size(); i++) {
+        Type m1t    = m1p.get(i).type();
+        Type m2t    = m2p.get(i).type();
+        boolean moreSpecific = true;
+
+        if (m1t instanceof PrimitiveType
+         && m2t instanceof PrimitiveType) {
+
+          moreSpecific = m1t.equals(m2t);
+
+        } else if (m1t instanceof Klass
+                && m2t instanceof Klass) {
+
+          Klass k1    = (Klass)m1t;
+          Klass k2    = (Klass)m2t;
+          moreSpecific = k1.hasParent(k2); 
+
+        } else { return false; }
+        if (!moreSpecific) { return false; }
+      }
+
+      return true;
+    }
+
+    /**
+     * Whether this method is the main method.
+     *
+     * @return whether this method is the main method.
+     */
+    public boolean isMain() {
+      if (this.identifier().equals("main") &&
+          this.isStatic() &&
+          this.type().qualifiedName().equals("void") &&
+          this.parameters().size() == 1 &&
+          this.parameters().get(0).type().dimensions() == 1 &&
+          this.parameters().get(0).type()
+            .qualifiedName().equals(Constants.JAVA_LANG_STRING)) {
+          return true;
+      } else { return false; }
+    }
+
+    /**
+     * Accessor for resolved identifier.
+     *
+     * @return resolved method identifier.
+     */
+    public String resolvedIdentifier() {
+      if (null == this.resolvedIdentifier) {
+        return this.identifier();
+      }
+      return this.resolvedIdentifier;
+    }
+
+    /**
+     * Setter for resolved identifier.
+     *
+     * @param resolved method identifier.
+     */
+    public void resolvedIdentifier(String resolvedIdentifier) {
+      this.resolvedIdentifier = resolvedIdentifier;
+    }
+
     public String toString() {
-      String tmp = this.type.qualifiedName() + ' ' + this.name + '(';
+      String tmp = this.type().qualifiedName() + ' ' + identifier() + '(';
       Iterator<ParameterVariable> it = parameters.iterator();
       while (it.hasNext()) {
         ParameterVariable parameter = it.next();
@@ -271,22 +379,6 @@ public class Klass {
 
   // ===========================================================================
 
-  class Constructor {
-    String name;
-    String qualifiedName;
-    ArrayList<ParameterVariable> arguments;
-      // could be expression, so use GNode
-    ArrayList<Node> initializers;  // also could be expression
-
-    public Constructor() {
-      this.name           = Klass.this.name;
-      this.qualifiedName = Klass.this.qualifiedName;
-    }    
-  }
-
-
-  // ===========================================================================
-
   /** Class name. */
   String name;
 
@@ -296,35 +388,26 @@ public class Klass {
   /** Parent class, if any. */
   Klass parent;
 
-  /** Type of class. */
-  QualifiedType type;
-
   /** Class fields. */
   ArrayList<Field> fields;
 
   /** Methods of a class. */
   ArrayList<Method> methods;
 
-  /** Scope of the class. */
-  Scope scope;
-
   /**
-   * Klass constructor. If a class doesn't explicitly inherit from
-   * anything, it inherits from Object. Create it as so:
-   *   
-   *   new Klass("A", new Klass("Object", null))
-   *
-   * An object should not be instantiated with no parent, unless that
-   * parent's name is "Object"
+   * Klass constructor.
    *
    * @param name Name of the class.
    * @param parent The parent class.
    */
   public Klass(String name, Klass parent) {
-    // copy methods and fields from parent if it exists
-    ArrayList<Method> methods = generateObjectMethods();
-    ArrayList<Field> fields = new ArrayList<Field>();
-    if (null != parent) { 
+    ArrayList<Method> methods = new ArrayList<Method>();
+    ArrayList<Field> fields   = new ArrayList<Field>();
+    if (name.equals("Class") || name.equals("String")) {
+      // Do nothing.
+    } else if (name.equals("Object")) { 
+      methods = generateObjectMethods();
+    } else {
       methods = new ArrayList<Method>(parent.methods());
       fields = new ArrayList<Field>(parent.fields());
     }
@@ -334,35 +417,51 @@ public class Klass {
     this.parent         = parent;
     this.fields         = fields;
     this.methods        = methods;
-    this.type           = new QualifiedType(name);
+    
+    // in case already a predefined type
+    if (this.name.equals("Object")) {
+      this.qualifiedName = "::java::lang::Object";
+    } else if (this.name.equals("String")) {
+      this.qualifiedName = "::java::lang::String";
+    } else if (this.name.equals("Class")) {
+      this.qualifiedName = "::java::lang::Class";
+    }
+  }
+
+  public Klass(Klass other) {
+    this.name           = other.name();
+    this.qualifiedName  = other.qualifiedName();
+    this.parent         = other.parent();
+    this.fields         = other.fields();
+    this.methods        = other.methods();
   }
 
   public ArrayList<Method> generateObjectMethods() {
     // First: Object methods
     Method hashCode = new Method();
     hashCode.makeStatic();
-    hashCode.name("hashCode");
+    hashCode.identifier("hashCode");
     hashCode.type(new PrimitiveType("int"));
     hashCode.implementor(this);
 
     Method equals = new Method();
     equals.makeStatic();
-    equals.name("equals");
+    equals.identifier("equals");
     equals.type(new PrimitiveType("boolean"));
     equals.implementor(this);
-    equals.addParameter(new ParameterVariable(new QualifiedType("Object"), 
+    equals.addParameter(new ParameterVariable(this, 
                                               "other"));
 
     Method getClass = new Method();
     getClass.makeStatic();
-    getClass.name("getClass");
-    getClass.type(new QualifiedType("Class"));
+    getClass.identifier("getClass");
+    getClass.type(new Klass("Class", this));
     getClass.implementor(this);
 
     Method toString = new Method();
     toString.makeStatic();
-    toString.name("toString");
-    toString.type(new QualifiedType("String"));
+    toString.identifier("toString");
+    toString.type(new Klass("String", this));
     toString.implementor(this);
 
     ArrayList<Method> objectMethods = new ArrayList<Method>();
@@ -407,7 +506,46 @@ public class Klass {
   }
 
   /**
-   * Get methods of the class.
+   * Determine whether this instance has the specified parent type.
+   *
+   * @param parentCandidate qualified type ancestor candidate.
+   * @return whether this instancehas the specified parent type.
+   */
+  public boolean hasParent(Klass parentCandidate) {
+    Klass k = this;
+    while (null != k) {
+      if (k.equals(parentCandidate)) return true;
+      k = k.parent();
+    }
+    return false;
+  }
+
+  /**
+   * Whether this class contains the main method.
+   *
+   * @return whether this class contains the main method.
+   */
+  public boolean containsMain() {
+    for (Method m : methods()) {
+      if (m.isMain()) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Gets main method if it exists. Otherwise returns null.
+   *
+   * @return main method.
+   */
+  public Method main() {
+    for (Method m : methods()) {
+      if (m.isMain()) return m;
+    }
+    return null;
+  }
+
+  /**
+   * Get methods of the class, excluding main.
    *
    * @return methods of the class.
    */
@@ -425,24 +563,6 @@ public class Klass {
   }
 
   /**
-   * Get type of the class.
-   *
-   * @return type of the class.
-   */
-  public QualifiedType type() {
-    return this.type;
-  }
-
-  /**
-   * Get the scope of the class.
-   *
-   * @return scope of the class.
-   */
-  //public Scope getScope() {
-  //  return this.scope;
-  //}
-  
-  /**
    * Get the name of the class.
    *
    * @return name of the class.
@@ -458,5 +578,9 @@ public class Klass {
    */
   public String qualifiedName() {
     return this.qualifiedName;
+  }
+
+  public String toString() {
+    return name();
   }
 }

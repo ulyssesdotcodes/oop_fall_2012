@@ -17,17 +17,17 @@ public class Invocation {
   /** Name of the method. */
   String identifier;
 
-  /** Invocation parameters. */
-  ArrayList<ParameterVariable> parameters;
+  /** Invocation parameter types. */
+  ArrayList<Type> arguments;
 
   // ===========================================================================
 
   public Invocation(ArrayList<String> selectors,
                     String identifier,
-                    ArrayList<ParameterVariable> parameters) {
+                    ArrayList<Type> arguments) {
     this.selectors  = selectors;
     this.identifier = identifier;
-    this.parameters = parameters;
+    this.arguments  = arguments;
   }
                     
   /**
@@ -53,7 +53,7 @@ public class Invocation {
    *
    * @return invocation parameters.
    */
-  public ArrayList<ParameterVariable> parameters() {
-    return this.parameters;
+  public ArrayList<Type> arguments() {
+    return this.arguments;
   }
 }

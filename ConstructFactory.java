@@ -128,7 +128,8 @@ public class ConstructFactory {
   public ConstructFactory() {
 
   }
-
+  
+  // ===========================================================================
 
   /**
    * Take a name and determines whether it is a fundamental type
@@ -171,19 +172,32 @@ public class ConstructFactory {
 
   // translationUnit is more accurate than compilationUnit
   // http://stackoverflow.com/questions/1106149/what-is-a-translation-unit-in-c
-  public Node buildTranslationUnit(HashMap<String,Klass> thePackage,
-                                   Node mainMethod) {
+  public Node buildTranslationUnit(HashMap<String,Klass> thePackage) {
     GNode translationUnit =
       GNode.create("TranslationUnit");
 
     translationUnit.add(buildDefaultDirectives());
+    Klass.Method main = null;
 
     for (Object o : thePackage.values()) {
-      translationUnit
-        .add(buildClassDeclaration((Klass)o));
+      Klass k = (Klass)o;
+      if (!Constants.JAVA_LANG.containsKey(k.name())) {
+        translationUnit.add(buildClassDeclaration(k));
+        if (k.containsMain()) {
+          main = k.main();
+        }
+      }
     }
+
+    translationUnit.add(buildMainMethod(main));
     
     return translationUnit;
+  }
+
+  public Node buildMainMethod(Klass.Method main) {
+    return GNode.create("MainMethod", 
+        Utilities.resolve(main.implementor().name(), true)
+        + Constants.QUALIFIER + "main()");
   }
 
   /** Build default directives. */
@@ -231,7 +245,7 @@ public class ConstructFactory {
     
     for (Klass.Field field : fields) {
       structClassFields.add(field.type().qualifiedName() + " " 
-                          + field.name());
+                          + field.identifier());
     }
 
     return structClassFields;
@@ -242,7 +256,7 @@ public class ConstructFactory {
     
     for (Klass.Field field : fields) {
       constructorArgs.add(field.type().qualifiedName() + " " 
-                        + field.name());
+                        + field.identifier());
     }
 
     return constructorArgs;
@@ -272,7 +286,7 @@ public class ConstructFactory {
     return GNode.create("ImplementedMethod",
       method.isStatic(),                             /* 0 */
       method.type().qualifiedName(),                 /* 1 */
-      method.name(),                                 /* 2 */
+      method.resolvedIdentifier(),                   /* 2 */
       buildMethodParameterTypes(method));            /* 3 */
   }
 
@@ -280,11 +294,13 @@ public class ConstructFactory {
     GNode methodParameterTypes = 
       GNode.create("MethodParameterTypes");
 
-    // always add own as implicit "this"
-    methodParameterTypes.add(method.implementor().type().qualifiedName());
+    // except for the main method, always add own as implicit "this"
+    if (!method.isMain()) {
+      methodParameterTypes.add(method.implementor().qualifiedName());
 
-    for (ParameterVariable pv : method.parameters()) {
-      methodParameterTypes.add(pv.type().qualifiedName());
+      for (ParameterVariable pv : method.parameters()) {
+        methodParameterTypes.add(pv.type().qualifiedName());
+      }
     }
 
     return methodParameterTypes;
@@ -317,7 +333,7 @@ public class ConstructFactory {
     if (null != method.type()) { returnType = method.type().qualifiedName(); }
     return GNode.create("VTMethod",
         returnType,                           /* 0 */
-        method.name(),                        /* 1 */
+        method.resolvedIdentifier(),          /* 1 */
         buildMethodParameterTypes(method));   /* 2 */
   }
 
@@ -346,7 +362,7 @@ public class ConstructFactory {
     String returnType = "void";
     if (null != method.type()) { returnType = method.type().qualifiedName(); }
     return GNode.create("VTInitialization",      
-        method.name(),                          /* 0 */
+        method.resolvedIdentifier(),            /* 0 */
         returnType,                             /* 1 */
         buildMethodParameterTypes(method),      /* 2 */
         Utilities.resolve(method                /* 3 */
@@ -372,7 +388,7 @@ public class ConstructFactory {
   public Node buildExtension(Klass parent) {                            // DONE
     if (null == parent) { 
       return GNode.create("Extension", null);
-    } else { return GNode.create("Extension", buildType(parent.type())); }
+    } else { return GNode.create("Extension", buildType(parent)); }
   }
 
   /** Build type branch. */
@@ -407,7 +423,7 @@ public class ConstructFactory {
     
     for (Klass.Field field : fields) {
       constructorArguments.add(field.type().qualifiedName() + " " 
-                          + field.name());
+                          + field.identifier());
     }
 
     return constructorArguments;
@@ -419,7 +435,7 @@ public class ConstructFactory {
       GNode.create("ConstructorInitializations");
     
     for (Klass.Field field : fields) {
-      constructorInitializations.add(field.name());
+      constructorInitializations.add(field.identifier());
     }
 
     return constructorInitializations;
@@ -498,6 +514,7 @@ public class ConstructFactory {
       + Constants.QUALIFIER + "__class",          /* 2 */
         internal(klass.name()),                   /* 3 */
       buildMethodDeclarations(klass));            /* 4 */
+
   }
      
 
@@ -518,30 +535,34 @@ public class ConstructFactory {
   public Node buildMethodDeclaration(Klass.Method method) {
     GNode methodDeclaration =
       GNode.create("MethodDeclaration",
-          method.type().qualifiedName(),                /* 1 */
+          method.type().qualifiedName(),                        /* 1 */
           internal(method.implementor().name())
-        + Constants.QUALIFIER + method.name(),          /* 2 */
+        + Constants.QUALIFIER + method.resolvedIdentifier(),    /* 2 */
           buildFormalParameters(method.parameters(),
                                 method.implementor()
-                                  .qualifiedName()),    /* 3 */
-          method.body());                               /* 4 */
+                                  .qualifiedName(),
+                                method.isMain()),               /* 3 */
+          method.body());                                       /* 4 */
     return methodDeclaration;
   }
   
   /** Build formal parameters branch. */
   public Node buildFormalParameters(ArrayList<ParameterVariable> parameters,
-                                    String qualifiedType) {
+                                    String qualifiedType,
+                                    boolean isMain) {
     GNode formalParameters = GNode.create("FormalParameters");
 
     // implicit "this"
-    formalParameters.add(qualifiedType + " __this");
+    if (!isMain) {
+      formalParameters.add(qualifiedType + " __this");
 
-    Iterator it = parameters.iterator();
-    while (it.hasNext()) {
-      ParameterVariable parameter = (ParameterVariable)it.next();
-      String pStr = parameter.type().qualifiedName(false) + " "
-        + parameter.name() + parameter.type().dimensionsTag();
-      formalParameters.add(pStr);
+      Iterator it = parameters.iterator();
+      while (it.hasNext()) {
+        ParameterVariable parameter = (ParameterVariable)it.next();
+        String pStr = parameter.type().qualifiedName() + " "
+          + parameter.name() + parameter.type().dimensionsSuffix();
+        formalParameters.add(pStr);
+      }
     }
 
     return formalParameters;
@@ -551,7 +572,4 @@ public class ConstructFactory {
   // ===========================================================================
 
 }
-
-
-
 

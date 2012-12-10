@@ -19,6 +19,10 @@ import xtc.tree.Visitor;
  */
 class Store {
 
+  static final Klass javaObject = new Klass("Object", null);
+  static final Klass javaString = new Klass("String", javaObject);
+  static final Klass javaClass  = new Klass("Class", javaObject);
+
   /**
    * Classes in store.
    *
@@ -29,11 +33,11 @@ class Store {
    */
   private static HashMap<String, Klass> pkg;
 
-  /** Main method. */
-  GNode mainMethod;
-
   public Store() {
     pkg = new HashMap<String, Klass>();
+    pkg.put(javaObject.name(), javaObject);
+    pkg.put(javaString.name(), javaString);
+    pkg.put(javaClass.name(), javaClass);
   }
 
   /**
@@ -46,15 +50,6 @@ class Store {
   }
 
   /**
-   * Get the main method of the program.
-   *
-   * @return the main method.
-   */
-  public Node getMain() {
-    return this.mainMethod;
-  }
-
-  /**
    * Create an iterator for the classes.
    *
    * @return an iterator of thePackage.
@@ -64,30 +59,17 @@ class Store {
   }
 
   /**
-   * Get a class by name.
+   * Get a qualified type by name.
    *
-   * @return class or null if class isn't found.
+   * @return qualified type.
    */
-  public static Klass getClass(String name) {
-    for (Klass k : pkg.values()) {
-      if (k.name().equals(name)) return k;
-    }
-    return null;
+  public static Klass getQualifiedType(String name) {
+    return pkg.get(name);
   }
 
   // ===========================================================================
 
-  /**
-   * This inner class takes in a Java AST whose nodes
-   * have been annotated with Scope properties, and
-   * decomposes the Java AST, extracting then storing the 
-   * relavant meta-information in meta Java object classes
-   * like Klass, Method, Variable, Type, etc.
-   */
-  class Analyzer extends Visitor {
-
-    /** The root Object class. */
-    Klass object = new Klass("Object", null);
+  class Analyzer extends Visitor { 
 
     /** The current class that we're constructing. */
     Klass currentClass;
@@ -128,31 +110,34 @@ class Store {
     public void addClass(String className, Klass klass) {
       Store.this.pkg.put(className, klass);
     }
+  }
 
-    // =========================================================================
+  /**
+   * 1. This inner class takes in a Java AST, and constructs meta
+   * objects based on class inheritance.
+   */
+  class ClassAnalyzer extends Analyzer {
 
-    // Let's analyze a class!
+    public ClassAnalyzer() { super(); }
 
     /** Visit specified class declaration node and add class. */
     public void visitClassDeclaration(GNode n) {
       buildingClass = true;
-      Klass parent = object;
+      Klass parent = Store.getQualifiedType("Object");
 
       String extendsName = fetchParentClassName(n.getGeneric(3));
       if (pkg.containsKey(extendsName)) {
-        parent = pkg.get(extendsName); 
+        parent = Store.getQualifiedType(extendsName); 
       }
       
       String className = n.getString(1);
       if (pkg.containsKey(className)) {
-        currentClass = pkg.get(className);
+        currentClass = Store.getQualifiedType(className);
         currentClass.parent(parent);
       } else { currentClass = new Klass(className, parent); }
 
       visit(n);
 
-      // Before we return from this method, we should have all the 
-      // information we need to make the class in currentClass.
       addClass(className, currentClass);
       currentClass = null;
       buildingClass = false;
@@ -169,9 +154,32 @@ class Store {
       return null;
     }
 
+    /** Visit the specified node. */
+    public void visit(Node n) {
+      for (Object o : n) {
+        if (o instanceof Node) dispatch((Node)o);
+      }
+    }
+  }
+
+  /**
+   * 2. This inner class takes in a JavaAST, and constructs meta
+   * information for all of the class' members.
+   */
+  class MemberAnalyzer extends Analyzer {
+
+    public MemberAnalyzer() { super(); }
+
+    /** Visit specified class declaration node and add class. */
+    public void visitClassDeclaration(GNode n) {
+      currentClass = Store.getQualifiedType(n.getString(1));
+      visit(n);
+      currentClass = null;
+    }
+
     // =========================================================================
 
-    // Let's analyze that class' fields!
+    // Let's analyze fields
 
     /** 
      * Visit specified field declaration node and add field to class.
@@ -193,14 +201,15 @@ class Store {
     /** Visit specified qualified identifier node. */
     public void visitQualifiedIdentifier(GNode n) {
       String typename = n.getString(0);
+      Klass klass = Store.getQualifiedType(typename);
       if (buildingField && (null == currentField.type())) {
-        currentField.type(new QualifiedType(typename));
+        currentField.type(new Klass(klass));
       } else if (buildingMethod) {
         if (null == currentMethod.type()) {
-          currentMethod.type(new QualifiedType(typename));
+          currentMethod.type(new Klass(klass));
         }
         if (buildingParameter) {
-          currentParameter.type(new QualifiedType(typename));
+          currentParameter.type(new Klass(klass));
         }
       }
     }
@@ -239,7 +248,7 @@ class Store {
     /** Visit specified declarator node. */
     public void visitDeclarator(GNode n) {
       if (buildingField) {
-        currentField.name(n.getString(0));
+        currentField.identifier(n.getString(0));
         currentField.body(n.getGeneric(2));
       }
     }
@@ -260,18 +269,12 @@ class Store {
     }
 
     // =========================================================================
-
-    // Let's analyze that class' methods! 
    
     /** Visit specified method declaration node. */ 
     public void visitMethodDeclaration(GNode n) {
-      if (n.getString(3).equals("main")) {
-        Store.this.mainMethod = n.getGeneric(7); 
-        return;
-      }
       buildingMethod = true;
       currentMethod = currentClass.new Method();
-      currentMethod.name(n.getString(3));
+      currentMethod.identifier(n.getString(3));
       currentMethod.body(n.getGeneric(7));
 
       visit(n);
@@ -292,7 +295,7 @@ class Store {
     public void visitConstructorDeclaration(GNode n) {
       buildingMethod = true;
       currentMethod = currentClass.new Method();
-      currentMethod.name(n.getString(2));
+      currentMethod.identifier(n.getString(2));
 
       visit(n);
 
@@ -312,25 +315,23 @@ class Store {
       currentParameter = null;
       buildingParameter = false;  
     }
-
-    // =========================================================================
-
-    public void visitCompilationUnit(GNode n) { visit(n); }
-
+    
     /** Visit the specified node. */
     public void visit(Node n) {
       for (Object o : n) {
         if (o instanceof Node) dispatch((Node)o);
       }
     }
-  } // Analyzer
+
+  }
 
   public HashMap<String, Klass> decomposeJavaAST(Node n) {
-    new Analyzer().dispatch(n); 
+    new ClassAnalyzer().dispatch(n);
+    new MemberAnalyzer().dispatch(n);
     
     // All classes should be in the package by now, so analyze their bodies:
-    for (Object o : this.getPackage().values()) {
-      ((Klass)o).restructureBodies();
+    for (Klass k : this.getPackage().values()) {
+      k.restructureBodies();
     }
 
     return this.getPackage();

@@ -27,19 +27,18 @@ public class Resolver {
 
   // ===========================================================================
   
-  public boolean isTypeName(String selector) {
+  public boolean isQualifiedTypeName(String selector) {
     return Character.isUpperCase(selector.charAt(0));
   }
 
   public boolean isApplicable(Klass.Method matched) {
-    return (this.invocation.parameters.size() == matched.parameters.size())
-        && (/* all the parameters are convertible */ true);
-    // can we assume that parameters are convertible?
+    return (this.invocation.arguments().size() == matched.parameters().size())
+        && (matched.areParametersConvertible(invocation.arguments()));
   }
 
   public boolean isAccessible(Klass.Method matched) {
     return (matched.of() == currentClass) ||
-      (/* matched.accessModifier() keeps things visible */ true);
+      (/* matched.access() keeps things visible */ true);
   }
 
   public static String freshId(String identifier) {
@@ -68,16 +67,16 @@ public class Resolver {
         // Do nothing.
       } else if (selector.equals("super")) {
         currentClass = currentClass.parent();
-      } else if (isTypeName(selector)) {
-        currentClass = Store.getClass(selector);
+      } else if (isQualifiedTypeName(selector)) {
+        currentClass = Store.getQualifiedType(selector);
       } else {
         // dat ass. primary identifier.
-        System.out.println("NEED TO FILL OUT PRIMARY IDENTIFIER");
+        // TODO
       }
     }
     
     for (Klass.Method method : currentClass.methods()) {
-      if (method.name().equals(invocation.identifier())) {
+      if (method.identifier().equals(invocation.identifier())) {
         matchedMethods.add(method);
       }
     }
@@ -93,10 +92,10 @@ public class Resolver {
   public Resolver filter() {
     for (int i = 0; i < matchedMethods.size(); i++) {
       Klass.Method match = matchedMethods.get(i);
-      if (!isApplicable(match) && !isAccessible(match)) {
+      if (!isApplicable(match) || !isAccessible(match)) {
         this.matchedMethods.remove(i);
       } 
-    }  
+    }
 
     return this;
   }
@@ -108,7 +107,7 @@ public class Resolver {
    */
   public Resolver choose() {
     Klass.Method best = matchedMethods.get(0);
-    
+   
     for (Klass.Method m : matchedMethods) {
       if (!best.isMoreSpecificThan(m)) {
         best = m;
@@ -126,7 +125,11 @@ public class Resolver {
    * @return this.
    */
   public String rename() {
-    //this.chosenMethod.resolvedName(freshId(chosenMethod.name()));
+    if (this.chosenMethod.identifier()
+        .equals(this.chosenMethod.resolvedIdentifier())) {
+      resolvedIdentifier = freshId(chosenMethod.identifier());
+      this.chosenMethod.resolvedIdentifier(resolvedIdentifier);
+    }
     return resolvedIdentifier;
   }
 }

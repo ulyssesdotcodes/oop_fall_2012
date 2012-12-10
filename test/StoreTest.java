@@ -86,11 +86,15 @@ public class StoreTest extends Tool {
 
   @Test
   public void rightPackageSize() {
-    assertTrue(pkg.size() == 5);
+    // This includes the java.lang main classes.
+    assertTrue(pkg.size() == 5 + 3);
   }
 
   @Test
   public void rightClassNames() {
+    assertTrue(pkg.containsKey("Object"));
+    assertTrue(pkg.containsKey("String"));
+    assertTrue(pkg.containsKey("Class"));
     assertTrue(pkg.containsKey("A"));
     assertTrue(pkg.containsKey("B"));
     assertTrue(pkg.containsKey("C"));
@@ -119,9 +123,9 @@ public class StoreTest extends Tool {
     Klass a = pkg.get("A");
     ArrayList<Klass.Field> fields = a.fields();
     assertTrue(fields.size() == 2);
-    assertTrue(fields.get(0).name().equals("fieldOne"));
+    assertTrue(fields.get(0).identifier().equals("fieldOne"));
     assertTrue(fields.get(0).type().name().equals("int32_t"));
-    assertTrue(fields.get(1).name().equals("fieldTwo"));
+    assertTrue(fields.get(1).identifier().equals("fieldTwo"));
     assertTrue(fields.get(1).type().name().equals("String"));
   }
 
@@ -131,10 +135,10 @@ public class StoreTest extends Tool {
     ArrayList<Klass.Method> methods = a.methods();
     assertTrue(methods.size() == 10);
 
-    assertTrue(methods.get(4).name().equals("f1"));
+    assertTrue(methods.get(4).identifier().equals("f1"));
     assertTrue(methods.get(4).type().name().equals("void")); // void
 
-    assertTrue(methods.get(5).name().equals("f2"));
+    assertTrue(methods.get(5).identifier().equals("f2"));
     assertTrue(null != methods.get(5).type());
     assertTrue(methods.get(5).parameters().get(0).name().equals("i"));
     assertTrue(methods.get(5).parameters().get(0).type()
@@ -142,7 +146,7 @@ public class StoreTest extends Tool {
                                                     .equals("int32_t"));
 
 
-    assertTrue(methods.get(6).name().equals("f3"));
+    assertTrue(methods.get(6).identifier().equals("f3"));
     assertTrue(null != methods.get(6).type());
     assertTrue(methods.get(6).parameters().get(0).name().equals("i"));
     assertTrue(methods.get(6).parameters().get(0).type()
@@ -153,17 +157,17 @@ public class StoreTest extends Tool {
                                                     .name()
                                                     .equals("String"));
 
-    assertTrue(methods.get(7).name().equals("f4"));
+    assertTrue(methods.get(7).identifier().equals("f4"));
     assertTrue(methods.get(7).type().name().equals("String"));
 
-    assertTrue(methods.get(8).name().equals("f5"));
+    assertTrue(methods.get(8).identifier().equals("f5"));
     assertTrue(null != methods.get(8).type());
     assertTrue(methods.get(8).parameters().get(0).name().equals("i"));
     assertTrue(methods.get(8).parameters().get(0).type()
                                                     .name()
                                                     .equals("int32_t"));
 
-    assertTrue(methods.get(9).name().equals("f6"));
+    assertTrue(methods.get(9).identifier().equals("f6"));
     assertTrue(null != methods.get(9).type());
     assertTrue(methods.get(9).parameters().get(0).name().equals("i"));
     assertTrue(methods.get(9).parameters().get(0).type()

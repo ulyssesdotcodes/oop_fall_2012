@@ -14,12 +14,6 @@ import java.util.ArrayList;
  */
 public class BodyAnalyzer {
 
-  /** Current method. */
-  Klass.Method currentMethod;
-
-  /** Current field. */
-  Klass.Field currentField;
-
   /**
    * Restructure a body.
    *
@@ -106,7 +100,7 @@ public class BodyAnalyzer {
        * visitArguments returns an ArrayList<ParameterVariable>.
        */
       @SuppressWarnings("unchecked")
-      public void visitCallExpression(GNode n) throws Exception {
+      public void visitCallExpression(GNode n) {
         visit(n);
         if (isPrintExpression(n)) {
           GNode arguments = n.getGeneric(3);
@@ -121,29 +115,84 @@ public class BodyAnalyzer {
 
           String identifier = n.getString(2);
 
-          ArrayList<ParameterVariable> arguments = 
-            (ArrayList<ParameterVariable>)dispatch(n.getGeneric(3));
+          ArrayList<Type> arguments = 
+            (ArrayList<Type>)dispatch(n.getGeneric(3));
          
           // The magic. 
           String resolvedIdentifier =
             new Resolver(new Invocation(selectors, identifier, arguments),
                          member)
               .match().filter().choose().rename();
-         
-          n.set(2, resolvedIdentifier); 
+        
+          n.set(2, resolvedIdentifier);
+          System.out.println(n);
         }
       }
 
       /** Visit specified arguments node. */
-      public ArrayList<ParameterVariable> visitArguments(GNode n) {
-        // TODO
-        return null;
+      public ArrayList<Type> visitArguments(GNode n) {
+        final ArrayList<Type> arguments = new ArrayList<Type>();
+        if (0 == n.size()) { return arguments; }
+        
+        new Visitor() {
+          // PRIMITIVES ========================================================
+         
+          /** Visit long literal. */
+          // TODO: Parsed as IntegerLiteral.
+
+          /** Visit integer literal. */ 
+          public void visitIntegerLiteral(GNode n) {
+            arguments.add(new PrimitiveType("int"));
+          }
+         
+          /** Visit short literal. */
+          // TODO
+
+          /** Visit byte literal. */
+          // TODO
+
+          /** Visit char literal. */
+          public void visitCharacterLiteral(GNode n) {
+            arguments.add(new PrimitiveType("char"));
+          }
+
+          /** Visit floating point literal. */ 
+          public void visitFloatingPointLiteral(GNode n) {
+            arguments.add(new PrimitiveType("float"));
+          }
+
+          /** Visit double precision point literal. */
+          // TODO: Parsed as FloatingPointLiteral.
+
+          /** Visit boolean literal. */
+          public void visitBooleanLiteral(GNode n) {
+            arguments.add(new PrimitiveType("boolean"));
+          }
+
+          // QUALIFIED TYPES ===================================================
+
+          /** Visit string literal. */
+          public void visitStringLiteral(GNode n) {
+            Klass stringType = Store.getQualifiedType("String");
+            arguments.add(new Klass(stringType));
+          }
+
+          public void visit(GNode n) {
+            for (Object o : n) {
+              if (o instanceof Node) { dispatch((Node)o); }
+            }
+          }
+        }.dispatch(n);
+         
+        return arguments;
       }
 
       /** Visit specified generic node. */
       public void visit(GNode n) {
         for (Object o : n) {
-          if (o instanceof Node) dispatch((Node)o);
+          if (o instanceof Node) {
+            dispatch((Node)o);
+          }
         }
       }
     }.dispatch(member.body());

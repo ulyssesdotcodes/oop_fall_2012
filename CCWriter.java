@@ -242,12 +242,13 @@ public class CCWriter extends Visitor {
     printer.pln("#include \"out.h\"").pln();
 
     visit(n);
+  }
 
-    // main
+  public void visitMainMethod(GNode n) {
     printer.pln("// main method!");
-    printer.pln("int main() {").incr()
+    printer.pln("int main() {").incr().indent()
+      .p(n.getString(0)).pln(';')
       .indent().pln("return 0;").decr().pln('}');
-    
   }
 
 
@@ -341,8 +342,6 @@ public class CCWriter extends Visitor {
   public void visitTypeNode(GNode n) {
     printer.p(n.getString(0)).p(' ');
   }
-
-
 
   public void visit(Node n) {
     for (Object o : n) {

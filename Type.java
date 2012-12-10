@@ -5,7 +5,7 @@ package qimpp;
  * Subclasses include:
  * 
  * PrimitiveType
- * QualifiedType
+ * Klass (QualifiedType)
  *
  * @author Qimpp
  */
@@ -20,25 +20,29 @@ public abstract class Type {
   int dimensions;
 
   abstract String name();
-  abstract String name(boolean withDimensions);
-
   abstract String qualifiedName();
-  abstract String qualifiedName(boolean withDimensions);
 
   public int dimensions() {
     return this.dimensions;
   }
 
   public void dimensions(int dims) {
-    if (this.name().equals("void")) { return; }
     this.dimensions = dims;
   }
 
-  public String dimensionsTag() {
+  public String dimensionsSuffix() {
     StringBuilder dims = new StringBuilder();
     for (int i = 0; i < dimensions; i++) {
       dims.append("[]");
     }
     return dims.toString();
+  }
+
+  public boolean equals(Object o) {
+    if (o == this) { return true; }
+    if (o == null || o.getClass() != this.getClass()) { return false; }
+
+    Type t = (Type)o;
+    return t.qualifiedName().equals(this.qualifiedName());
   }
 }

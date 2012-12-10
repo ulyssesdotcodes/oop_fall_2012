@@ -128,7 +128,7 @@ public class Qimpp extends Tool {
    
     ConstructFactory factory = new ConstructFactory(); 
     GNode cNode = 
-      (GNode)factory.buildTranslationUnit(store.getPackage(), store.getMain());
+      (GNode)factory.buildTranslationUnit(store.getPackage());
 
 
     if (runtime.test("printCppAST")) {

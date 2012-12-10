@@ -52,15 +52,10 @@ SOURCE = \
 	Constants.java \
 	ConstructFactory.java \
 	HWriter.java \
-	HeaderWriter.java \
-	ImplementationWriter.java \
-	InheritanceManager.java \
-	InheritanceTreeManager.java \
 	Resolver.java \
 	Klass.java \
 	PrimitiveType.java \
 	Qimpp.java \
-	QualifiedType.java \
 	Store.java \
 	SymbolTable.java \
 	Type.java \

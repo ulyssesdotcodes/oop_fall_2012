@@ -3,17 +3,16 @@
 
 public class Overload {
 
-  public int two(int i) {
-    return i + i;
+  public int two(int i, Object o) {
+    return 0;
   }
 
-  public int two(String s) {
-    return s + s;
+  public int two(int i, String s) {
+    return 1;
   }
 
   public static void main(String[] args) {
-    two(2);
-    two("2");
+    two(0, "hey");
   }
 }
 

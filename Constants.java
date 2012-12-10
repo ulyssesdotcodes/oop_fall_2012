@@ -36,5 +36,7 @@ public class Constants {
       put("Class", "");
   }};
 
+  public static final String JAVA_LANG_STRING = "::java::lang::String";
+
 
 }
