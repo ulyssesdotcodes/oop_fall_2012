@@ -248,11 +248,11 @@ public class QimppTranslator extends Tool {
          * NewClassExpression hold a QualifiedIdentifier not wrapped by a type. We need to disambiguate it if possible
          */
         public void visitNewClassExpression(GNode n){
-          String typename = n.getGeneric(2).getString(0);
-          String mappedName = currentNameMap.get(typename);
-          if (mappedName != null){
-            n.set(2, Disambiguator.disambiguate(mappedName));
-          }
+          // Make sure this type has been translated 
+          System.err.println(n.getGeneric(2));
+          GNode type = GNode.create("Type", n.getGeneric(2));
+          visitType(type);
+          n.set(2, type.getGeneric(0));
         }
 
         /** Visit all types. If it is unknown, process the file for that type. If it is known, fully qualify it */
@@ -260,7 +260,7 @@ public class QimppTranslator extends Tool {
           //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
           visit(n);
           GNode identifier = n.getGeneric(0);
-          String typename = identifier.getString(0);
+          String typename = Disambiguator.getDotDelimitedName(identifier);
 
           if(identifier.hasName("PrimitiveType")){
             return n;
@@ -290,6 +290,7 @@ public class QimppTranslator extends Tool {
 
             //System.err.println("Split: " + typename.split("\\.").length);
             //System.err.println("Adding typename: " + typename);
+            System.err.println(typename);
             String[] qualified = typename.split("\\.");
             
             // Reset currentClassName when we come back
@@ -306,6 +307,7 @@ public class QimppTranslator extends Tool {
             // and we'll automatically skip those or expand them
             // as necessary
             // For now we'll support only explicitly qualified name: "qimpp.Foo" ["qimpp", "Foo"]
+            System.err.println(qualified);
             GNode classTreeNode = treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
             if (classTreeNode == null){
                 
@@ -354,11 +356,42 @@ public class QimppTranslator extends Tool {
           return n.getString(0);
         }
 
+        int selectionExpressionDepth = 0;
+        StringBuilder selectionExpressionBuilder;
+        /**
+         * Visit a selection expression, and if it's referring to a class type by name, make
+         * sure that type is translated
+         */
+        public void visitSelectionExpression(GNode n){
+          if (selectionExpressionDepth == 0){
+            selectionExpressionBuilder = new StringBuilder();
+          }
+          dispatch(n.getGeneric(0));
+          String name = n.getString(1);
+          selectionExpressionBuilder.append(name);
+          // If this SelectionExpression is referring to a class, handle it as a type, making sure it's translated
+          if (Character.isUpperCase(name.charAt(0))) {
+            GNode type = GNode.create("Type", GNode.create("QualifiedIdentifier", selectionExpressionBuilder.toString()));
+            visitType(type);
+          }
+        }
+
+        /**
+         * Visit a PrimaryIdentifier node.
+         */
         public void visitPrimaryIdentifier(GNode n) {
           // Check if this is a ambiguous name, and if it is, replace it with the fully qualified name
           String name = n.getString(0);
-          if (currentNameMap.get(name) != null){
-            n.set(0, currentNameMap.get(name));
+          // Make sure it's not an unvisited name in the local namespace
+          //TODO: This assumes that class names are capitalized
+          if (Character.isUpperCase(name.charAt(0)) && !name.equals("System")){
+            GNode type = GNode.create("Type", GNode.create("QualifiedIdentifier", name));
+            visitType(type);
+            n.set(0, type.getGeneric(0).getString(0));
+          } 
+          // If we're inside a SelectionExpression, build the expression
+          if (selectionExpressionDepth > 0){
+            selectionExpressionBuilder.append(name);
           }
         }
         
@@ -375,6 +408,8 @@ public class QimppTranslator extends Tool {
 
           GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
           parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
+          
+          parentClassNode = treeManager.getClassDeclarationNode(parentName);
 
           // Associate the current class with its parent's class Node
           currentClass.setProperty("ParentClassNode", parentClassNode);
@@ -476,7 +511,6 @@ public class QimppTranslator extends Tool {
           new HeaderWriter(new Printer(h)).dispatch(cppast.compilationUnit);
           cppast.printAST();
 
-          new ArrayTemplatePrinter(new Printer(h)).dispatch(cppast.compilationUnit); 
           PrintWriter cc = new PrintWriter("out.cc");
           new ImplementationPrinter(new Printer(cc), treeManager).dispatch(cppast.compilationUnit);
         } catch (Exception e) {

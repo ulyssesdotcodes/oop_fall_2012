@@ -67,7 +67,9 @@ public class HeaderWriter extends Visitor {
  //  VISITOR
  // ==================
 
+  GNode compilationUnit;
   public void visitCompilationUnit(GNode n){
+    compilationUnit = n;
     writeDependencies(); 
     visit(n);
     printer.flush();
@@ -75,6 +77,8 @@ public class HeaderWriter extends Visitor {
 
   public void visitDeclarations(GNode n){
     visit(n);
+    // Print out the array declarations
+    new ArrayTemplatePrinter(printer).dispatch(compilationUnit); 
   }
 
   public void visitDeclaration(GNode n){
