@@ -86,6 +86,10 @@ public class ImplementationPrinter extends Visitor {
    */
   protected boolean inMain;
 
+  /**
+   * The flag for whether we're making a reference to a class name or an instance
+   */
+  protected boolean isTypeStaticReference;
 
   /**
    * The list precedence level.  This level corresponds to the
@@ -351,9 +355,9 @@ public class ImplementationPrinter extends Visitor {
       .p("return new java::lang::__Class(__rt::literal(\"")
 			.p(this.currentClass).p("\"), ");
     //TODO: HACK
-    inClassDeclaration = true;
+    isTypeStaticReference = true;
 		dispatch(n.getGeneric(1));
-    inClassDeclaration = false;
+    isTypeStaticReference = false;
 		printer.pln("::__class());").pln("}\n");
 
 		// vtable
@@ -400,6 +404,7 @@ public class ImplementationPrinter extends Visitor {
   }
 
   boolean inMethod = false;
+  boolean didMain = false;
 	/** 
    * Visit the specified method declaration node.
    * Only visited in implemented methods.
@@ -409,8 +414,16 @@ public class ImplementationPrinter extends Visitor {
     inMethod = true;
 
   	if (n.getString(0).equals("main")) {
-        mainMethod = n;
-        inMain = true;
+        //TODO:HACK
+        // We only want the main method of the entry class to be the official main
+        // so set this only once
+        // Also, this will be confused by methods called main with the wrong signature in
+        // Java.
+        if (!didMain){
+          mainMethod = n;
+          inMain = true;
+          didMain = true;
+        }
     }
 
     dispatch(n.getGeneric(1)); // return type
@@ -459,6 +472,7 @@ public class ImplementationPrinter extends Visitor {
     //If we're using a local call
     if (n.getGeneric(0) == null){
       //Print the call
+      printer.p("__this->__vptr->");
       printer.p(n.getString(2));
       printer.p("(");
       dispatch(n.getGeneric(3));
@@ -477,19 +491,35 @@ public class ImplementationPrinter extends Visitor {
     }
 
     else {
+      //TODO: Chained calls
       // Print the correct call here
       dispatch(n.getGeneric(0));
-      printer.p("->").p(n.getString(2)).p("(");
-      dispatch(n.getGeneric(3));
+      printer.p("->__vptr->").p(n.getString(2)).p("(");
+      //For now, send in the caller by name. Obviously this won't work for chained calls
+      dispatch(n.getGeneric(0));
+      // We don't want to print the comma if there are not more arguments
+      if (n.getGeneric(3).size()!= 0){
+        printer.p(", ");
+        dispatch(n.getGeneric(3));
+      }
       printer.p(")");
     }
     printer.flush();
   }
 
+  /**
+   * Visit the specified class instantiation, and print internal types in
+   * varying modes, static for the instantiated type, instance for the argument
+   * types
+   */ 
   public void visitNewClassExpression(GNode n){
+    //Indicate that the reference to the type is the underscore name, not an instance
+    isTypeStaticReference = true;
     printer.p(" new ");
+    // Dispatch on the Type node
     dispatch(n.getGeneric(2));
     printer.p("(");
+    isTypeStaticReference = false;
     dispatch(n.getGeneric(3));
     printer.p(")");
   }
@@ -571,9 +601,9 @@ public class ImplementationPrinter extends Visitor {
 
   public void visitThisExpression(GNode n){
     if (inConstructor)
-      printer.p("this->");
+      printer.p("this");
     else
-      printer.p("__this->");
+      printer.p("__this");
   }
 
   /** Visit the specified instance node. */
@@ -640,7 +670,9 @@ public class ImplementationPrinter extends Visitor {
 			}
       else {
         //TODO: HACK
-        if ( (inMethod && !inReturnType) || (inClassDeclaration)) {
+        if ( isTypeStaticReference ) {
+            //(inMethod && !inReturnType) || (inClassDeclaration)) {
+
           printer.p("__").p(identifierName);
         }
         else {

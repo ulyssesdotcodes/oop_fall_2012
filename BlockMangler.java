@@ -41,11 +41,16 @@ public class BlockMangler {
   public GNode mangle(GNode java) {
     
     GNode cpp = GNode.create("Block");
-
+    
+    /**
+     * The visitor that analyzes and modifies the block
+     */
     new Visitor() {
 
-      /** Determine if this is a class, a stackvar, field or the start of a fully qualified class name
-       *  and set the proper properties of the node */
+      /** 
+       * Determine if this is a class, a stackvar, field or the start of a fully
+       * qualified class name and set the proper properties of the node 
+       */
       public String visitPrimaryIdentifier(GNode n){
         String identifier = n.getString(0);
 
@@ -96,6 +101,9 @@ public class BlockMangler {
 
       }
 
+      /**
+       * Set the appropriate properties for an IntegerLiteral
+       */
       public String visitIntegerLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle longs
@@ -103,6 +111,9 @@ public class BlockMangler {
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
       
+      /**
+       * Set the appropriate properties for a flp literal
+       */
       public String visitFloatingPointLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle float
@@ -110,6 +121,9 @@ public class BlockMangler {
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
+      /**
+       * Set the appropriate properties for a string literal
+       */
       public String visitStringLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
         n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
@@ -323,6 +337,19 @@ public class BlockMangler {
 
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
+
+      /**
+       * Set the appropriate properties for a new class expression so it can be nested
+       */
+      public String visitNewClassExpression(GNode n){
+        GNode classType = n.getGeneric(2);
+        dispatch(classType);
+        n.setProperty(Constants.IDENTIFIER_TYPE, classType.getProperty(Constants.IDENTIFIER_TYPE));
+        n.setProperty(Constants.IDENTIFIER_DECLARATION, classType.getProperty(Constants.IDENTIFIER_DECLARATION));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, classType.getProperty(Constants.IDENTIFIER_TYPE_NODE));
+
+        return n.getStringProperty(Constants.IDENTIFIER_TYPE);
+      } 
 
       /* 
       public void tempVisitCallExpression(GNode n) {

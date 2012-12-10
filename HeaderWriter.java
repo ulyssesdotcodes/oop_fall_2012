@@ -147,12 +147,18 @@ public class HeaderWriter extends Visitor {
     inherited = false;
   }
 
+  //TODO: Hack
+  //Prints out main methods for other classes differently
+  boolean didMain = false;
   public void visitImplementedMethodDeclaration(GNode n){
-    if (!name(n).equals("main")) {
+    if (!name(n).equals("main") || didMain) {
       if (inherited)
         inherited_methods.add(n);
       else
         implemented_methods.add(n);
+    }
+    else {
+      didMain = true;
     }
   }
 
@@ -169,8 +175,10 @@ public class HeaderWriter extends Visitor {
   //TODO: this method should probably do more. Not sure ATM.
   private void writeDependencies() {
     printer.p("#pragma once").pln();
-    printer.p("#include \"java_lang.h\"").pln(); 
-    printer.p("#include <stdint.h>").pln().pln();
+    printer.p("#include \"java_lang.h\"").pln() 
+      .p("#include <stdint.h>").pln()
+      .p("#include \"qimpp_utils.h\"").pln()
+      .pln();
   }
   
   /** Write out the internal names of the structs and vtables for each class 
