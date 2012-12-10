@@ -339,6 +339,7 @@ public class QimppTranslator extends Tool {
             currentClassName = tempClassName;
             currentPackageName = tempPackageName;
             currentNameMap = tempNameMap;
+
             currentClass = tempClass;
 
             return n;
@@ -374,6 +375,9 @@ public class QimppTranslator extends Tool {
 
           GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
           parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
+
+          // Associate the current class with its parent's class Node
+          currentClass.setProperty("ParentClassNode", parentClassNode);
           
           currentClass.getGeneric(1).getGeneric(0).remove(0);
           String parentNameQualified = parentClassNode.getString(0);
@@ -468,9 +472,13 @@ public class QimppTranslator extends Tool {
         //Print the AST after we're done for debugging
         //cppast.printAST();
         try{
-          new HeaderWriter(new Printer(new PrintWriter("out.h"))).dispatch(cppast.compilationUnit);
+          PrintWriter h = new PrintWriter("out.h");
+          new HeaderWriter(new Printer(h)).dispatch(cppast.compilationUnit);
           cppast.printAST();
-          new ImplementationPrinter(new Printer(new PrintWriter("out.cc")), treeManager).dispatch(cppast.compilationUnit);
+
+          new ArrayTemplatePrinter(new Printer(h)).dispatch(cppast.compilationUnit); 
+          PrintWriter cc = new PrintWriter("out.cc");
+          new ImplementationPrinter(new Printer(cc), treeManager).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
           //System.out.println("Uh oh... " + e);
           e.printStackTrace();
