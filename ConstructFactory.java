@@ -124,10 +124,8 @@ public class ConstructFactory {
     public static final int FORMAL_PARAMETER        = 2;
   }
 
-
-  public ConstructFactory() {
-
-  }
+  /** Constructor. */
+  public ConstructFactory() {}
   
   // ===========================================================================
 
@@ -166,7 +164,6 @@ public class ConstructFactory {
     }
     return name;
   }
-
 
   // ===========================================================================
 
@@ -224,7 +221,8 @@ public class ConstructFactory {
           buildVTDeclaration(klass),              /* 2 */
           buildQualifiedIdentifier(klass.name()), /* 3 */
           buildExtension(klass.parent()),         /* 4 */
-          buildClassBody(klass));                 /* 5 */
+          buildClassBody(klass),                  /* 5 */
+          buildArrayTemplate(klass));             /* 6 */
     return classDeclaration;
   }
 
@@ -505,15 +503,15 @@ public class ConstructFactory {
     return GNode.create("Methods",
         (Utilities.resolve(klass.name(), true)
       + Constants.QUALIFIER + "__class")
-        .substring(Constants.QUALIFIER.length()), /* 0 */
+        .substring(Constants.QUALIFIER.length()),             /* 0 */
         Utilities.resolve(klass.name(), false)
           .replaceAll(Constants.QUALIFIER,
                       Constants.JAVA_QUALIFIER)
-          .substring(1),                          /* 1 */
+          .substring(Constants.JAVA_QUALIFIER.length()),      /* 1 */
         Utilities.resolve(klass.parent().name(), true)
-      + Constants.QUALIFIER + "__class",          /* 2 */
-        internal(klass.name()),                   /* 3 */
-      buildMethodDeclarations(klass));            /* 4 */
+      + Constants.QUALIFIER + "__class",                      /* 2 */
+        internal(klass.name()),                               /* 3 */
+      buildMethodDeclarations(klass));                        /* 4 */
 
   }
      
@@ -568,8 +566,22 @@ public class ConstructFactory {
     return formalParameters;
   }
 
-
   // ===========================================================================
+
+  /** Build array template for the specified class. */
+  public Node buildArrayTemplate(Klass klass) {
+    GNode runtime       = GNode.create("Runtime");
+    GNode arrayTemplate = GNode.create("ArrayTemplate",
+        klass.qualifiedName(),                                /* 0 */
+        Utilities.resolve(klass.name(), false)
+          .replaceAll(Constants.QUALIFIER,
+                      Constants.JAVA_QUALIFIER)
+          .substring(Constants.JAVA_QUALIFIER.length()),      /* 1 */
+        klass.parent().qualifiedName(),
+        Utilities.resolve(klass.name(), true));               /* 2 */
+    return runtime.add(arrayTemplate);
+  }
+
 
 }
 

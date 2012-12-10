@@ -37,6 +37,8 @@ public class Constants {
   }};
 
   public static final String JAVA_LANG_STRING = "::java::lang::String";
+  public static final String JAVA_LANG_OBJECT = "::java::lang::Object";
+  public static final String JAVA_LANG_CLASS = "::java::lang::Class";
 
 
 }

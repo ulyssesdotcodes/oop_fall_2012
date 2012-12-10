@@ -337,6 +337,28 @@ public class CCWriter extends Visitor {
     }
   }
 
+  /** Visit the runtime node. */
+  public void visitRuntime(GNode n) {
+    printer.p("namespace").p(' ').p("__rt").p(' ').pln('{').incr();
+    visit(n);
+    printer.decr().indent().pln('}').pln();
+  }
+
+  /** Visit the array template node. */
+  public void visitArrayTemplate(GNode n) {
+    printer.indent().p("template").pln("<>");
+    printer.indent().p(Constants.JAVA_LANG_CLASS).p(' ')
+      .p("Array").p('<').p(' ').p(n.getString(0)).p(' ').p('>')
+      .p("::").p("__class()").p(' ').pln('{').incr();
+    printer.indent().p("static").p(' ').p(Constants.JAVA_LANG_CLASS).p(' ')
+      .p('k').p(' ').pln('=').incr();
+    printer.indent().p("new").p(' ').p("::java::lang::__Class(literal(\"[")
+      .p(n.getString(1)).p(';').p('\"').p(')').pln(',').incr();
+    printer.indent().p("Array< ").p(n.getString(2)).pln(" >::__class(),");
+    printer.indent().p(n.getString(3)).pln("::__class());").decr().decr();
+    printer.indent().pln("return k;");
+    printer.decr().indent().pln('}');
+  }
 
   /** Visit specified type node. */
   public void visitTypeNode(GNode n) {
