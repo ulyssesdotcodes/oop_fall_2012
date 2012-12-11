@@ -164,6 +164,7 @@ public class BlockMangler {
         GNode rightTypeNode = (GNode) n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
 
         System.err.println(n);        
+        System.err.println(n.getGeneric(0));
         if (leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier") ||
             rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
         {

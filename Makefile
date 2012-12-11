@@ -49,9 +49,7 @@ SOURCE = \
 	CPPAST.java \
 	ArrayTemplatePrinter.java \
 	HeaderWriter.java \
-	HeaderWriterTest.java \
 	ImplementationPrinter.java \
-	ImplementationPrinterTest.java \
 	InheritanceManager.java \
 	InheritanceTreeManager.java \
 	InheritanceTreeManagerTest.java \

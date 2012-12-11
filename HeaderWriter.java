@@ -1,11 +1,14 @@
 package qimpp;
 import qimpp.Type;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
@@ -77,8 +80,6 @@ public class HeaderWriter extends Visitor {
 
   public void visitDeclarations(GNode n){
     visit(n);
-    // Print out the array declarations
-    new ArrayTemplatePrinter(printer).dispatch(compilationUnit); 
   }
 
   public void visitDeclaration(GNode n){
@@ -105,36 +106,52 @@ public class HeaderWriter extends Visitor {
       dispatch(n.getGeneric(i));
     }
   }
+  
+  /** State variable to make sure we get ordering done right */
+  HashMap<String, Boolean> doneClass;
 
   public void visitClassDeclaration(GNode n){
     //current_class = name(n);
-    try{ 
-      visit(n);
-
-      // Write out the namespace of the class
-      String[] qualifiedType = getNameQualifiedArray(n);
-      for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
-        indentOut().pln("namespace " + qualifiedType[i] + " {");
-        printer.incr();
+    if (doneClass == null){
+      doneClass = new HashMap<String, Boolean>();
+    }
+    String name = n.getString(0);
+    // Print out classes in inheritance order
+    if (doneClass.get(name) == null) {
+      doneClass.put(name, true);
+      if (n.getProperty("ParentClassNode") != null){
+        visitClassDeclaration((GNode)n.getProperty("ParentClassNode"));
       }
+      try{ 
 
-      
-      writeStruct(n);
-      writeVTStruct(n);
+        visit(n);
 
-      inherited_methods.clear();
-      implemented_methods.clear();
-      fields.clear();
+        // Write out the namespace of the class
+        String[] qualifiedType = getNameQualifiedArray(n);
+        for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
+          indentOut().pln("namespace " + qualifiedType[i] + " {");
+          printer.incr();
+        }
 
-      // Write out the namespace of the class
-      for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
-        printer.decr();
-        indentOut().pln("}");
-      }
+        
+        writeStruct(n);
+        writeVTStruct(n);
 
+        inherited_methods.clear();
+        implemented_methods.clear();
+        fields.clear();
+
+        // Write out the namespace of the class
+        for ( int i = 0; i < qualifiedType.length - 1; i++ ) {
+          printer.decr();
+          indentOut().pln("}");
+        }
+
+        new ArrayTemplatePrinter(printer).dispatch(n);
 
       //current_class = "";
-    } catch ( Exception e) { e.printStackTrace(); }
+      } catch ( Exception e) { e.printStackTrace(); }
+    }
   }
 
   public void visitFields(GNode n){

@@ -48,7 +48,7 @@ for filename in testFilenames:
   os.system("pwd")  
   # Translate
 
-  os.system( "java qimpp.QimppTranslator qimpp/tests/" + filename +" > /dev/null" )
+  os.system( "java qimpp.QimppTranslator qimpp/tests/" + filename +" > translator.output" )
 
   # Compile
 

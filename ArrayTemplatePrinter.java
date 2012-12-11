@@ -25,7 +25,6 @@ public class ArrayTemplatePrinter extends Visitor{
    */
   ArrayTemplatePrinter( Printer printer ) {
     this.printer = printer;
-    doneClass = new HashMap<String, Boolean>();
     printer.register(this);
   }
   
@@ -51,19 +50,14 @@ public class ArrayTemplatePrinter extends Visitor{
 
   /** Visit the class declaration, print the relevant info and go no deeper */
   public void visitClassDeclaration( GNode n ) {
-    String name = n.getString(0);
-    if (doneClass.get(name) == null) {
-      doneClass.put(name, true);
-      if (n.getProperty("ParentClassNode") != null){
-        visitClassDeclaration((GNode)n.getProperty("ParentClassNode"));
-      }
+      String name = n.getString(0);
       name = name.replaceAll("\\.", "::");
       GNode parentType = n.getGeneric(1).getGeneric(0).getGeneric(0);
 
       String parent = Disambiguator.getDotDelimitedName(parentType);
       parent = parent.replaceAll("\\.", "::");
       
-      printer.p("namespace __rt{").pln().incr();
+      printer.pln().p("namespace __rt{").pln().incr();
 
       printer.indent().pln("template<>");
       printer.indent().p("java::lang::Class").p(" __rt::Array< ").p(name).p(" >::__class() {").pln();
@@ -79,9 +73,8 @@ public class ArrayTemplatePrinter extends Visitor{
         .indent().p("}").pln();
         
 
-      printer.decr().decr().p("}");
+      printer.decr().decr().p("}").pln();
       printer.flush();
-    }
 
     return;
   }
