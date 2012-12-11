@@ -165,8 +165,11 @@ public class BlockMangler {
 
         System.err.println(n);        
         System.err.println(n.getGeneric(0));
+        System.err.println(leftTypeNode);
         if (leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier") ||
             rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
+        //if (n.getGeneric(0).getName().equals("QualifiedIdentifier") ||
+        //    n.getGeneric(2).getName().equals("QualifiedIdentifier"))
         {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));

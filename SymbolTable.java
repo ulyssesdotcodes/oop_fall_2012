@@ -1027,14 +1027,23 @@ public class SymbolTable {
 
       public void visitForStatement(GNode n) {
         // if any declarations. TODO: Handle multiple declarations
-        Node declarators = n.getNode(1);
+        Node declarators = n.getNode(0).getNode(2);
         if (null != declarators) {
           table.enter(table.freshCId("for"), n);
           table.mark(n);
-          visit(n);
+          dispatch(n.getNode(0));
+          dispatch(n.getNode(1));
           table.exit();
         }
       }
+
+      public void visitBasicForControl(GNode n) {
+        ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
+        for ( String name : fieldNames ) {
+            // Associate the name with its field declaration
+            table.current().addDefinition(name, n);
+        }
+      } 
 
       public void visitNewClassExpression(GNode n) {
         Node body = n.getNode(4);
