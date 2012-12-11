@@ -34,6 +34,7 @@ except:
 
 # Change directory to the source root
 os.chdir("../..")
+os.system("rm java.output cpp.output a.out out.cc out.h")
 
 # Loop through all test files, or if a single one is specified, do that
 # one
