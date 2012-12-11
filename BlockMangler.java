@@ -415,6 +415,8 @@ public class BlockMangler {
     if (scope == null) {
       return null;
     }
+    System.err.println(primaryIdentifier);
+    System.err.println(scope.lookup(primaryIdentifier.getString(0)));
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     
     if (result == null){

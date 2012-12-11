@@ -293,6 +293,11 @@ public class QimppTranslator extends Tool {
             System.err.println(typename);
             String[] qualified = typename.split("\\.");
             
+            if (typename.equals(currentClassName)){
+              System.err.println("SELF-VISIT");
+              return n;
+            }
+            
             // Reset currentClassName when we come back
             String tempClassName = currentClassName;
             currentClassName = typename;

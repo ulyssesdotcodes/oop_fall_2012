@@ -41,6 +41,57 @@ class Type {
   static String[] priorities = 
   { "double", "float", "long", "int", "short", "byte", "char", "boolean" };
 
+  /** The conversions for char that do not lose information */
+  static String[] charWidening = { "int", "long", "float", "double" };
+  
+  static String[] shortWidening = { "int", "long", "float", "double" };
+
+  static String[] byteWidening = { "short", "int", "long", "float", "double" };
+
+  static String[] intWidening = { "long", "float", "double" };
+
+  static String[] longWidening = { "float", "double" };
+
+  static String[] floatWidening = { "double" };
+
+  /**
+   * Figure out if one type can be cast to another
+   */
+  static boolean canWiden(String sourceType, String targetType){
+    if (sourceType.equals("char")){
+      for (int i = 0; i < charWidening.length; i++){
+        if (targetType.equals(charWidening[i])) return true;
+      }
+    }
+    else if (sourceType.equals("short")){
+      for (int i = 0; i < shortWidening.length; i++){
+        if (targetType.equals(shortWidening[i])) return true;
+      }
+    }
+    else if (sourceType.equals("byte")){
+      for (int i = 0; i < byteWidening.length; i++){
+        if (targetType.equals(byteWidening[i])) return true;
+      }
+    }
+    else if (sourceType.equals("int")){
+      for (int i = 0; i < intWidening.length; i++){
+        if (targetType.equals(intWidening[i])) return true;
+      }
+    }
+    else if (sourceType.equals("long")){
+      for (int i = 0; i < longWidening.length; i++){
+        if (targetType.equals(longWidening[i])) return true;
+      }
+    }
+    else if (sourceType.equals("float")){
+      for (int i = 0; i < floatWidening.length; i++){
+        if (targetType.equals(floatWidening[i])) return true;
+      }
+    }
+    return false; 
+  }
+
+
   /**
    * Get the higher priority of two types
    */

@@ -1000,6 +1000,7 @@ public class SymbolTable {
 
       public void visitMethodDeclaration(GNode n) {
         Node parameters = n.getNode(4);
+        /*
         if (parameters.size() > 0) {
           table.enter(n.getString(3), n);
           table.mark(n);
@@ -1015,7 +1016,17 @@ public class SymbolTable {
           visit(body);
           this.inMethod = false;
           table.exit();
-        }
+        }*/
+
+        Node body = n.getNode(7);
+        // Make sure we don't enter the scope of some already-named method
+        table.enter(Disambiguator.getMethodOverloadName(n) , n);
+        table.mark(n);
+        visit(parameters);
+        this.inMethod = true;
+        visit(body);
+        this.inMethod = false;
+        table.exit();
       }
 
       public void visitBlock(GNode n) {
