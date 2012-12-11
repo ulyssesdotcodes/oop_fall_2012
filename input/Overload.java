@@ -12,7 +12,9 @@ public class Overload {
   }
 
   public static void main(String[] args) {
-    two(0, "hey");
+    Overload o = new Overload();
+    int32_t result = o.two(0, "hey");
+    System.out.print(result);
   }
 }
 

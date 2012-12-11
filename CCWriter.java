@@ -4,6 +4,7 @@ import xtc.tree.Visitor;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Printer;
+import xtc.tree.Token;
 
 import java.util.Iterator;
 
@@ -310,7 +311,8 @@ public class CCWriter extends Visitor {
     printer.indent().pln("return k;").decr();
     printer.pln('}').pln();
 
-    printer.p("// The vtable for ").p(n.getString(1)).p('.').p(' ').pln("Note that this");
+    printer.p("// The vtable for ").p(n.getString(1)).p('.')
+      .p(' ').pln("Note that this");
     printer.pln("// definition invokes the default no-arg vtable constructor.");
     printer.p(n.getString(3)).p("_VT").p(' ').p(n.getString(3))
       .p("::__vtable").pln(';').pln().pln();
@@ -321,7 +323,7 @@ public class CCWriter extends Visitor {
   public void visitMethodDeclaration(GNode n) {
     printer.p(n.getString(0)).p(' ').p(n.getString(1)).p('(');
     dispatch(n.getGeneric(2)); // FormalParameters
-    printer.p(')').p(' ').p('{');
+    printer.p(')').p(' ').pln('{');
     dispatch(n.getGeneric(3)); // MethodBody
     printer.pln('}').pln();
   }
@@ -335,6 +337,117 @@ public class CCWriter extends Visitor {
         printer.p(',').p(' ');
       }
     }
+  }
+
+  // BLOCK =====================================================================
+
+  String primary;
+
+  /** Visit the call expression node. */
+  public void visitCallExpression(GNode n) {
+    primary = n.getGeneric(0).getString(0);
+
+    printer.p(n.getNode(0));
+    printer.p("->__vptr->");
+    printer.p(n.getString(2));
+    printer.p('(');
+
+    printer.p(n.getNode(3));
+
+    printer.p(')').pln(';');
+  }
+
+  boolean inDeclarator = false;
+
+  /** Visit declarator node. */
+  public void visitDeclarator (GNode n) {
+    inDeclarator = true;
+    printer.p(n.getString(0));
+    if (null != n.get(1)) {
+      printer.p(n.getNode(1));
+    }
+    if (null != n.get(2)) {
+      printer.p(" = ").p(n.getNode(2));
+    }
+    inDeclarator = false;
+  }
+
+  /** Visit primitive type node. */
+  public void visitPrimitiveType(GNode n) {
+    printer.p(new PrimitiveType(n.getString(0)).qualifiedName());
+  }
+
+  /** Visit integer literal node. */
+  public void visitIntegerLiteral(GNode n) {
+    printer.p(n.getString(0));
+  }
+
+  /** Visit the specified string literal node. */
+  public void visitStringLiteral(GNode n) {
+    printer.p("__rt::literal(");
+    printer.p(n.getString(0));
+    printer.p(')');
+  }
+
+  /** Visit primary identifier node. */
+  public void visitPrimaryIdentifier(GNode n) {
+    printer.p(n.getString(0).replace("\\.", "::"));
+  }
+
+
+  /** Visit qualified identifier node. */
+  public void visitQualifiedIdentifier(GNode n) {
+    if (inDeclarator) {
+      printer.p("__" + n.getString(0));
+    } else {
+      printer.p(n.getString(0));
+    }
+  }
+
+  /** Visit return statement node. */
+  public void visitReturnStatement(GNode n) {
+    printer.p("return");
+    if (null != n.getNode(0)) {
+      printer.p(' ');
+      dispatch(n.getNode(0));
+    }
+    printer.p(";\n");
+  }
+
+  /** Visit print expression node. */
+  public void visitPrintExpression(GNode n) {
+    printer.p("std::cout << ");
+    visit(n);
+    printer.pln(" << std::endl;");  
+  }
+
+
+  /** Visit arguments node. */
+  public void visitArguments(GNode n) {
+    if (null != primary) {
+      printer.p(primary);
+    }
+    for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+      if (iter.hasNext()) {
+        printer.p(", ");
+      }      
+      dispatch((Node)iter.next());
+    }
+  }
+
+  /** Visit field declaration node. */
+  public void visitFieldDeclaration(GNode n) {
+    printer.indent().p(n.getNode(0)).p(n.getNode(1)).p(' ').p(n.getNode(2)).
+      p(';').pln();
+  }
+  
+  /** Visit new class expression node. */
+  public void visitNewClassExpression(GNode n) {
+    printer.p(" new ");
+    dispatch(n.getGeneric(2));
+    printer.p("(");
+    dispatch(n.getGeneric(3));
+    printer.p(")");
   }
 
   /** Visit the runtime node. */

@@ -21,7 +21,10 @@ public class BodyAnalyzer {
    */
   public static void restructure(Klass.Member m) {
     final Klass.Member member = m;
+    final Klass klassOfMember = member.of();
     new Visitor() {
+
+      boolean resolving = false;
 
       /** 
        * Determine whether call expression is a
@@ -113,18 +116,26 @@ public class BodyAnalyzer {
        * visitArguments returns an ArrayList<ParameterVariable>.
        */
       @SuppressWarnings("unchecked")
-      public void visitCallExpression(GNode n) {
+      public GNode visitCallExpression(GNode n) {
         visit(n);
 
         if (isPrintExpression(n)) {
+          // Replace Arguments with PrintArguments
+          GNode printArguments = GNode.create("PrintArguments");
+          for (int i = 0; i < n.getGeneric(3).size(); i++) {
+            printArguments.add(n.getGeneric(3).getGeneric(i));
+          }
+          n.set(3, printArguments);
+
           GNode arguments = n.getGeneric(3);
           GNode printNode = GNode.create("PrintExpression", arguments);
           if (n.getString(2).equals("println")) {
             printNode = GNode.create("PrintLineExpression", arguments);
           }
-          copyLoc(n, printNode);
+          return copyLoc(n, printNode);
         } else {
           // RESOLUTION ======================================================
+          resolving = true;
           GNode selectionExpression = n.getGeneric(0);
           
           // TODO: Watch out—n.getGeneric(0) might be an expression itself.
@@ -133,7 +144,7 @@ public class BodyAnalyzer {
           String identifier = n.getString(2);
 
           ArrayList<Type> arguments =
-            (ArrayList<Type>)dispatch(n.getGeneric(3));
+            (ArrayList<Type>)getArguments(n.getGeneric(3));
          
           // The magic. 
           String resolvedIdentifier =
@@ -142,12 +153,15 @@ public class BodyAnalyzer {
               .match().filter().choose().rename();
         
           n.set(2, resolvedIdentifier);
+          n.set(1, Utilities.resolve(klassOfMember.name(), false)); // HACK
+          resolving = false;
+          return n;
           // =================================================================
         }
       }
 
       /** Visit specified arguments node. */
-      public ArrayList<Type> visitArguments(GNode n) {
+      public ArrayList<Type> getArguments(GNode n) {
         final ArrayList<Type> arguments = new ArrayList<Type>();
         if (0 == n.size()) { return arguments; }
         
@@ -208,12 +222,19 @@ public class BodyAnalyzer {
       }
 
       /** Visit specified generic node. */
-      public void visit(GNode n) {
-        for (Object o : n) {
-          if (o instanceof Node) {
-            dispatch((Node)o);
+      public Node visit(final Node n) {
+        if (resolving) {
+          for (Object o : n) {
+            if (o instanceof Node) dispatch((Node)o);
+          }
+        } else {
+          for (int i = 0; i < n.size(); i++) {
+            final Object o = n.get(i);
+            if (o instanceof Node)
+              n.set(i, dispatch((Node)o));
           }
         }
+        return n;
       }
     }.dispatch(member.body());
   }

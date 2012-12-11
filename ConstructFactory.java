@@ -219,7 +219,7 @@ public class ConstructFactory {
           buildPointerTypedef(klass.name()),      /* 0 */
           buildDataLayoutDeclaration(klass),      /* 1 */
           buildVTDeclaration(klass),              /* 2 */
-          buildQualifiedIdentifier(klass.name()), /* 3 */
+          klass.name(),                           /* 3 */
           buildExtension(klass.parent()),         /* 4 */
           buildClassBody(klass),                  /* 5 */
           buildArrayTemplate(klass));             /* 6 */
