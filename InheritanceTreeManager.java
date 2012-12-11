@@ -291,7 +291,7 @@ public class InheritanceTreeManager {
     }
 
     classTreeNode.setProperty(
-        "ClassName", classDeclaration.getString(0));
+        "ClassName", className.get(className.size() - 1));
 
     classTreeNode.setProperty("ClassDeclaration", classDeclaration);
     insertClass(className, classTreeNode);

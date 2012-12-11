@@ -15,10 +15,13 @@ public class MethodResolver {
   */
   public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree ) {
     //TODO: Implement overloading. For now we just return the first method with the right name
-    GNode classDeclaration = inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(classType.getGeneric(0)));
+    String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
+    GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
     ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
     ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
 
+    System.err.print("Arg length matches");
+    System.err.println(argLengthMatches);
     GNode calledMethod = getMostSpecific(argLengthMatches);
 
     MethodResolver.inheritanceTree = inheritanceTree;
@@ -39,6 +42,8 @@ public class MethodResolver {
       }
     }
 
+    System.err.print("Possible Matches: ");
+    System.err.println(possibleMatches);
     return possibleMatches.get(possibleMatches.size() - 1);
   }
 
@@ -86,7 +91,7 @@ public class MethodResolver {
 
     while (sourceName != "java.lang.Object"){
       sourceClassTreeNode = (GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.PARENT_CLASS);
-      sourceName = sourceClassTreeNode.getStringProperty(InheritanceTreeManager.CLASS_NAME);
+      sourceName = ((GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.CLASS_DECLARATION)).getString(0);
 
       if (sourceName.equals(targetName)) return true;
     }
