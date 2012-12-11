@@ -92,8 +92,21 @@ public class BodyAnalyzer {
 
       // =======================================================================
 
+      class MethodChain {
+        /** Whether method chaining. */
+        boolean chaining = false;
+
+        /** The level of chaining. */
+        int chainedLevel = -1;
+
+        /** Last return type. */
+        Type lastReturnType;
+      } 
+
       /** 
        * Visit specified call expression node. 
+       *
+       * TODO: May need to have own Visitor to clean things.
        *
        * The suppression is for the cast from Object to
        * ArrayList<ParameterVariable>, which should be safe since
@@ -102,6 +115,7 @@ public class BodyAnalyzer {
       @SuppressWarnings("unchecked")
       public void visitCallExpression(GNode n) {
         visit(n);
+
         if (isPrintExpression(n)) {
           GNode arguments = n.getGeneric(3);
           GNode printNode = GNode.create("PrintExpression", arguments);
@@ -110,12 +124,15 @@ public class BodyAnalyzer {
           }
           copyLoc(n, printNode);
         } else {
+          // RESOLUTION ======================================================
           GNode selectionExpression = n.getGeneric(0);
+          
+          // TODO: Watch out—n.getGeneric(0) might be an expression itself.
           ArrayList<String> selectors = extractSelectors(selectionExpression);
 
           String identifier = n.getString(2);
 
-          ArrayList<Type> arguments = 
+          ArrayList<Type> arguments =
             (ArrayList<Type>)dispatch(n.getGeneric(3));
          
           // The magic. 
@@ -125,7 +142,7 @@ public class BodyAnalyzer {
               .match().filter().choose().rename();
         
           n.set(2, resolvedIdentifier);
-          System.out.println(n);
+          // =================================================================
         }
       }
 
@@ -179,7 +196,10 @@ public class BodyAnalyzer {
 
           public void visit(GNode n) {
             for (Object o : n) {
-              if (o instanceof Node) { dispatch((Node)o); }
+              if (o instanceof Node) { 
+                Node node = (Node)o;
+                dispatch(node); 
+              }
             }
           }
         }.dispatch(n);
