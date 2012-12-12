@@ -246,7 +246,7 @@ public class CPPAST {
    * @param classNode Class node.
    * @returns method node.
    */
-  GNode addMethod(String name, GNode returnType, GNode classNode) {
+  GNode addMethod(String name, GNode returnType, GNode classNode, GNode parameters) {
     // If this is the first method we are adding, add Object's methods first
     if(classNode.getGeneric(4).size() == 0){
       addAllInheritedMethods(generateObjectMethods(), classNode);
@@ -261,11 +261,17 @@ public class CPPAST {
     //Find if a method exists with the same name and input. If it does, overwrite it with the new implemented method
     boolean overridingMethod = false;
     GNode methodsNode = classNode.getGeneric(4);
+    
+    setMethodParameters(parameters, methodNode);
+    System.err.println("METHOD NAME");
+    System.err.println(Type.getCppMangledMethodName(methodNode));
     for(int i = 0; i < methodsNode.size(); i++){
       GNode method = methodsNode.getGeneric(i);
       if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
-      if(method.getString(0).equals(name)){
         //TODO: Check for exact match
+      if(Type.getCppMangledMethodName(method).equals(Type.getCppMangledMethodName(methodNode))){
+        System.err.println("REPLACING METHOD");
+        
         methodsNode.set(i, methodNode);
         overridingMethod = true;
         break;
@@ -288,7 +294,7 @@ public class CPPAST {
    * @param from Name of class the method inherits from.
    * @returns method node.
    */
-  GNode addMethod(String name, GNode returnType, GNode classNode, String from) {
+  GNode addMethod(String name, GNode returnType, GNode classNode, String from, GNode parameters) {
     GNode methodNode = GNode.create("InheritedMethodDeclaration");
     methodNode.add(name);
     methodNode.addNode(GNode.create("ReturnType")).getGeneric(methodNode.size()-1).add(returnType.getGeneric(0));
@@ -300,7 +306,7 @@ public class CPPAST {
     for(int i = 0; i < methodsNode.size(); i++){
       GNode method = methodsNode.getGeneric(i);
       if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
-      if(method.getString(0).equals(name)){
+      if(Type.getCppMangledMethodName(method).equals(Type.getCppMangledMethodName(methodNode))){
         methodsNode.set(i, methodNode);
         overridingMethod = true;
         break;
@@ -334,7 +340,7 @@ public class CPPAST {
     method.add(3, block);
   }
 
-  /**
+  /*
    * Add method parameter.
    *
    * @param paramType Parameter type node.

@@ -212,13 +212,10 @@ public class QimppTranslator extends Tool {
 
             }
             GNode returnType = (GNode)dispatch(n.getGeneric(2));
-            currentMethod = cppast.addMethod(methodName, returnType, currentClass);
-            //Add the method params gotten by dispatching the formalParameters node
-            cppast.setMethodParameters((GNode)dispatch(n.getGeneric(4)), currentMethod);
+            GNode parameters = (GNode)dispatch(n.getGeneric(4));
+            currentMethod = cppast.addMethod(methodName, returnType, currentClass, parameters);
             //Add the method block gotten by dispatching the block node
 
-          //System.out.println("getGeneric(7): " + n.getGeneric(7));
-          //System.out.println(dispatch(n.getGeneric(7)));
           dispatch(n.getGeneric(7));
           GNode block = n.getGeneric(7);
           cppast.setMethodInstructions(block, currentMethod);
@@ -236,6 +233,7 @@ public class QimppTranslator extends Tool {
         }
  
         public GNode visitFormalParameters(GNode n){
+          visit(n);
           //Loop through all the params dispatching them and adding the result to a parameters GNode
           GNode parameters = GNode.create("FormalParameters");
           for(Object o : n){

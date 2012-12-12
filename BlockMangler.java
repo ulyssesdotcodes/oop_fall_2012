@@ -145,7 +145,7 @@ public class BlockMangler {
         String resultType = Type.compare(leftType, rightType);
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", resultType)));
 
-        return Constants.IDENTIFIER_TYPE;
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
       public String visitAdditiveExpression(GNode n){

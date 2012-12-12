@@ -430,7 +430,7 @@ public class ImplementationPrinter extends Visitor {
 
     if (!inMain) {
       printer.p(" ").p(currentNamespace).p("__").p(this.currentClass);
-      printer.p("::").p(n.getString(0)); // method name  
+      printer.p("::").p(Type.getCppMangledMethodName(n)); // method name  
       dispatch(n.getGeneric(2)); // parameters
     } 
     else {
@@ -637,7 +637,11 @@ public class ImplementationPrinter extends Visitor {
 			if (iter.hasNext()) {
 				printer.p(", ");
 			}
-			printer.p(((Node)iter.next()).getString(0));
+      
+      GNode formalParameter = (GNode)iter.next();
+      printer.p(Disambiguator.getDotDelimitedName(formalParameter.getGeneric(1).getGeneric(0)))
+			.p(" ").p(formalParameter.getString(0));
+      
 		}
 		printer.p(')');
 	}

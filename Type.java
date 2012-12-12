@@ -36,6 +36,7 @@ class Type {
     put("double", "double");
     put("char", "char");
     put("boolean", "bool");
+    put("void", "void");
   }};
 
   static String[] priorities = 
@@ -113,6 +114,53 @@ class Type {
    */
   static String primitiveType(String type){
     return primitives.get(type);
+  }
+
+  /**
+   * Get a method name based on its arguments
+   * @param method the Java AST MethodDeclaration node
+   */
+  static String getJavaMangledMethodName(GNode method){
+    StringBuilder mangledNameBuilder = new StringBuilder();
+    mangledNameBuilder.append(method.getString(3));
+
+    GNode args = method.getGeneric(4);
+
+    for ( Object o : args ) {
+      GNode type = ((GNode)o).getGeneric(1);
+      mangledNameBuilder.append("_");
+      if ( type.getGeneric(0).getName().equals("PrimitiveType") ){
+        mangledNameBuilder.append(type.getGeneric(0).getString(0));
+      }
+      else {
+        mangledNameBuilder.append(Disambiguator.getUnderscoreDelimitedName(type.getGeneric(0)));
+      }
+    }
+
+    return mangledNameBuilder.toString();
+  }
+
+  /**
+   * Get a method name based on its arguments
+   * @param method the CPP AST MethodDeclaration node
+   */
+  static String getCppMangledMethodName(GNode method){
+    StringBuilder mangledNameBuilder = new StringBuilder();
+    mangledNameBuilder.append(method.getString(0));
+
+    GNode args = method.getGeneric(2);
+
+    for ( Object o : args ) {
+      GNode type = ((GNode)o).getGeneric(1);
+      mangledNameBuilder.append("_");
+      if ( type.getGeneric(0).getName().equals("PrimitiveType") ){
+        mangledNameBuilder.append(type.getGeneric(0).getString(0));
+      }
+      else {
+        mangledNameBuilder.append(Disambiguator.getUnderscoreDelimitedName(type.getGeneric(0)));
+      }
+    }
+    return mangledNameBuilder.toString();
   }
  
   /**

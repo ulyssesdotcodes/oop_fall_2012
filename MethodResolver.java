@@ -20,13 +20,14 @@ public class MethodResolver {
     ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
     ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
 
-    System.err.print("Arg length matches");
-    System.err.println(argLengthMatches);
     GNode calledMethod = getMostSpecific(argLengthMatches);
 
     MethodResolver.inheritanceTree = inheritanceTree;
+    methodName = Type.getCppMangledMethodName(calledMethod);
+    System.err.println("METHOD CALL: ");
+    System.err.println(methodName);
      
-    return GNode.create("CallInfo", calledMethod.getString(0), calledMethod.getGeneric(1));
+    return GNode.create("CallInfo", methodName, calledMethod.getGeneric(1));
   }
 
   /**
@@ -37,7 +38,7 @@ public class MethodResolver {
     // Also, this will work without complaint if the result is actually ambiguous,
     // we are assuming the Java program actually works
     for (int i = 0; i < possibleMatches.size() - 1; i++){
-      if (isCastable(possibleMatches.get(i), possibleMatches.get(i + 1))){
+      if (isCastable(possibleMatches.get(i).getGeneric(2), possibleMatches.get(i + 1).getGeneric(2))){
         possibleMatches.set(i + 1, possibleMatches.get(i));
       }
     }
@@ -56,7 +57,7 @@ public class MethodResolver {
     GNode targetType = targetArgTypes.getGeneric(i);
     GNode sourceType = sourceArgTypes.getGeneric(i);
 
-    if (targetType.getGeneric(0).getName().equals(sourceType.getGeneric(0).getName())){
+    if (targetType.getGeneric(1).getName().equals(sourceType.getGeneric(1).getName())){
       return false;
     }
     
@@ -113,10 +114,12 @@ public class MethodResolver {
    * Get all the methods with matching length of arguments
    */
   private static ArrayList<GNode> findArgLengthMatches(ArrayList<GNode> nameMatches, int numArgs){
+    System.err.println("We want " + numArgs + " args.");
     ArrayList<GNode> lengthMatches = new ArrayList<GNode>();
 
     for (GNode n : nameMatches){
-      GNode args = n.getGeneric(3);
+      GNode args = n.getGeneric(2);
+      System.err.println("Num args: " + args.size());
       if (args.size() == numArgs){
         lengthMatches.add(n);
       }
@@ -128,6 +131,9 @@ public class MethodResolver {
   private static ArrayList<GNode> findNameMatches(String methodName, GNode classDeclaration){
     GNode methodContainer = classDeclaration.getGeneric(4);
     ArrayList<GNode> matches = new ArrayList<GNode>();
+    //System.err.println(methodContainer);
+    //System.err.println("MethodContainer size");
+    //System.err.println(methodContainer.size());
     for (int i = 0; i < methodContainer.size(); i++){
       GNode method = methodContainer.getGeneric(i);
       if (method.getName().equals("InheritedMethodContainer")){
@@ -135,7 +141,10 @@ public class MethodResolver {
           matches.add(method.getGeneric(0));
       }
       else{
+        System.out.println("Method name");
+        System.out.println(method.getString(0));
         if (method.getString(0).equals(methodName)) {
+
           matches.add(method);
         }
       }

@@ -219,7 +219,7 @@ public class HeaderWriter extends Visitor {
   * @param node the node being examined
   */
   private void writeAlias(GNode node){
-      printer.p("typedef __").p(name(node)).p("* ").p(name(node));
+      printer.p("typedef __rt::Ptr<__").p(name(node)).p(" > ").p(name(node));
     printer.p(";\n").pln();
   }
  
@@ -348,7 +348,7 @@ public class HeaderWriter extends Visitor {
   private void writeMethod(GNode n, String current_class){
     indentOut().p("static ");
     printer.p(getType(n, true)).p(" ");
-    printer.p(n.getString(0)).p("(").p(current_class);
+    printer.p(Type.getCppMangledMethodName(n)).p("(").p(current_class);
     // visit params 
     new Visitor() {
   
@@ -390,14 +390,14 @@ public class HeaderWriter extends Visitor {
     printer.incr();
       // initialize __isa
       indentOut().pln("java::lang::Class __isa;\n");
-      indentOut().p("void (*__delete)(__").p(name(node)).p("*);");  
+      indentOut().p("void (*__delete)(__").p(name(node)).p("*);").pln();  
       writeInheritedVTMethods(node);
       writeVTMethods(node);
       
       printer.pln();
       writeVTConstructor(node);
       indentOut().p(": __isa(__").p(name(node)).pln("::__class()),\n");
-      indentOut().p("__delete(&__rt::__delete<__").p(name(node)).p(" >),");
+      indentOut().p("__delete(&__rt::__delete<__").p(name(node)).p(" >),").pln();
         // writeObjectInheritedVTAddresses(node);
         printer.incr();
         writeInheritedVTAddresses(node);
@@ -443,7 +443,7 @@ public class HeaderWriter extends Visitor {
 
   private void writeVTMethod(GNode n, String current_class){
     indentOut().p(getType(n, true)).p(" ");
-    printer.p("(*").p(n.getString(0)).p(")(").p(current_class);
+    printer.p("(*").p(Type.getCppMangledMethodName(n)).p(")(").p(current_class);
     // if (n.getGeneric(2).size() != 0) 
      // printer.p(", <formal params>");
     
