@@ -1049,10 +1049,12 @@ public class SymbolTable {
       }
 
       public void visitBasicForControl(GNode n) {
-        ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
-        for ( String name : fieldNames ) {
+        if (n.getNode(0) != null) {
+          ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
+          for ( String name : fieldNames ) {
             // Associate the name with its field declaration
-            table.current().addDefinition(name, n);
+              table.current().addDefinition(name, n);
+          }
         }
       } 
 
