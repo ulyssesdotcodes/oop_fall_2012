@@ -8,38 +8,7 @@ import re
 import sys
 
 
-#Figure out which tests we'll run
-files = os.listdir(os.getcwd())
-
-numtests = 0
-testFilenames = []
-
-for filename in files:
-  if os.path.isfile(filename) and re.match("^Test.*\\.java$", filename):
-    numtests += 1
-    testFilenames.append(filename)
-
-print "\n===================="
-# Check if a specific test was specified on the command line
-try:
-  targetFile = sys.argv[1];
-  if not targetFile in testFilenames:
-    raise TypeError("No such test file")
-  testFilenames = [targetFile]
-except TypeError as e:
-  print e
-  exit(1)
-except:
-    pass # No first argument
-
-# Change directory to the source root
-os.chdir("../..")
-os.system("rm java.output cpp.output a.out out.cc out.h")
-
-# Loop through all test files, or if a single one is specified, do that
-# one
-
-for filename in testFilenames:
+def runVerbose(filename):
 
   print "\n\n----------------------------"
   print "Testing " + filename 
@@ -73,6 +42,81 @@ for filename in testFilenames:
     print "DIFF"
     print "==============================="
     os.system( "diff java.output cpp.output" )
+
+def runQuick(filenames):
+
+  for filename in filenames:
+    print "Testing " + filename + ": " ,
+    
+    translate_succeeded = (0 == os.system( "java qimpp.QimppTranslator qimpp/tests/" + filename +" > translator.output 2> translator.err" ))
+    
+    if not translate_succeeded:
+      print "FAIL - translation"
+      continue
+      
+    compile_succeded = (0 == os.system("g++ out.cc java_lang.cc 1> gcc.output 2> gcc.err"))
+    
+    if not compile_succeded:
+      print "FAIL - compilation"
+      continue
+      
+    # Run output file
+    os.system( "./a.out > cpp.output" )
+      
+    # Run test and put output into file
+    os.system( "java qimpp.tests." + filename.split(".")[0] + " > java.output" )
+    
+    java_output = open("java.output").read()
+    cpp_output = open("cpp.output").read()
+    
+    if (java_output == cpp_output):
+      print "OK"
+      
+    else:
+      print "FAIL - diff"
+      
+    
+#Main
+
+#Figure out which tests we'll run
+files = os.listdir(os.getcwd())
+
+numtests = 0
+testFilenames = []
+
+for filename in files:
+  if os.path.isfile(filename) and re.match("^Test.*\\.java$", filename):
+    numtests += 1
+    testFilenames.append(filename)
+
+print "\n===================="
+# Check if a specific test was specified on the command line
+try:
+  targetFile = sys.argv[1];
+  if not targetFile in testFilenames:
+    raise TypeError("No such test file")
+  testFilenames = [targetFile]
+except TypeError as e:
+  print e
+  exit(1)
+except:
+    pass # No first argument
+
+# Make sure all test files are built
+os.system("make")
+# Change directory to the source root
+os.chdir("../..")
+os.system("rm java.output cpp.output a.out out.cc out.h")
+
+# Loop through all test files, or if a single one is specified, do that
+# one
+if len(testFilenames) == 1:
+  runVerbose(testFilenames[0])
+  
+if len(testFilenames) > 1:
+  runQuick(testFilenames)
+
+
 
   
 
