@@ -531,12 +531,12 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitConstructorDeclaration(GNode n) {
-        
+        //Add a constructor to currentClass and get the associated GNode
+        currentConstructor = cppast.addConstructor(currentClass);
+
         //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
         if(n.getGeneric(4) != null){ 
-          //Add a constructor to currentClass and get the associated GNode
-          currentConstructor = cppast.addConstructor(currentClass);
-
+          
           cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
         }
         //If there are instructions in the block, visit them and add them to the constructor
