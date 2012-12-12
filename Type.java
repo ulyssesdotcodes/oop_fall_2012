@@ -177,5 +177,28 @@ class Type {
     else return type;
   }
 
-  
+  static String getNamespace(String qualifiedName) {
+    String[] qualifiers = qualifiedName.split("\\.");
+    StringBuilder namespace = new StringBuilder();
+    for ( int i = 0; i < qualifiers.length - 1; i++ ){
+      namespace.append(qualifiers[i]);
+      namespace.append("::");
+    }
+    return namespace.toString();
+  }
+
+  static String getClassName(String qualifiedName){
+    String[] qualifiers = qualifiedName.split("\\.");
+    return qualifiers[qualifiers.length - 1];
+  }
+
+  static String getInstanceName(GNode qualifiedIdentifier){
+    String qualifiedName = Disambiguator.getDotDelimitedName(qualifiedIdentifier);
+    return getNamespace(qualifiedName) + getClassName(qualifiedName);
+  }
+
+  static String getClassTypeName(GNode qualifiedIdentifier){
+    String qualifiedName = Disambiguator.getDotDelimitedName(qualifiedIdentifier);
+    return getNamespace(qualifiedName) + "__" +  getClassName(qualifiedName);  
+  }
 }

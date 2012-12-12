@@ -472,7 +472,7 @@ public class ImplementationPrinter extends Visitor {
     //If we're using a local call
     if (n.getGeneric(0) == null){
       //Print the call
-      printer.p("__this->__vptr->");
+      indentOut().p("__this->__vptr->");
       printer.p(n.getString(2));
       printer.p("(");
       dispatch(n.getGeneric(3));
@@ -493,16 +493,24 @@ public class ImplementationPrinter extends Visitor {
     else {
       //TODO: Chained calls
       // Print the correct call here
+      // Get the type of the calling expression or field name, and make a _this to reference it
+      // It is necessarily an instance, and should be associated with a QualifiedIdentifier
+      GNode callingTypeNode = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+      printer.p("({ ").p(Type.getInstanceName(callingTypeNode.getGeneric(0)))
+        .p(" _this = ");
+      //Print the nested expression
       dispatch(n.getGeneric(0));
-      printer.p("->__vptr->").p(n.getString(2)).p("(");
-      //For now, send in the caller by name. Obviously this won't work for chained calls
-      dispatch(n.getGeneric(0));
+      //End the expression;
+      printer.p(" ;");
+
+      // Print the actual call
+      printer.p(" _this->__vptr->").p(n.getString(2)).p("( _this ");
       // We don't want to print the comma if there are not more arguments
       if (n.getGeneric(3).size()!= 0){
         printer.p(", ");
         dispatch(n.getGeneric(3));
       }
-      printer.p(")");
+      printer.p(");").p(" })");
     }
     printer.flush();
   }
