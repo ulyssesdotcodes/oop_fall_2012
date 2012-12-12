@@ -66,6 +66,21 @@ public class Disambiguator{
     return nameBuilder.toString();
   }
 
+  /**
+   * Turns a QualifiedIdentifier into a :: delimited name
+   */
+  public static String getColonDelimitedName(GNode qualifiedIdentifier){
+    StringBuilder nameBuilder = new StringBuilder();
+    for ( int i = 0; i < qualifiedIdentifier.size(); i++ ) {
+      nameBuilder.append(qualifiedIdentifier.getString(i));
+      if ( i < qualifiedIdentifier.size() - 1 ) {
+        nameBuilder.append("::");
+      } 
+    }
+
+    return nameBuilder.toString();
+  }
+
   /*
    * Gets the mangled method name for declaration for overloading purposes
    * @param methodDeclaration a MethodDeclaration node

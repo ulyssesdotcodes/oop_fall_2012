@@ -34,7 +34,7 @@ namespace java {
     }
 
     // java.lang.Object.equals(Object)
-    bool __Object::equals(Object __this, Object other) {
+    bool __Object::equals_java_lang_Object(Object __this, Object other) {
       return __this.raw() == other.raw();
     }
 
@@ -88,7 +88,7 @@ namespace java {
     }
 
     // java.lang.String.equals()
-    bool __String::equals(String __this, Object o) {
+    bool __String::equals_java_lang_Object(String __this, Object o) {
       // Make sure object is a string:
       // if (! o instanceof String) return false;
       Class k = __String::__class();
@@ -110,7 +110,7 @@ namespace java {
     }
 
     // java.lang.String.charAt()
-    char __String::charAt(String __this, int32_t idx) {
+    char __String::charAt_int(String __this, int32_t idx) {
       if (0 > idx || idx >= __this->data.length()) {
         throw IndexOutOfBoundsException();
       }
@@ -186,7 +186,7 @@ namespace java {
       Class k = o->__vptr->getClass(o);
 
       do {
-        if (__this->__vptr->equals(__this, k)) return true;
+        if (__this->__vptr->equals_java_lang_Object(__this, k)) return true;
 
         k = k->__vptr->getSuperclass(k);
       } while (__rt::null() != k);

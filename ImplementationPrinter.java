@@ -639,7 +639,8 @@ public class ImplementationPrinter extends Visitor {
 			}
       
       GNode formalParameter = (GNode)iter.next();
-      printer.p(Disambiguator.getDotDelimitedName(formalParameter.getGeneric(1).getGeneric(0)))
+
+      printer.p(Disambiguator.getColonDelimitedName(formalParameter.getGeneric(1).getGeneric(0)))
 			.p(" ").p(formalParameter.getString(0));
       
 		}

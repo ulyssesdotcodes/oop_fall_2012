@@ -506,7 +506,7 @@ public class HeaderWriter extends Visitor {
     GNode inheritedMethodContainer;
     inheritedMethodContainer = n;
     n = inheritedMethodContainer.getGeneric(0);
-    indentOut().p(n.getString(0)).p("((");
+    indentOut().p(Type.getCppMangledMethodName(n)).p("((");
     printer.p(getType(n, true));
     printer.p("(*)(").p(current_class);
     //if (n.getGeneric(2).size() != 0)
@@ -526,12 +526,12 @@ public class HeaderWriter extends Visitor {
       //printer.p(", <formal params>");
     // following line gets From field from method node
     printer.p("))&").p(getTypeDirect(inheritedMethodContainer.getGeneric(1).getGeneric(0), false))
-      .p("::").p(name(n)).p(")");
+      .p("::").p(Type.getCppMangledMethodName(n)).p(")");
   }
 
   private void writeVTAddress(GNode n, String current_class) {
-    indentOut().p(n.getString(0)).p("(&__").p(current_class).p("::")
-      .p(n.getString(0)).p(")");
+    indentOut().p(Type.getCppMangledMethodName(n)).p("(&__").p(current_class).p("::")
+      .p(Type.getCppMangledMethodName(n)).p(")");
   }
 
 

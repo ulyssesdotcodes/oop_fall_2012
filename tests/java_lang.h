@@ -85,7 +85,7 @@ namespace java {
 
       // The methods implemented by java.lang.Object.
       static int32_t hashCode(Object);
-      static bool equals(Object, Object);
+      static bool equals_java_lang_Object(Object, Object);
       static Class getClass(Object);
       static String toString(Object);
 
@@ -102,7 +102,7 @@ namespace java {
       Class __isa;
       void (*__delete)(__Object*);
       int32_t (*hashCode)(Object);
-      bool (*equals)(Object, Object);
+      bool (*equals_java_lang_Object)(Object, Object);
       Class (*getClass)(Object);
       String (*toString)(Object);
 
@@ -110,7 +110,7 @@ namespace java {
       : __isa(__Object::__class()),
         __delete(&__rt::__delete<__Object>),
         hashCode(&__Object::hashCode),
-        equals(&__Object::equals),
+        equals_java_lang_Object(&__Object::equals_java_lang_Object),
         getClass(&__Object::getClass),
         toString(&__Object::toString) {
       }
@@ -128,10 +128,10 @@ namespace java {
 
       // The methods implemented by java.lang.String.
       static int32_t hashCode(String);
-      static bool equals(String, Object);
+      static bool equals_java_lang_Object(String, Object);
       static String toString(String);
       static int32_t length(String);
-      static char charAt(String, int32_t);
+      static char charAt_int(String, int32_t);
 
       // The function returning the class object representing
       // java.lang.String.
@@ -148,21 +148,21 @@ namespace java {
       Class __isa;
       void (*__delete)(__String*);
       int32_t (*hashCode)(String);
-      bool (*equals)(String, Object);
+      bool (*equals_java_lang_Object)(String, Object);
       Class (*getClass)(String);
       String (*toString)(String);
       int32_t (*length)(String);
-      char (*charAt)(String, int32_t);
+      char (*charAt_int)(String, int32_t);
       
       __String_VT()
       : __isa(__String::__class()),
         __delete(&__rt::__delete<__String>),
         hashCode(&__String::hashCode),
-        equals(&__String::equals),
+        equals_java_lang_Object(&__String::equals_java_lang_Object),
         getClass((Class(*)(String))&__Object::getClass),
         toString(&__String::toString),
         length(&__String::length),
-        charAt(&__String::charAt) {
+        charAt_int(&__String::charAt_int) {
       }
     };
 
@@ -204,7 +204,7 @@ namespace java {
       Class __isa;
       void (*__delete)(__Class*);
       int32_t (*hashCode)(Class);
-      bool (*equals)(Class, Object);
+      bool (*equals_java_lang_Object)(Class, Object);
       Class (*getClass)(Class);
       String (*toString)(Class);
       String (*getName)(Class);
@@ -218,7 +218,7 @@ namespace java {
       : __isa(__Class::__class()),
         __delete(&__rt::__delete<__Class>),
         hashCode((int32_t(*)(Class))&__Object::hashCode),
-        equals((bool(*)(Class,Object))&__Object::equals),
+        equals_java_lang_Object((bool(*)(Class,Object))&__Object::equals_java_lang_Object),
         getClass((Class(*)(Class))&__Object::getClass),
         toString(&__Class::toString),
         getName(&__Class::getName),
@@ -335,7 +335,7 @@ namespace __rt {
     java::lang::Class __isa;
     void (*__delete)(Array<T>*);
     int32_t (*hashCode)(Reference);
-    bool (*equals)(Reference, java::lang::Object);
+    bool (*equals_java_lang_Object)(Reference, java::lang::Object);
     java::lang::Class (*getClass)(Reference);
     java::lang::String (*toString)(Reference);
     
@@ -344,8 +344,8 @@ namespace __rt {
       __delete(&Array<T>::__delete),
       hashCode((int32_t(*)(Reference))
                &java::lang::__Object::hashCode),
-      equals((bool(*)(Reference,java::lang::Object))
-             &java::lang::__Object::equals),
+      equals_java_lang_Object((bool(*)(Reference,java::lang::Object))
+             &java::lang::__Object::equals_java_lang_Object),
       getClass((java::lang::Class(*)(Reference))
                &java::lang::__Object::getClass),
       toString((java::lang::String(*)(Reference))
