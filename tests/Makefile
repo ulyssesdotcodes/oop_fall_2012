@@ -58,8 +58,10 @@ SOURCE = \
 	TestMethodOverloadingWithInheritance.java \
 	TestMultidimensionalArrays.java \
 	TestNestedForLoops.java \
+	TestOverloadedConstructors.java \
 	TestStrings.java \
 	TestScopes.java \
+	TestStaticMethods.java \
 	TestWhileLoops.java \
 	TestNotExpression.java
 
