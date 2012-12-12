@@ -101,13 +101,19 @@ public class BlockMangler {
 
       }
 
+      public String visitBooleanLiteral(GNode n) {
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "boolean")));
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;
+      }
+
       /**
        * Set the appropriate properties for an IntegerLiteral
        */
       public String visitIntegerLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle longs
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", "int")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "int")));
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
       
@@ -117,7 +123,7 @@ public class BlockMangler {
       public String visitFloatingPointLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle float
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", "double")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "double")));
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
@@ -143,7 +149,7 @@ public class BlockMangler {
         String rightType = ((GNode)n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0).getString(0);
 
         String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", resultType)));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType)));
 
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
@@ -183,7 +189,7 @@ public class BlockMangler {
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         
         String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveIdentifier", resultType)));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType)));
         
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;    
       }

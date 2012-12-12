@@ -61,6 +61,7 @@ SOURCE = \
 	TestStrings.java \
 	TestScopes.java \
 	TestWhileLoops.java \
+	TestNotExpression.java
 
 JNI_SOURCE =
 

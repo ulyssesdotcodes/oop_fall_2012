@@ -594,10 +594,25 @@ public class ImplementationPrinter extends Visitor {
       else 
         printer.p("__this->");
     }
-
+    //TODO: change this
+    //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+    //if (inPrintStatement && typeNode != null) {
+    //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
+    //    System.err.println("IT IS A BOOLEAN");
+    //    printer.p("str(");
+    //  }
+    //}
+   
     // Make sure to delimit fully-qualified names correctly
     printer.p(n.getString(0).replace("\\.", "::"));     
-	}
+    
+    //if (inPrintStatement && typeNode != null) {
+    //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
+    //  printer.p(")");
+    //  } 
+    //}
+
+  }
 
   public void visitThisExpression(GNode n){
     if (inConstructor)
@@ -823,7 +838,34 @@ public class ImplementationPrinter extends Visitor {
     endStatement(nested);
   }
 
-
+  /** Visit the specified logical or expression. */
+  public void visitLogicalOrExpression(GNode n) {
+    final int prec1 = startExpression(30);
+    printer.p(n.getNode(0));
+    printer.p(" || ");
+    final int prec2 = enterContext();
+    printer.p(n.getNode(1));
+    exitContext(prec2);
+    endExpression(prec1);
+  }
+  /** Visit the specified logical and expression. */
+  public void visitLogicalAndExpression(GNode n) {
+    final int prec1 = startExpression(40);
+    printer.p(n.getNode(0));
+    printer.p(" && ");
+    int prec2 = enterContext();
+    printer.p(n.getNode(1));
+    exitContext(prec2);
+    endExpression(prec1);
+  }
+ 
+ 
+  /** Visit the specified logical negation expression. */
+  public void visitLogicalNegationExpression(GNode n) {
+    final int prec = startExpression(150);
+    printer.p('!').p(n.getNode(0));
+    endExpression(prec);
+  }
  
 /** Visit the specified for statement. */
   public void visitForStatement(GNode n) { 
