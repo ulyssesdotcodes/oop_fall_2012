@@ -500,8 +500,16 @@ public class QimppTranslator extends Tool {
         visit(n);
       }
         
-      
-      
+      public void visitClassDeclaration(GNode n){
+        // Add a default no-arg constructor. If there is an explicit constructor, we can add it
+        // later.
+        //Add a constructor to currentClass and get the associated GNode
+        visit(n);
+        if (currentConstructor == null){
+          currentConstructor = cppast.addConstructor(currentClass);
+        }
+      }
+
       public void visitCompilationUnit(GNode n) {
         root = n;     
         //System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
@@ -523,10 +531,14 @@ public class QimppTranslator extends Tool {
       }
       
       public void visitConstructorDeclaration(GNode n) {
-        //Add a constructor to currentClass and get the associated GNode
-        currentConstructor = cppast.addConstructor(currentClass);
+        
         //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
-        if(n.getGeneric(4) != null) cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
+        if(n.getGeneric(4) != null){ 
+          //Add a constructor to currentClass and get the associated GNode
+          currentConstructor = cppast.addConstructor(currentClass);
+
+          cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
+        }
         //If there are instructions in the block, visit them and add them to the constructor
         if(n.getGeneric(5) != null) cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
       }

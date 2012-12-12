@@ -169,9 +169,6 @@ public class BlockMangler {
         GNode leftTypeNode = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
         GNode rightTypeNode = (GNode) n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
 
-        System.err.println(n);        
-        System.err.println(n.getGeneric(0));
-        System.err.println(leftTypeNode);
         if (leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier") ||
             rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
         //if (n.getGeneric(0).getName().equals("QualifiedIdentifier") ||
@@ -421,8 +418,6 @@ public class BlockMangler {
     if (scope == null) {
       return null;
     }
-    System.err.println(primaryIdentifier);
-    System.err.println(scope.lookup(primaryIdentifier.getString(0)));
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     
     if (result == null){

@@ -17,15 +17,19 @@ public class MethodResolver {
     //TODO: Implement overloading. For now we just return the first method with the right name
     String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
+    System.err.println("RESOLVING");
+    System.err.println(methodName);
+    System.err.println(argTypes);
     ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
     ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
+    ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, argTypes);
+    System.err.println("ARGCAST MATCHES:");
+    System.err.println(argCastMatches);
 
-    GNode calledMethod = getMostSpecific(argLengthMatches);
+    GNode calledMethod = getMostSpecific(argCastMatches);
 
     MethodResolver.inheritanceTree = inheritanceTree;
     methodName = Type.getCppMangledMethodName(calledMethod);
-    System.err.println("METHOD CALL: ");
-    System.err.println(methodName);
      
     return GNode.create("CallInfo", methodName, calledMethod.getGeneric(1));
   }
@@ -37,14 +41,25 @@ public class MethodResolver {
     // Bubble up, because I'm lazy
     // Also, this will work without complaint if the result is actually ambiguous,
     // we are assuming the Java program actually works
+
     for (int i = 0; i < possibleMatches.size() - 1; i++){
-      if (isCastable(possibleMatches.get(i).getGeneric(2), possibleMatches.get(i + 1).getGeneric(2))){
+      GNode formalParameters = possibleMatches.get(i).getGeneric(2);
+      GNode sourceTypes = GNode.create("ArgTypes");
+      for ( Object o : formalParameters ){
+        sourceTypes.add(((GNode)o).getGeneric(1));
+      }
+
+      formalParameters = possibleMatches.get(i+1).getGeneric(2);
+      GNode targetTypes = GNode.create("ArgTypes");
+      for (Object o : formalParameters ) {
+        targetTypes.add(((GNode) o).getGeneric(1));
+      }
+
+      if (isCastable(sourceTypes, targetTypes)){
         possibleMatches.set(i + 1, possibleMatches.get(i));
       }
     }
 
-    System.err.print("Possible Matches: ");
-    System.err.println(possibleMatches);
     return possibleMatches.get(possibleMatches.size() - 1);
   }
 
@@ -52,17 +67,22 @@ public class MethodResolver {
    * Check if one type is upcastable to another
    */
   private static boolean isCastable(GNode sourceArgTypes, GNode targetArgTypes){
+   System.err.println("CHECKING ARGS");
+   System.err.println(sourceArgTypes);
+   System.err.println(targetArgTypes);
    for (int i = 0; i < targetArgTypes.size(); i++){
     // They must both be PrimitiveType or both QualifiedIdentifier
     GNode targetType = targetArgTypes.getGeneric(i);
     GNode sourceType = sourceArgTypes.getGeneric(i);
 
-    if (targetType.getGeneric(1).getName().equals(sourceType.getGeneric(1).getName())){
+    if (!targetType.getGeneric(0).getName().equals(sourceType.getGeneric(0).getName())){
+      System.err.println("PRIMITIVE/QUALIFIED MISMATCH"); 
       return false;
     }
     
-    if (targetArgTypes.getGeneric(0).equals("QualifiedIdentifier")){
+    if (targetType.getGeneric(0).getName().equals("QualifiedIdentifier")){
       if (!isClassCastable(sourceType, targetType)){
+        System.err.println("NOT UPCASTABLE");
         return false;
       }
     }
@@ -70,6 +90,7 @@ public class MethodResolver {
     // Primitive type
     else {
       if (!isPrimitiveTypeCastable(sourceType, targetType)){
+        System.err.println("PRIMITIVE TYPE NOT UPCASTABLE");
         return false;
       }
     }
@@ -114,18 +135,35 @@ public class MethodResolver {
    * Get all the methods with matching length of arguments
    */
   private static ArrayList<GNode> findArgLengthMatches(ArrayList<GNode> nameMatches, int numArgs){
-    System.err.println("We want " + numArgs + " args.");
     ArrayList<GNode> lengthMatches = new ArrayList<GNode>();
 
     for (GNode n : nameMatches){
       GNode args = n.getGeneric(2);
-      System.err.println("Num args: " + args.size());
       if (args.size() == numArgs){
         lengthMatches.add(n);
       }
     }
 
     return lengthMatches;
+  }
+
+  /**
+   * Get all the methods whose arguments can be cast to from the given argument types
+   */
+  private static ArrayList<GNode> findArgCastMatches(ArrayList<GNode> argLengthMatches, GNode argTypes){
+    ArrayList<GNode> argCastMatches = new ArrayList<GNode>();    
+    
+    for ( Object o : argLengthMatches ){
+      GNode formalParameters = ((GNode)o).getGeneric(2);
+      GNode targetArgTypes = GNode.create("ArgTypes");
+      for ( Object p : formalParameters ){
+        targetArgTypes.add(((GNode)p).getGeneric(1)); 
+      }
+      if (isCastable(argTypes, targetArgTypes)){
+        argCastMatches.add((GNode)o);
+      }
+    }
+    return argCastMatches;
   }
 
   private static ArrayList<GNode> findNameMatches(String methodName, GNode classDeclaration){

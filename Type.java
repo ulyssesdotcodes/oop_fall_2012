@@ -59,6 +59,9 @@ class Type {
    * Figure out if one type can be cast to another
    */
   static boolean canWiden(String sourceType, String targetType){
+    if (sourceType.equals(targetType)){
+      return true;
+    }
     if (sourceType.equals("char")){
       for (int i = 0; i < charWidening.length; i++){
         if (targetType.equals(charWidening[i])) return true;
