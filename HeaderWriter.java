@@ -304,13 +304,13 @@ public class HeaderWriter extends Visitor {
   private String getType(GNode n, boolean isPointer) {
     System.out.println(n);
     GNode type = n.getGeneric(1).getGeneric(0);
+    String ret = "";
     if (type.getName().equals("PrimitiveType")) {
-      return Type.primitiveType(type.getString(0));
+      ret = Type.primitiveType(type.getString(0));
     }
     else if (type.getName().equals("QualifiedIdentifier")) {
       if (type.size() == 1 && isPointer == false)
-        return "__" + type.getString(0);
-      String ret = "";
+        ret = "__" + type.getString(0);
       for (Object id : type) {
         if (type.indexOf(id) == 0) 
           ret += type.getString(type.indexOf(id));
@@ -319,18 +319,24 @@ public class HeaderWriter extends Visitor {
         else 
           ret += "::" + type.getString(type.indexOf(id));
       }
-      return ret;
     }
     
     // HACK
     else if (type.getName().equals("Type")){
-      return getTypeDirect(type, isPointer);
+      ret = getTypeDirect(type, isPointer);
     }
     
     else {
       System.err.println("getType on : " + n.toString());
     }
-    return "NOT A REAL TYPE";
+
+    //If the type has a dimension array and it's not null, then add in the dimensions. If it's the return type for a java.lang.Object method (constructed by hand) it won't have a null at 1 index, so we have to check for that.
+    GNode dimensions = (n.getGeneric(1).size() > 1) ? n.getGeneric(1).getGeneric(1) : null;
+    if(dimensions != null){
+      ret = "__rt::Array<" + ret + ">*"; 
+    }
+
+    return (ret.length()!=0) ? ret : "NOT A VALID TYPE";
   }
 
   private void writeField(GNode n) {

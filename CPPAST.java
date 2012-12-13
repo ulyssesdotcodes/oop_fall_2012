@@ -528,7 +528,10 @@ public class CPPAST {
   GNode generateObjectType(){
     GNode qi = GNode.create("QualifiedIdentifier");
     qi.add("java").add("lang").add("Object");
-    return (GNode)((GNode.create("Type")).add(qi));
+    GNode type = GNode.create("Type");
+    type.add(qi);
+    type.add(null);
+    return type;
   }
   
   GNode generateObjectMethods(){

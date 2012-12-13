@@ -591,7 +591,15 @@ public class ImplementationPrinter extends Visitor {
       printer.p("::").p(n.getString(1));
     } 
     
-  } 
+  }
+
+  public void visitSubscriptExpression(GNode n){
+    dispatch(n.getGeneric(0));
+    printer.p("->__data[");
+    dispatch(n.getGeneric(1));
+    printer.p("]");
+  }
+
 
   /** Visit the specified primary identifier node.
    *  @return A node containing the name, the Type, and whether this variable is stack allocated GNode("Name", Type(...), true) */

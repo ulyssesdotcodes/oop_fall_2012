@@ -585,6 +585,7 @@ public class QimppTranslator extends Tool {
         else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");
           type.add( Disambiguator.disambiguate(typename));
+          type.add(n.get(1));
           return type;
         } 
 
@@ -592,8 +593,8 @@ public class QimppTranslator extends Tool {
 
           GNode type = GNode.create("Type");
           type.add(Disambiguator.disambiguate(typename));
+          type.add(n.get(1));
           return type;
-
         }
       }
       

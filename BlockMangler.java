@@ -72,8 +72,7 @@ public class BlockMangler {
         else if (stackVar != null){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.STACKVAR_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, stackVar);
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, stackVar.getGeneric(1));
-
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, stackVar.getGeneric(1)); 
           return Constants.STACKVAR_IDENTIFIER; 
         }
 
@@ -420,10 +419,18 @@ public class BlockMangler {
     }
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     
-    if (result == null){
+    if (result == null){ 
       System.err.println("Could not locate " + primaryIdentifier.getString(0));
     }
     return result;
+  }
+
+  public void visitSubscriptExpression(GNode n){
+    dispatch(n.getGeneric(0));
+    GNode primaryIdentifierType = n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE);
+    primaryIdentifierType.set(1,null);
+    n.setProperty(Constants.IDENTIIYER_TYPEi_NODE, primaryIdentifierType);
+    dispatch(n.getGeneric(1));
   }
 
   private GNode resolveClassField(String fieldName){
