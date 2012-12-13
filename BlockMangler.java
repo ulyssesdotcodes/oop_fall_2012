@@ -344,6 +344,15 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+
+      public void visitSubscriptExpression(GNode n){
+        dispatch(n.getGeneric(0));
+        GNode primaryIdentifierType = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        primaryIdentifierType.set(1,null);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, primaryIdentifierType);
+        dispatch(n.getGeneric(1));
+      }
+
       /**
        * Set the appropriate properties for a new class expression so it can be nested
        */
