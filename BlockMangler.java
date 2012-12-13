@@ -434,14 +434,6 @@ public class BlockMangler {
     return result;
   }
 
-  public void visitSubscriptExpression(GNode n){
-    dispatch(n.getGeneric(0));
-    GNode primaryIdentifierType = n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE);
-    primaryIdentifierType.set(1,null);
-    n.setProperty(Constants.IDENTIIYER_TYPEi_NODE, primaryIdentifierType);
-    dispatch(n.getGeneric(1));
-  }
-
   private GNode resolveClassField(String fieldName){
     HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
     GNode fieldDeclaration = fieldNameMap.get(fieldName);
