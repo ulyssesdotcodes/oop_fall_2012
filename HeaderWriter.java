@@ -302,7 +302,6 @@ public class HeaderWriter extends Visitor {
   }
   
   private String getType(GNode n, boolean isPointer) {
-    System.out.println(n);
     GNode type = n.getGeneric(1).getGeneric(0);
     String ret = "";
     if (type.getName().equals("PrimitiveType")) {

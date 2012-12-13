@@ -267,6 +267,7 @@ public class QimppTranslator extends Tool {
           else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
             GNode type = GNode.create("Type");
             type.add(Disambiguator.disambiguate(typename));
+            type.add(n.get(1));
             return type;
           } 
           // If the name is our name map, then replace it with the fully qualified name
@@ -417,11 +418,10 @@ public class QimppTranslator extends Tool {
           // Associate the current class with its parent's class Node
           currentClass.setProperty("ParentClassNode", parentClassNode);
           
-          currentClass.getGeneric(1).getGeneric(0).remove(0);
           String parentNameQualified = parentClassNode.getString(0);
           
           // Add the parent's type to the current class's Parent Node
-          currentClass.getGeneric(1).getGeneric(0).addNode( Disambiguator.disambiguate(parentNameQualified));
+          currentClass.getGeneric(1).getGeneric(0).set(0, Disambiguator.disambiguate(parentNameQualified));
           
           // Add inherited mehthods and fields using the parent's class
           // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
