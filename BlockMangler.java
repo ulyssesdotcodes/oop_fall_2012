@@ -296,12 +296,18 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+      public void visitInstanceOfExpression(GNode n) {
+        String rightSide =
+          Type.getClassTypeName(n.getGeneric(1).getGeneric(0));
+      
+        n.set(1, rightSide); 
+      }
 
       public String visitCallExpression(GNode n){
         visit(n);
         
         GNode caller = n.getGeneric(0);
-        GNode callerType;
+        GNode callerType; 
 
         if (caller != null){
           if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER){

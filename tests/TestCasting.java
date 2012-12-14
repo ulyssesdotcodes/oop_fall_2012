@@ -7,18 +7,16 @@ public class TestCasting {
   }
 
   public static void main(String[] args) {
-    //TestCasting tc = new TestCasting();
-    //System.out.println(tc.toString());
-
+    TestCasting tc = new TestCasting();
     Object o = new Object();
     String s = "test string";
-    System.out.println(o instanceof Object);
 
-
-    //String s = o.toString();
-    //System.out.println(s);
-
-    //System.out.println(o instanceof Object);
+    System.out.println(o instanceof Object);       // true
+    System.out.println(s instanceof Object);       // true
+    System.out.println(s instanceof String);       // true
+    System.out.println(o instanceof String);      // false
+    System.out.println(tc instanceof TestCasting); // true
+    System.out.println(tc instanceof Object);      // true
   }
 }
 

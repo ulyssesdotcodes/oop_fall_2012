@@ -17,8 +17,6 @@ import xtc.tree.Visitor;
  *
  * @author QIMPP
  */
-
-
 public class ImplementationPrinter extends Visitor {
 
   /**
@@ -352,13 +350,15 @@ public class ImplementationPrinter extends Visitor {
 			.pln("::__class() {");
     printer.incr();
     indentOut()
-      .p("return new java::lang::__Class(__rt::literal(\"")
+      .p("static java::lang::Class k = ")
+      .p("new java::lang::__Class(__rt::literal(\"")
 			.p(this.currentClass).p("\"), ");
     //TODO: HACK
     isTypeStaticReference = true;
 		dispatch(n.getGeneric(1));
     isTypeStaticReference = false;
-		printer.pln("::__class());").pln("}\n");
+		printer.pln("::__class());");
+    indentOut().pln("return k;").pln("}\n");
 
 		// vtable
 		printer.p(currentNamespace).p("__").p(this.currentClass).p("_VT ")
@@ -953,15 +953,24 @@ public class ImplementationPrinter extends Visitor {
     endExpression(prec1);
   }
  
- 
   /** Visit the specified logical negation expression. */
   public void visitLogicalNegationExpression(GNode n) {
     final int prec = startExpression(150);
     printer.p('!').p(n.getNode(0));
     endExpression(prec);
   }
+
+  /** Visit instanceof expression. */
+  public void visitInstanceOfExpression(GNode n) {
+    final int prec1 = startExpression(40);
+    printer.p(n.getString(1)).p(Constants.QUALIFIER)
+      .p("__class()->isInstance(").p(n.getString(1))
+      .p(Constants.QUALIFIER).p("__class(), ");
+    dispatch(n.getGeneric(0));
+    printer.p(')');
+  }
  
-/** Visit the specified for statement. */
+  /** Visit the specified for statement. */
   public void visitForStatement(GNode n) { 
     final boolean nested = startStatement(STMT_ANY);
 
