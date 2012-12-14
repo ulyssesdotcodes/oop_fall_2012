@@ -18,6 +18,10 @@ public class Test1 extends Foo {
 
   public static void main (String[] args) {
     Test1 bar = new Test1();
+    bar.instanceprint(bar);
+    qimpp.tests.Foo.print(bar);
+    Foo.print(bar);
+    
     System.out.println(bar.toString());
     System.out.println(bar.allTheAnimals());
   }

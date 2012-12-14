@@ -368,8 +368,11 @@ public class QimppTranslator extends Tool {
                   // If we can't find it in the source root, then it must be a reference to a file in the current package
                   try {
                      String currentPackageQualifiedTypename = currentPackageName + "." + typename;
+                     
                      currentNameMap.put(typename, currentPackageQualifiedTypename);
-                     process(currentPackageQualifiedTypename.replace(".", "/")+".java");
+                     if (treeManager.getClassTreeNode(currentPackageQualifiedTypename) == null){
+                       process(currentPackageQualifiedTypename.replace(".", "/")+".java");
+                     }
                      
                      // Copy-paste yay...
                      String qualifiedName = currentNameMap.get(typename);

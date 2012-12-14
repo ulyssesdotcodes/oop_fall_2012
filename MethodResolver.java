@@ -19,7 +19,10 @@ public class MethodResolver {
   */
 
   public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree, String callType, GNode callingClassDeclaration ) {
+    System.err.println("INHERARG");
+    System.err.println(inheritanceTree);
     MethodResolver.callType = callType;
+    MethodResolver.inheritanceTree = inheritanceTree;
     //TODO: Implement overloading. For now we just return the first method with the right name
     String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
@@ -111,6 +114,9 @@ public class MethodResolver {
     String targetName = Disambiguator.getDotDelimitedName(targetType.getGeneric(0));
 
     if (sourceName.equals(targetName)) return true;
+
+    System.err.println("INHERITANCE TREE");
+    System.err.println(inheritanceTree);
 
     GNode sourceClassTreeNode = inheritanceTree.getClassTreeNode(sourceName);
     GNode targetClassTreeNode = inheritanceTree.getClassTreeNode(targetName);
