@@ -213,6 +213,13 @@ namespace java {
         new __Class(__rt::literal("int"), __rt::null(), __rt::null(), true);
       return k;
     }
+    
+    // java.lang.Character.TYPE
+    Class __Character::TYPE() {
+      static Class k =
+        new __Class(__rt::literal("char"), __rt::null(), __rt::null(), true);
+      return k;
+    }
 
   }
 }
@@ -236,6 +243,16 @@ namespace __rt {
                               java::lang::__Integer::TYPE());
     return k;
   }
+ 
+  // Template specialization for arrays of char.
+  template<>
+  java::lang::Class Array<char>::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[C"),
+                              java::lang::__Object::__class(),
+                              java::lang::__Character::TYPE());
+    return k;
+  }
 
   // Template specialization for arrays of objects.
   template<>
@@ -254,6 +271,36 @@ namespace __rt {
       new java::lang::__Class(literal("[Ljava.lang.String;"),
                               Array<java::lang::Object>::__class(),
                               java::lang::__String::__class());
+    return k;
+  }
+
+  // Template specialization for arrays of array of objects.
+  template<>
+  java::lang::Class Array<__rt::Ptr<__rt::Array<java::lang::Object> > >::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[[Ljava.lang.Object"),
+                              Array<java::lang::Object>::__class(),
+                              Array<java::lang::Object>::__class());
+    return k;
+  }
+
+  // Template specialization for arrays of array of ints.
+  template<>
+  java::lang::Class Array<__rt::Ptr<__rt::Array<int32_t> > >::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[[I"),
+                              Array<Ptr<Array<java::lang::Object> > >::__class(),
+                              Array<int32_t>::__class());
+    return k;
+  }
+
+  // Template specialization for arrays of array of chars.
+  template<>
+  java::lang::Class Array<__rt::Ptr<__rt::Array<char> > >::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[[C"),
+                              Array<Ptr<Array<java::lang::Object> > >::__class(),
+                              Array<char>::__class());
     return k;
   }
 

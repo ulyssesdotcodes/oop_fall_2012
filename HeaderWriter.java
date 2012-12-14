@@ -332,7 +332,17 @@ public class HeaderWriter extends Visitor {
     //If the type has a dimension array and it's not null, then add in the dimensions. If it's the return type for a java.lang.Object method (constructed by hand) it won't have a null at 1 index, so we have to check for that.
     GNode dimensions = (n.getGeneric(1).size() > 1) ? n.getGeneric(1).getGeneric(1) : null;
     if(dimensions != null){
-      ret = "__rt::Array<" + ret + ">*"; 
+      String arrConstructor = "";
+      for(int i = 0; i < dimensions.size(); i++){
+        arrConstructor += "__rt::Ptr<__rt::Array<";
+      }
+      arrConstructor +=  ret; 
+
+      for(int i = 0; i < dimensions.size(); i++){
+        if(i == 0) arrConstructor += "> >";
+        else arrConstructor +=" > >";
+      }
+      ret = arrConstructor;
     }
 
     return (ret.length()!=0) ? ret : "NOT A VALID TYPE";

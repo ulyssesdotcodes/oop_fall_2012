@@ -582,8 +582,8 @@ public class ImplementationPrinter extends Visitor {
     printer.p(" ({ ")
     .p(" int32_t dim = ");
    
-    // Dispatch on the ConcreteDimensions Node
-    dispatch(n.getGeneric(1));
+    // Get the first dimension in the concrete dimensions node.
+    dispatch(n.getGeneric(1).getGeneric(0));
     printer.p(";");
     
     for (int i = 0; i < arrayDimCount; i++)
@@ -611,7 +611,7 @@ public class ImplementationPrinter extends Visitor {
     if (concreteDimCount > 1){
       
       // Print the for loop to fill it, recursing on a smaller type and dimensions node
-      printer.p("for (int32_t i = 0; i < dim; i++){ ");
+      printer.p("for (int32_t i = 0; i < dim; i++){\n temp->__data[i] = ");
 
       GNode newConcreteDimensions = GNode.create("ConcreteDimensions");
       GNode newDimensions = GNode.create("Dimensions");

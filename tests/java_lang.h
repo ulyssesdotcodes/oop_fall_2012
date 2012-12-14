@@ -240,6 +240,13 @@ namespace java {
 
     };
 
+    // The completey incomplete data layout for java.lang.Character.
+    struct __Character {
+
+      // The class instance representing the primitive type char.
+      static Class TYPE();
+
+    };
     // ======================================================================
 
     // For simplicity, we use C++ inheritance for exceptions and throw
