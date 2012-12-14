@@ -202,7 +202,13 @@ public class QimppTranslator extends Tool {
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
             if (!inBlock) {
-              cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
+              GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
+              GNode modifiers = n.getGeneric(0);
+
+              for (Object o : modifiers){
+                currentField.setProperty(((GNode)o).getString(0), new Boolean(true));
+              }
+
             }
           }
         }
@@ -225,6 +231,13 @@ public class QimppTranslator extends Tool {
           dispatch(n.getGeneric(7));
           GNode block = n.getGeneric(7);
           cppast.setMethodInstructions(block, currentMethod);
+
+          // Add any modifiers as a property of the method node
+          GNode modifiers = n.getGeneric(0);
+
+          for (Object o : modifiers){
+            currentMethod.setProperty(((GNode)o).getString(0), new Boolean(true));
+          }
            
           } catch(Exception e) { e.printStackTrace(); }
         }
@@ -391,8 +404,11 @@ public class QimppTranslator extends Tool {
           if (selectionExpressionDepth == 0){
             selectionExpressionBuilder = new StringBuilder();
           }
+          selectionExpressionDepth++;
           dispatch(n.getGeneric(0));
+          selectionExpressionDepth--;
           String name = n.getString(1);
+          selectionExpressionBuilder.append(".");
           selectionExpressionBuilder.append(name);
 
           // If this SelectionExpression is referring to a class, 

@@ -353,12 +353,19 @@ public class HeaderWriter extends Visitor {
   private void writeMethod(GNode n, String current_class){
     indentOut().p("static ");
     printer.p(getType(n, true)).p(" ");
-    printer.p(Type.getCppMangledMethodName(n)).p("(").p(current_class);
+    printer.p(Type.getCppMangledMethodName(n)).p("(");
+    if (n.getProperty("static") == null)
+      printer.p(current_class);
+    
     // visit params 
     new Visitor() {
-  
+      boolean firstParam = true;
+
       public void visitFormalParameter(GNode n) {
-        printer.p(", ").p(getType(n, true));
+        if (!firstParam)
+          printer.p(", ");
+        printer.p(getType(n, true));
+        firstParam = false;
       }
 
       public void visit(GNode n) {
@@ -442,7 +449,9 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethods(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
-      writeVTMethod(m, current_class);
+      if (m.getProperty("static") == null && m.getProperty("private") == null){
+        writeVTMethod(m, current_class);
+      }
     } 
   }
 

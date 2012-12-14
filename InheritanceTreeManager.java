@@ -191,6 +191,8 @@ public class InheritanceTreeManager {
     new Visitor() {
 
       public void visitClassTreeNode(GNode n){
+        if (dereferenceDepth >= className.size())
+          return;
         if (
         getClassTreeNodeName(n).equals
           (className.get(dereferenceDepth))
@@ -204,6 +206,8 @@ public class InheritanceTreeManager {
       }
 
       public void visitPackageQualifier(GNode n){
+        if (dereferenceDepth >= className.size())
+          return;
         if (n.getStringProperty(QUALIFIER_NAME).equals(className.get(dereferenceDepth))) {
           dereferenceDepth++;
           if (dereferenceDepth > deepestDereference)

@@ -58,7 +58,8 @@ public class BlockMangler {
         if (selectionExpressionBuilder != null){
           selectionExpressionBuilder.insert(0, identifier);
         }
-
+        
+        System.err.println("IDENTIFIER " + identifier);
         GNode classDeclaration = 
           inheritanceTree.getClassDeclarationNode(identifier);
         GNode stackVar = resolveScopes(n);
@@ -219,10 +220,10 @@ public class BlockMangler {
         if (selectionExpressionDepth == 0)
           selectionExpressionBuilder = new StringBuilder();
 
-        selectionExpressionBuilder.append("." + n.getString(1));
 
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
+        selectionExpressionBuilder.append("." + n.getString(1));
         //TODO: Debug code
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == null){
           System.err.println(n);
@@ -292,6 +293,7 @@ public class BlockMangler {
           System.err.println(n.getGeneric(0).getStringProperty(Constants.IDENTIFIER_TYPE));
           System.err.println(expression);
           System.err.println(n);
+          System.err.println(selectionExpressionBuilder.toString());
           throw new RuntimeException("Selected unknown class or field!");
         }
 
@@ -329,7 +331,7 @@ public class BlockMangler {
           }
         }
         else{
-          callerType = cppClass;
+          callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)));
           // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
           callType = Constants.CALL_UNKNOWN; 
         }
