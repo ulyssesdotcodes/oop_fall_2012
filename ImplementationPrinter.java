@@ -531,6 +531,71 @@ public class ImplementationPrinter extends Visitor {
     dispatch(n.getGeneric(3));
     printer.p(")");
   }
+  
+  /**
+   * Visit the specified array instantiantiation
+   */
+  public void visitNewArrayExpression(GNode n){
+    int arrayDimCount = 0;
+    int concreteDimCount;
+    // Total dimensions is the number of ConcreteDimensions + the number of Dimensions
+    arrayDimCount += n.getGeneric(1).size();
+    concreteDimCount = arrayDimCount;
+    if (n.getGeneric(2) != null){
+      arrayDimCount += n.getGeneric(2).size();
+    }    
+
+    printer.p(" ({ ")
+    .p(" int32_t dim = ");
+   
+    // Dispatch on the ConcreteDimensions Node
+    dispatch(n.getGeneric(1));
+    printer.p(";");
+    
+    for (int i = 0; i < arrayDimCount; i++)
+      printer.p(" __rt::Ptr<__rt::Array< ");
+
+    // Dispatch on the Type node
+    dispatch(n.getGeneric(0));
+
+    for (int i = 0; i < arrayDimCount; i++)
+      printer.p(" > > ");
+
+    printer.p(" temp = new __rt::Array< ");
+    
+    for (int i = 1; i < arrayDimCount; i++)
+      printer.p(" __rt::Ptr<__rt::Array< ");
+
+    // Dispatch on the Type node
+    dispatch(n.getGeneric(0));
+
+    for (int i = 1; i < arrayDimCount; i++)
+      printer.p(" > > ");
+
+    printer.p("> (dim); ");
+
+    if (concreteDimCount > 1){
+      
+      // Print the for loop to fill it, recursing on a smaller type and dimensions node
+      printer.p("for (int32_t i = 0; i < dim; i++){ ");
+
+      GNode newConcreteDimensions = GNode.create("ConcreteDimensions");
+      GNode newDimensions = GNode.create("Dimensions");
+      for (int i = 1; i < concreteDimCount; i++)
+        newConcreteDimensions.add(n.getGeneric(1).get(i));
+      for (int i = 1; i < (arrayDimCount - concreteDimCount); i++)
+        newDimensions.add(n.getGeneric(1));
+
+      
+      GNode newArrayExpression = GNode.create("NewArrayExpression", n.getGeneric(0), newConcreteDimensions, newDimensions, null);
+      visitNewArrayExpression(newArrayExpression);
+
+      printer.p(" ; } ; ");
+    }
+
+    // Make sure the returned value is the array
+    printer.p(" temp ; })");
+  }
 
   boolean inReturnType = false;
 
@@ -680,7 +745,16 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified type node. */
 	public void visitType(GNode n) {
+    GNode dimensions = n.getGeneric(1);
+    if (dimensions != null)
+      for (int i = 0; i < dimensions.size(); i++)
+        printer.p(" __rt::Ptr<__rt::Array<");
+      
 		visit(n);
+
+    if (dimensions != null)
+      for (int i = 0; i < dimensions.size(); i++)
+        printer.p(" > > ");
 	}
 
   /** Visit the specified field declaration. */

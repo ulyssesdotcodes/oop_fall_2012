@@ -10,8 +10,8 @@ public class TestArrays {
     foo[2] = 'y';
     System.out.println(foo[0] + foo[1] + foo[2]);
     //array of strings, hello world
-    String[] bar = {"hello ", "world"};
-    System.out.println(bar[0] + bar[1]);
+    //String[] bar = {"hello ", "world"};
+    //System.out.println(bar[0] + bar[1]);
   }
   
 }

@@ -197,6 +197,11 @@ class Type {
     return getNamespace(qualifiedName) + getClassName(qualifiedName);
   }
 
+  static String getTypeInstanceName(GNode typeNode){
+    //TODO: Support arrays
+    return getInstanceName(typeNode.getGeneric(0));
+  }
+
   static String getClassTypeName(GNode qualifiedIdentifier){
     String qualifiedName = Disambiguator.getDotDelimitedName(qualifiedIdentifier);
     return getNamespace(qualifiedName) + "__" +  getClassName(qualifiedName);  

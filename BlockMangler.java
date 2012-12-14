@@ -352,12 +352,24 @@ public class BlockMangler {
       }
 
 
+
       public void visitSubscriptExpression(GNode n){
         dispatch(n.getGeneric(0));
         GNode primaryIdentifierType =
           (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
-        primaryIdentifierType.set(1,null);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, primaryIdentifierType);
+        // Make a Declarators of one dimension lower
+        GNode newDimensions = GNode.create("Dimensions");
+        for (int i = 1; i < primaryIdentifierType.getGeneric(1).size(); i++)
+          newDimensions.add("[");
+
+        //If there are none, make it null
+        if (newDimensions.size() == 0)
+          newDimensions = null;
+
+        GNode newTypeNode = GNode.create("Type", primaryIdentifierType.getGeneric(0), newDimensions);
+
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, newTypeNode);
+
         dispatch(n.getGeneric(1));
       }
 

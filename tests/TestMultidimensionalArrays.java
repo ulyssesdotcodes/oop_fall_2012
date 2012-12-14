@@ -4,6 +4,7 @@ public class TestMultidimensionalArrays{
 
   public static void main ( String[] args ) {
   //array with even rows
+  int[][] oddarray = new int[5][];
   int[][] evenarray = new int[2][3];
   evenarray[0][0] = 0;
   evenarray[0][1] = 1;
