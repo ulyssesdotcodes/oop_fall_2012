@@ -11,6 +11,10 @@ public class TestCasting {
     //System.out.println(tc.toString());
 
     Object o = new Object();
+    String s = "test string";
+    System.out.println(o instanceof Object);
+
+
     //String s = o.toString();
     //System.out.println(s);
 

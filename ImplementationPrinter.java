@@ -666,10 +666,14 @@ public class ImplementationPrinter extends Visitor {
   }
 
 
-  /** Visit the specified primary identifier node.
-   *  @return A node containing the name, the Type, and whether this variable is stack allocated GNode("Name", Type(...), true) */
+  /** 
+   * Visit the specified primary identifier node.
+   * 
+   * @return A node containing the name, the Type, and whether this variable 
+   *  is stack allocated GNode("Name", Type(...), true) 
+   */
 	public void visitPrimaryIdentifier(GNode n) {
-    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER){
+    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor)
         printer.p("this->");
       else 

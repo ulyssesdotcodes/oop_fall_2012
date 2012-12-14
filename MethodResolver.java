@@ -7,22 +7,34 @@ public class MethodResolver {
   private static InheritanceTreeManager inheritanceTree;
 
   /**
-   * @param methodName the unmangled method name, printers should mangle names by argument types
+   * @param methodName the unmangled method name, printers should mangle 
+   *  names by argument types
    * @param classDeclaration the Type node of the calling class
    * @param argumentTypes a Node containing the Types of the arguments
-   * @param inheritanceTree the data structure describing the inheritance relationships between translated classes
+   * @param inheritanceTree the data structure describing the inheritance 
+   *  relationships between translated classes
    * @return a GNode the mangled method name, and the return Type node
   */
-  public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree ) {
-    //TODO: Implement overloading. For now we just return the first method with the right name
-    String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
+  public static GNode resolve (String methodName, 
+                               GNode classType, 
+                               GNode argTypes, 
+                               InheritanceTreeManager inheritanceTree) {
+    //TODO: Implement overloading. 
+    //For now we just return the first method with the right name.
+    String className =
+      Disambiguator.getDotDelimitedName(classType.getGeneric(0));
+    System.err.println("classname: " + className);
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
+    System.err.println("class declaration: " + classDeclaration);
     System.err.println("RESOLVING");
     System.err.println(methodName);
     System.err.println(argTypes);
-    ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
-    ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
-    ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, argTypes);
+    ArrayList<GNode> nameMatches = findNameMatches(methodName, 
+                                                   classDeclaration); 
+    ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, 
+                                                             argTypes.size());
+    ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, 
+                                                         argTypes);
     System.err.println("ARGCAST MATCHES:");
     System.err.println(argCastMatches);
 
@@ -39,8 +51,8 @@ public class MethodResolver {
    */
   private static GNode getMostSpecific(ArrayList<GNode> possibleMatches){
     // Bubble up, because I'm lazy
-    // Also, this will work without complaint if the result is actually ambiguous,
-    // we are assuming the Java program actually works
+    // This will work without complaint if the result is actually ambiguous,
+    // we are assuming the Java program actually works.
 
     for (int i = 0; i < possibleMatches.size() - 1; i++){
       GNode formalParameters = possibleMatches.get(i).getGeneric(2);
@@ -166,7 +178,8 @@ public class MethodResolver {
     return argCastMatches;
   }
 
-  private static ArrayList<GNode> findNameMatches(String methodName, GNode classDeclaration){
+  private static ArrayList<GNode> findNameMatches(String methodName,
+                                                  GNode classDeclaration) {
     GNode methodContainer = classDeclaration.getGeneric(4);
     ArrayList<GNode> matches = new ArrayList<GNode>();
     //System.err.println(methodContainer);
