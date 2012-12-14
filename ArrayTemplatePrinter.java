@@ -13,17 +13,15 @@ import xtc.tree.Visitor;
 
 import java.util.HashMap;
 
-public class ArrayTemplatePrinter extends Visitor{
+public class ArrayTemplatePrinter extends Visitor {
 
   Printer printer;
 
-  HashMap<String, Boolean> doneClass;
-  
   /**
    * Constructor
    * @param printer the printer for the implementation file
    */
-  ArrayTemplatePrinter( Printer printer ) {
+  ArrayTemplatePrinter(Printer printer) {
     this.printer = printer;
     printer.register(this);
   }
@@ -33,11 +31,11 @@ public class ArrayTemplatePrinter extends Visitor{
    * Convert a non-underscored name to an underscored name
    * @param cppQualifiedName the fully-qualified classname delimited by ::
    */
-  static String getUnderscoredName( String cppQualifiedName ){
+  static String getUnderscoredName(String cppQualifiedName) {
     String[] nameParts = cppQualifiedName.split("::");
     StringBuilder underscoredName = new StringBuilder();
 
-    for ( int i = 0; i < nameParts.length - 1; i++ ) {
+    for (int i = 0; i < nameParts.length - 1; i++) {
       underscoredName.append(nameParts[i]);
       underscoredName.append("::");
     }
@@ -50,39 +48,35 @@ public class ArrayTemplatePrinter extends Visitor{
 
   /** Visit the class declaration, print the relevant info and go no deeper */
   public void visitClassDeclaration( GNode n ) {
-      String name = n.getString(0);
-      name = name.replaceAll("\\.", "::");
-      GNode parentType = n.getGeneric(1).getGeneric(0).getGeneric(0);
+    String name = n.getString(0);
+    name = name.replaceAll("\\.", "::");
+    GNode parentType = n.getGeneric(1).getGeneric(0).getGeneric(0);
 
-      String parent = Disambiguator.getDotDelimitedName(parentType);
-      parent = parent.replaceAll("\\.", "::");
-      
-      printer.pln().p("namespace __rt{").pln().incr();
+    String parent = Disambiguator.getDotDelimitedName(parentType);
+    parent = parent.replaceAll("\\.", "::");
+    
+    printer.pln().p("namespace __rt{").pln().incr();
 
-      printer.indent().pln("template<>");
-      printer.indent().p("java::lang::Class").p(" __rt::Array< ").p(name).p(" >::__class() {").pln();
-      printer.incr();
-      
-      printer.indent().p("static java::lang::Class k =").pln()
-        .indent().p("new java::lang::__Class(literal(\"[L")
-        .p(name.replace("::", ".")).p(";\"),").pln()
-        .indent().p("Array< ").p(parent).p(" >::__class(),")
-        .p(getUnderscoredName(name)).p("::__class());")
-        .pln()
-        .indent().p("return k;").pln()
-        .indent().p("}").pln();
-        
+    printer.indent().pln("template<>");
+    printer.indent().p("java::lang::Class").p(" __rt::Array< ")
+      .p(name).p(" >::__class() {").pln();
+    printer.incr();
+    
+    printer.indent().p("static java::lang::Class k =").pln()
+      .indent().p("new java::lang::__Class(literal(\"[L")
+      .p(name.replace("::", ".")).p(";\"),").pln()
+      .indent().p("Array< ").p(parent).p(" >::__class(),")
+      .p(getUnderscoredName(name)).p("::__class());")
+      .pln()
+      .indent().p("return k;").pln()
+      .indent().p("}").pln();
 
-      printer.decr().decr().p("}").pln();
-      printer.flush();
-
-    return;
+    printer.decr().decr().p("}").pln();
+    printer.flush();
   }
 
   /** Visit the specified Node. */
 	public void visit(Node n) {
 		for (Object o : n) if (o instanceof Node) dispatch((Node)o);
 	}
-
-
 }

@@ -19,7 +19,8 @@ public class BlockMangler {
   public GNode cppClass;
   public InheritanceTreeManager inheritanceTree;
   public MethodResolver methodResolver;
-  
+ 
+  /** BlockMangler constructor. */ 
   public BlockMangler(
                 GNode cppClass, 
                 InheritanceTreeManager itm,
@@ -34,14 +35,14 @@ public class BlockMangler {
   // replaces nOld GNode with nNew GNode
   public void copyloc(GNode nOld, GNode nNew) {
     nNew.setLocation(nOld);
-    //return nNew;
   }
 
   // takes java block 
   public GNode mangle(GNode java) {
     
+    // Vivek: it doesn't seem like this is being used.
     GNode cpp = GNode.create("Block");
-    
+
     /**
      * The visitor that analyzes and modifies the block
      */
@@ -58,14 +59,17 @@ public class BlockMangler {
           selectionExpressionBuilder.insert(0, identifier);
         }
 
-        GNode classDeclaration = inheritanceTree.getClassDeclarationNode(identifier);
+        GNode classDeclaration = 
+          inheritanceTree.getClassDeclarationNode(identifier);
         GNode stackVar = resolveScopes(n);
         GNode classField = resolveClassField(identifier);
 
-        if (classDeclaration != null){
+        if (classDeclaration != null) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0))));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE,
+              GNode.create("Type",
+                Disambiguator.disambiguate(classDeclaration.getString(0))));
           return Constants.CLASS_IDENTIFIER;
         }
 
@@ -332,11 +336,14 @@ public class BlockMangler {
         
         if (returnType.getGeneric(0).getName().equals("QualifiedIdentifier")){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
-          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(returnType.getGeneric(0))));
+          n.setProperty(Constants.IDENTIFIER_DECLARATION,
+              inheritanceTree.getClassDeclarationNode(Disambiguator
+                .getDotDelimitedName(returnType.getGeneric(0))));
         }
 
         else {
-          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_TYPE,
+              Constants.PRIMITIVE_TYPE_IDENTIFIER);
         }
 
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, returnType);
@@ -347,7 +354,8 @@ public class BlockMangler {
 
       public void visitSubscriptExpression(GNode n){
         dispatch(n.getGeneric(0));
-        GNode primaryIdentifierType = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        GNode primaryIdentifierType =
+          (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
         primaryIdentifierType.set(1,null);
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, primaryIdentifierType);
         dispatch(n.getGeneric(1));
@@ -356,12 +364,19 @@ public class BlockMangler {
       /**
        * Set the appropriate properties for a new class expression so it can be nested
        */
-      public String visitNewClassExpression(GNode n){
+      public String visitNewClassExpression(GNode n) {
         GNode classType = n.getGeneric(2);
+        System.out.println("1");
         dispatch(classType);
-        n.setProperty(Constants.IDENTIFIER_TYPE, classType.getProperty(Constants.IDENTIFIER_TYPE));
-        n.setProperty(Constants.IDENTIFIER_DECLARATION, classType.getProperty(Constants.IDENTIFIER_DECLARATION));
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, classType.getProperty(Constants.IDENTIFIER_TYPE_NODE));
+        System.out.println("2");
+        n.setProperty(Constants.IDENTIFIER_TYPE,
+            classType.getProperty(Constants.IDENTIFIER_TYPE));
+        System.out.println("3");
+        n.setProperty(Constants.IDENTIFIER_DECLARATION,
+            classType.getProperty(Constants.IDENTIFIER_DECLARATION));
+        System.out.println("4");
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE,
+            classType.getProperty(Constants.IDENTIFIER_TYPE_NODE));
 
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       } 

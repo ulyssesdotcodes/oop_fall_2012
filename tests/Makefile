@@ -63,7 +63,8 @@ SOURCE = \
 	TestScopes.java \
 	TestStaticMethods.java \
 	TestWhileLoops.java \
-	TestNotExpression.java
+	TestNotExpression.java \
+	TestCasting.java
 
 JNI_SOURCE =
 

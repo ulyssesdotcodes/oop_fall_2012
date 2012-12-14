@@ -9,6 +9,7 @@ public class Constants {
 
 
   public static final String QUALIFIER = "::";
+  public static final String JAVA_QUALIFIER = ".";
 
   public static final char START_OPAQUE = '(';
   public static final char END_OPAQUE = ')';

@@ -116,7 +116,11 @@ public class QimppTranslator extends Tool {
 
   public void process(Node node) {
     // Create a hashmap to hold maps of ambiguous names to unambiguous names
-    currentNameMap = new HashMap<String, String>();
+    currentNameMap = new HashMap<String, String>() {{
+      put("String", "java.lang.String");
+      put("Object", "java.lang.Object");
+      put("Class", "java.lang.Class"); 
+    }};
     currentPackageName = "";
 
     // First, get contextual information with an initial visit of types and the package declaration
@@ -208,7 +212,9 @@ public class QimppTranslator extends Tool {
           try{
             String methodName = n.getString(3);
             if (methodName.equals("main")) {
-              n.set(2, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
+              n.set(2, GNode.create("Type", 
+                    GNode.create("PrimitiveType", "int"), 
+                    null));
 
             }
             GNode returnType = (GNode)dispatch(n.getGeneric(2));
@@ -243,50 +249,65 @@ public class QimppTranslator extends Tool {
         }
         
         /**
-         * NewClassExpression hold a QualifiedIdentifier not wrapped by a type. We need to disambiguate it if possible
+         * NewClassExpression hold a QualifiedIdentifier not wrapped by a type. 
+         * We need to disambiguate it if possible.
          */
-        public void visitNewClassExpression(GNode n){
+        public void visitNewClassExpression(GNode n) {
           // Make sure this type has been translated 
           System.err.println(n.getGeneric(2));
-          GNode type = GNode.create("Type", n.getGeneric(2));
-          visitType(type);
+          GNode type = GNode.create("Type", n.getGeneric(2), null);
+          type = visitType(type);
           n.set(2, type.getGeneric(0));
         }
 
-        /** Visit all types. If it is unknown, process the file for that type. If it is known, fully qualify it */
+        /** 
+         * Visit all types. If it is unknown, process the file for that type. 
+         * If it is known, fully qualify it 
+         */
         public GNode visitType(GNode n) {
-          //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
+          //Determine the type translated into C++ using 
+          //Type.primitiveType(String) and Type.qualifiedIdentifier(String)
           visit(n);
           GNode identifier = n.getGeneric(0);
           String typename = Disambiguator.getDotDelimitedName(identifier);
+          System.err.println("STRING");
+          System.err.println(typename);
 
           if(identifier.hasName("PrimitiveType")){
             return n;
           }
+          
+          if ( currentNameMap.get(typename) != null ) {
+             // Create a QualifiedIdentifier node for the typename 
+             // using the now obviously ill-named Disambiguator
+             //TODO: Give Disambiguator a name that reflects its purpose, 
+             //which is just to construct a type node from a name.
+             // Maybe stick that function in CPPAST.
+
+             String qualifiedName = currentNameMap.get(typename);
+             GNode qualifiedIdentifierNode =
+               Disambiguator.disambiguate(qualifiedName);
+             n.set(0, qualifiedIdentifierNode);
+             System.err.println("REPLACING REFERENCE: " + qualifiedName);
+
+             typename = qualifiedName;
+          }
+
           // Fix this later in treeManager
-          else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
+          if ( typename.equals("java.lang.String") 
+              || typename.equals("java.lang.Class") 
+              || typename.equals("java.lang.Object") ) {
             GNode type = GNode.create("Type");
             type.add(Disambiguator.disambiguate(typename));
+            System.err.println("TYPE!");
+            System.err.println(n);
             type.add(n.get(1));
             return type;
           } 
-          // If the name is our name map, then replace it with the fully qualified name
+          // If the name is our name map, 
+          // then replace it with the fully qualified name
           
           else {
-            if ( currentNameMap.get(typename) != null ) {
-               // Create a QualifiedIdentifier node for the typename using the now obviously ill-named Disambiguator
-               //TODO: Give Disambiguator a name that reflects its purpose, which is just to construct a type node from a name.
-               // Maybe stick that function in CPPAST
-
-               String qualifiedName = currentNameMap.get(typename);
-               GNode qualifiedIdentifierNode = Disambiguator.disambiguate(qualifiedName);
-               n.set(0, qualifiedIdentifierNode);
-               System.err.println("REPLACING REFERENCE: " + qualifiedName);
-
-               typename = qualifiedName;
-            }
-            
-
             //System.err.println("Split: " + typename.split("\\.").length);
             //System.err.println("Adding typename: " + typename);
             System.err.println(typename);
@@ -310,16 +331,16 @@ public class QimppTranslator extends Tool {
             // Later we'll keep track of already-imported types,
             // and we'll automatically skip those or expand them
             // as necessary
-            // For now we'll support only explicitly qualified name: "qimpp.Foo" ["qimpp", "Foo"]
+            // For now we'll support only explicitly qualified name: 
+            //  "qimpp.Foo" ["qimpp", "Foo"]
             System.err.println(qualified);
-            GNode classTreeNode = treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
-            if (classTreeNode == null){
-                
+            GNode classTreeNode = 
+              treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
+
+            if (classTreeNode == null) {
                 try{
                   process(typename.replace(".", "/")+".java");
-                }
-
-                catch (Exception e){
+                } catch (Exception e) {
                   // If we can't find it in the source root, then it must be a reference to a file in the current package
                   try {
                      String currentPackageQualifiedTypename = currentPackageName + "." + typename;
@@ -363,8 +384,8 @@ public class QimppTranslator extends Tool {
         int selectionExpressionDepth = 0;
         StringBuilder selectionExpressionBuilder;
         /**
-         * Visit a selection expression, and if it's referring to a class type by name, make
-         * sure that type is translated
+         * Visit a selection expression, and if it's referring to a class 
+         * type by name, make sure that type is translated.
          */
         public void visitSelectionExpression(GNode n){
           if (selectionExpressionDepth == 0){
@@ -373,9 +394,14 @@ public class QimppTranslator extends Tool {
           dispatch(n.getGeneric(0));
           String name = n.getString(1);
           selectionExpressionBuilder.append(name);
-          // If this SelectionExpression is referring to a class, handle it as a type, making sure it's translated
+
+          // If this SelectionExpression is referring to a class, 
+          // handle it as a type, making sure it's translated
           if (Character.isUpperCase(name.charAt(0))) {
-            GNode type = GNode.create("Type", GNode.create("QualifiedIdentifier", selectionExpressionBuilder.toString()));
+            GNode type = GNode.create("Type", 
+                GNode.create("QualifiedIdentifier", 
+                  selectionExpressionBuilder.toString()),
+                  null);
             visitType(type);
           }
         }
@@ -389,7 +415,9 @@ public class QimppTranslator extends Tool {
           // Make sure it's not an unvisited name in the local namespace
           //TODO: This assumes that class names are capitalized
           if (Character.isUpperCase(name.charAt(0)) && !name.equals("System")){
-            GNode type = GNode.create("Type", GNode.create("QualifiedIdentifier", name));
+            GNode type = GNode.create("Type", 
+                GNode.create("QualifiedIdentifier",
+                name));
             visitType(type);
             n.set(0, type.getGeneric(0).getString(0));
           } 
@@ -438,21 +466,14 @@ public class QimppTranslator extends Tool {
           System.err.println(childQualified);
           treeManager.reparent(childQualified, parentQualified);
           
-          
-          
           return null; 
         }
 
 
         public void visit(Node n) {
-          
           //System.err.println("We are currently running " + currentClassName);
-          //
           for (Object o : n) if (o instanceof Node) dispatch((Node)o);
-
         }
-
-
     };
 
     initialVisitor.dispatch(node);
@@ -576,15 +597,14 @@ public class QimppTranslator extends Tool {
         GNode identifier = n.getGeneric(0);
         String typename = identifier.getString(0);
 
-        if(identifier.hasName("PrimitiveType")){
+        if (identifier.hasName("PrimitiveType")) {
           return n;
         }
-
 
         // Fix this later in treeManager
         else if ( typename.equals("String") || typename.equals("Class") || typename.equals("Object") ) {
           GNode type = GNode.create("Type");
-          type.add( Disambiguator.disambiguate(typename));
+          type.add(Disambiguator.disambiguate(typename));
           type.add(n.get(1));
           return type;
         } 
