@@ -119,7 +119,8 @@ public class QimppTranslator extends Tool {
     currentNameMap = new HashMap<String, String>() {{
       put("String", "java.lang.String");
       put("Object", "java.lang.Object");
-      put("Class", "java.lang.Class"); 
+      put("Class", "java.lang.Class");
+      put("Exception", "java.lang.Exception"); 
     }};
     currentPackageName = "";
 
@@ -317,7 +318,9 @@ public class QimppTranslator extends Tool {
           // Fix this later in treeManager
           if ( typename.equals("java.lang.String") 
               || typename.equals("java.lang.Class") 
-              || typename.equals("java.lang.Object") ) {
+              || typename.equals("java.lang.Object") 
+              || typename.equals("java.lang.Exception")
+             ) {
             GNode type = GNode.create("Type");
             type.add(Disambiguator.disambiguate(typename));
             System.err.println("TYPE!");

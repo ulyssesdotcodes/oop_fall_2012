@@ -453,7 +453,7 @@ public class ImplementationPrinter extends Visitor {
     printer.incr();
     indentOut();
     visit(n); // block
-    printer.decr();
+    printer.decr(); 
     printer.pln("}\n");
   }
 
@@ -1048,6 +1048,42 @@ public class ImplementationPrinter extends Visitor {
     prepareNested();
     printer.p(n.getNode(1));
     endStatement(nested);
+  }
+
+  /** Visit the specified try catch finally statement. */
+  public void visitTryCatchFinallyStatement(GNode n) {
+    final boolean nested = startStatement(STMT_ANY);
+
+    printer.indent().p("try");
+    if (null != n.get(0)) printer.p(" (").p(n.getNode(0)).p(')');
+
+    isOpenLine = true;
+    printer.p(n.getNode(1)).p(' ');
+
+    final Iterator<Object> iter = n.iterator();
+    iter.next(); // Skip resource specification.
+    iter.next(); // Skip try block.
+    while (iter.hasNext()) {
+      final GNode clause = GNode.cast(iter.next());
+
+      isOpenLine = true;
+      if (iter.hasNext()) {
+        printer.p(clause).p(' ');
+      } else if (null != clause) {
+        printer.p("finally").p(clause);
+      }
+    }
+
+    endStatement(nested);
+  }
+
+  /** Visit the specified catch clause. */
+  public void visitCatchClause(GNode n) {
+    GNode formal_parameters = n.getGeneric(0);
+    GNode type = formal_parameters.getGeneric(1);
+    String exception = formal_parameters.getString(3);
+    //printer.p("catch (").p(type.getNode(0)).p(" ").p(exception).p(")").p(n.getNode(1));
+    printer.p("catch (...)").p(n.getNode(1));
   }
 
   /** Visit the specified equality expression. */

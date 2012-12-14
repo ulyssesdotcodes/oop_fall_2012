@@ -65,7 +65,8 @@ SOURCE = \
 	TestStaticMethods.java \
 	TestWhileLoops.java \
 	TestNotExpression.java \
-	TestCasting.java
+	TestCasting.java \
+	TestTryCatchExpression.java
 
 JNI_SOURCE =
 
