@@ -34,6 +34,11 @@ public class Constants {
   public static final String PRINT_IDENTIFIER = "qimpp.Constants.PrintIdentifier";
   public static final String PRIMITIVE_TYPE_IDENTIFIER = "qimpp.Constants.PrimitiveTypeIdentifier";
 
+
+  public static final int CALL_STATIC = 1;
+  public static final int CALL_DYNAMIC = 2;
+  public static final int CALL_UNKNOWN = 3;
+
   // ============================================================
 
   /** Output header. */

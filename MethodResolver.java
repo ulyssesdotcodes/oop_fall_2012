@@ -15,15 +15,10 @@ public class MethodResolver {
    *  relationships between translated classes
    * @return a GNode the mangled method name, and the return Type node
   */
-  public static GNode resolve (String methodName, 
-                               GNode classType, 
-                               GNode argTypes, 
-                               InheritanceTreeManager inheritanceTree) {
-    //TODO: Implement overloading. 
-    //For now we just return the first method with the right name.
-    String className =
-      Disambiguator.getDotDelimitedName(classType.getGeneric(0));
-    System.err.println("classname: " + className);
+
+  public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree, int callType ) {
+    //TODO: Implement overloading. For now we just return the first method with the right name
+    String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
     System.err.println("class declaration: " + classDeclaration);
     System.err.println("RESOLVING");

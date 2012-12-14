@@ -65,7 +65,7 @@ public class BlockMangler {
         GNode classField = resolveClassField(identifier);
 
         if (classDeclaration != null) {
-          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE,
               GNode.create("Type",
@@ -234,17 +234,19 @@ public class BlockMangler {
         selectionExpressionDepth--;
 
         String expression = selectionExpressionBuilder.toString();
-        // Part of the way in, we may find that we have a fully qualified type. In that case set the IDENTIFIER_TYPE to CLASS_IDENTIFIER
-        if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER)){
+        // Part of the way in, we may find that we have a fully qualified type. In that case set the class declaration
+        if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER) && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
           GNode classDeclaration = inheritanceTree.getClassDeclarationNode(selectionExpressionBuilder.toString());
           if (classDeclaration != null){
-            n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+            n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
             n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
             n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0))));
           }
         }
         // If our child is a CLASS_IDENTIFIER, and we're still in a SelectionExpression, we must be referring to some accessible field
-        else if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.CLASS_IDENTIFIER)) {
+        else if ((n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.QUALIFIED_CLASS_IDENTIFIER
+                  && n.getProperty(Constants.IDENTIFIER_DECLARATION) != null)
+                 || n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.CLASS_IDENTIFIER) {
            n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FOREIGN_CLASS_FIELD_IDENTIFIER);
            GNode foreignFieldDeclaration = resolveClassField(n.getString(1), (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION));
            // Debug
@@ -307,7 +309,10 @@ public class BlockMangler {
         visit(n);
         
         GNode caller = n.getGeneric(0);
-        GNode callerType; 
+
+        GNode callerType;
+        int callType;
+
 
         if (caller != null){
           if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER){
@@ -315,18 +320,29 @@ public class BlockMangler {
             return null;
           }
           callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+          if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.QUALIFIED_CLASS_IDENTIFIER){
+            callType = Constants.CALL_STATIC;
+          }
+          // It must be a call from some object
+          else {
+            callType = Constants.CALL_DYNAMIC;
+          }
         }
         else{
-          callerType = cppClass; 
+          callerType = cppClass;
+          // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
+          callType = Constants.CALL_UNKNOWN; 
         }
         GNode argumentTypes = GNode.create("ArgumentTypes");
         for ( Object o : n.getGeneric(3)) {
           argumentTypes.add(((GNode)o).getProperty(Constants.IDENTIFIER_TYPE_NODE));
         }
 
+
+
         GNode callInfo = null;
         try {
-          callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree);
+          callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType);
         }
         catch (Exception e) {
           System.err.println(n);
