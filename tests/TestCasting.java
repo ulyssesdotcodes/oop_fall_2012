@@ -17,6 +17,8 @@ public class TestCasting {
     System.out.println(o instanceof String);      // false
     System.out.println(tc instanceof TestCasting); // true
     System.out.println(tc instanceof Object);      // true
+
+    Object obj = s;
   }
 }
 
