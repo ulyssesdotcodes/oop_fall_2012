@@ -51,7 +51,6 @@ SOURCE = \
 	Test3.java \
 	TestArithmetic.java \
 	TestArrays.java \
-	TestArraysNoChar.java \
 	TestForLoops.java \
 	TestInheritance.java \
 	TestMethodChaining.java \

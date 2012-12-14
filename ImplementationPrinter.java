@@ -944,6 +944,14 @@ public class ImplementationPrinter extends Visitor {
     endExpression(prec1);
   }
 
+  /** Visit the specified cast expression. */
+  public void visitCastExpression(GNode n) {
+    final int prec1 = startExpression(170);
+    printer.p("__rt::java_cast< ")
+      .p(n.getNode(0))
+      .p(" >(").p(n.getNode(1)).p(")");
+  }
+
   /** Visit the specified conditional statement. */
   public void visitConditionalStatement(GNode n) {
     final int     flag   = null == n.get(2) ? STMT_IF : STMT_IF_ELSE;

@@ -172,6 +172,7 @@ public class MethodResolver {
 
   private static ArrayList<GNode> findNameMatches(String methodName,
                                                   GNode classDeclaration) {
+    System.err.println("class declaration: " + classDeclaration);
     GNode methodContainer = classDeclaration.getGeneric(4);
     ArrayList<GNode> matches = new ArrayList<GNode>();
     //System.err.println(methodContainer);

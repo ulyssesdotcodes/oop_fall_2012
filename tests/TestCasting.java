@@ -19,6 +19,8 @@ public class TestCasting {
     System.out.println(tc instanceof Object);      // true
 
     Object obj = s;
+    String str = (String)obj;
+    System.out.println("str: \"" + str + "\"");
   }
 }
 

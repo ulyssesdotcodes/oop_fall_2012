@@ -360,22 +360,29 @@ public class HeaderWriter extends Visitor {
     } 
   }
 
-  private void writeMethod(GNode n, String current_class){
+  private void writeMethod(GNode n, String current_class) {
+    boolean isStatic;
     indentOut().p("static ");
     printer.p(getType(n, true)).p(" ");
     printer.p(Type.getCppMangledMethodName(n)).p("(");
-    if (n.getProperty("static") == null)
+    if (n.getProperty("static") == null) {
       printer.p(current_class);
-    
+      isStatic = false;
+    } else { isStatic = true; }
+   
+    final boolean isStaticFinal = isStatic;
+
     // visit params 
     new Visitor() {
-      boolean firstParam = true;
-
-      public void visitFormalParameter(GNode n) {
-        if (!firstParam)
-          printer.p(", ");
-        printer.p(getType(n, true));
-        firstParam = false;
+      public void visitFormalParameters(GNode n) {
+        if (!isStaticFinal && n.size() >= 1) { printer.p(", "); }
+        for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
+          GNode formalParameter = (GNode)iter.next();
+          printer.p(getType(formalParameter, true));
+          if (iter.hasNext()) {
+            printer.p(", ");
+          }
+        }
       }
 
       public void visit(GNode n) {
