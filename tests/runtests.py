@@ -45,19 +45,24 @@ def runVerbose(filename):
 
 def runQuick(filenames):
 
+  total, ok, fail_diff, fail_compile, fail_translate = 0, 0, 0, 0, 0
+  
   for filename in filenames:
+    total += 1
     print "Testing " + filename + ": " ,
     
     translate_succeeded = (0 == os.system( "java qimpp.QimppTranslator qimpp/tests/" + filename +" > translator.output 2> translator.err" ))
     
     if not translate_succeeded:
       print "FAIL - translation"
+      fail_translate += 1
       continue
       
     compile_succeded = (0 == os.system("g++ out.cc java_lang.cc 1> gcc.output 2> gcc.err"))
     
     if not compile_succeded:
       print "FAIL - compilation"
+      fail_compile += 1
       continue
       
     # Run output file
@@ -71,10 +76,17 @@ def runQuick(filenames):
     
     if (java_output == cpp_output):
       print "OK"
+      ok += 1
       
     else:
       print "FAIL - diff"
-      
+      fail_diff += 1
+  
+  print """
+  OK: %d/%d 
+  FAIL -diff: %d | -compilation: %d | -translation: %d
+  """ % (ok, total, fail_diff, fail_compile, fail_translate)
+
     
 #Main
 
