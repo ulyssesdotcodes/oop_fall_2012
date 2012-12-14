@@ -449,9 +449,8 @@ public class HeaderWriter extends Visitor {
   private void writeVTMethods(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
-      if (m.getProperty("static") == null && m.getProperty("private") == null){
+      if (m.getProperty("static") == null && m.getProperty("private") == null)
         writeVTMethod(m, current_class);
-      }
     } 
   }
 
@@ -511,8 +510,10 @@ public class HeaderWriter extends Visitor {
   private void writeVTAddresses(GNode n) {
     String current_class = name(n);
     for (GNode m : implemented_methods) {
-      printer.p(",\n");
-      writeVTAddress(m, current_class);
+      if (m.getProperty("static") == null && m.getProperty("private") == null){
+        printer.p(",\n");
+        writeVTAddress(m, current_class);
+      }
     }
   }
 

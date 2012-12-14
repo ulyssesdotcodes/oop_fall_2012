@@ -5,6 +5,8 @@ import java.util.*;
 public class MethodResolver {
 
   private static InheritanceTreeManager inheritanceTree;
+  private static String callType;
+  private static GNode callingClassDeclaration;
 
   /**
    * @param methodName the unmangled method name, printers should mangle 
@@ -16,29 +18,24 @@ public class MethodResolver {
    * @return a GNode the mangled method name, and the return Type node
   */
 
-  public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree, int callType ) {
+  public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree, String callType, GNode callingClassDeclaration ) {
+    MethodResolver.callType = callType;
     //TODO: Implement overloading. For now we just return the first method with the right name
     String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
-    System.err.println("class declaration: " + classDeclaration);
-    System.err.println("RESOLVING");
-    System.err.println(methodName);
-    System.err.println(argTypes);
-    ArrayList<GNode> nameMatches = findNameMatches(methodName, 
-                                                   classDeclaration); 
-    ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, 
-                                                             argTypes.size());
-    ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, 
-                                                         argTypes);
-    System.err.println("ARGCAST MATCHES:");
-    System.err.println(argCastMatches);
+    MethodResolver.callingClassDeclaration = callingClassDeclaration;
+    ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
+    System.err.println("NAME MATCHES");
+    System.err.println(nameMatches);
+    ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
+    ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, argTypes);
 
     GNode calledMethod = getMostSpecific(argCastMatches);
 
     MethodResolver.inheritanceTree = inheritanceTree;
     methodName = Type.getCppMangledMethodName(calledMethod);
      
-    return GNode.create("CallInfo", methodName, calledMethod.getGeneric(1));
+    return GNode.create("CallInfo", methodName, calledMethod.getGeneric(1), calledMethod);
   }
 
   /**
@@ -183,17 +180,46 @@ public class MethodResolver {
     for (int i = 0; i < methodContainer.size(); i++){
       GNode method = methodContainer.getGeneric(i);
       if (method.getName().equals("InheritedMethodContainer")){
-        if (method.getGeneric(0).getString(0).equals(methodName))
-          matches.add(method.getGeneric(0));
+        method = method.getGeneric(0);
       }
-      else{
-        System.out.println("Method name");
-        System.out.println(method.getString(0));
-        if (method.getString(0).equals(methodName)) {
+      
+      if (method.getString(0).equals(methodName)) {
+        if (method.getProperty("static") != null){
+          System.out.println("STATIC METHOD");
+          if (callType == Constants.CALL_DYNAMIC)
+            continue;
+        }
+        if (method.getProperty("private") != null){
+          System.out.println("PRIVATE METHOD");
+          if (callingClassDeclaration != classDeclaration){
+            continue;
+          } 
+        }
+        if (method.getProperty("public") == null){
+          System.out.println("LOOKING FOR A PROTECTED METHOD");
 
+          // If a method is not public, it is automatically protected, and the packages have to match
+          String[] callingPackage = callingClassDeclaration.getString(0).split("\\.");
+          String[] callerPackage = classDeclaration.getString(0).split("\\.");
+
+          System.out.println( callingClassDeclaration.getString(0));
+          System.out.println( classDeclaration.getString(0));
+          boolean packageMatch = true;
+          for (int j = 0; j < (callerPackage.length - 1); j++){
+            if (callingPackage.length <= j || !callingPackage[j].equals(callerPackage[j])){
+              packageMatch = false;
+              break;
+            }
+          }
+          if (packageMatch){
+            matches.add(method);
+          }
+        }
+        else{
           matches.add(method);
         }
       }
+      
     }
     return matches;
   }

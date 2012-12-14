@@ -191,6 +191,14 @@ class Type {
     String[] qualifiers = qualifiedName.split("\\.");
     return qualifiers[qualifiers.length - 1];
   }
+  
+  static String getClassTypeName(String qualifiedName){
+    return getNamespace(qualifiedName) + "__" + getClassName(qualifiedName);
+  }
+
+  static String getClassInstanceName(String qualifiedName){
+    return getNamespace(qualifiedName) + getClassName(qualifiedName);
+  }
 
   static String getInstanceName(GNode qualifiedIdentifier){
     String qualifiedName = Disambiguator.getDotDelimitedName(qualifiedIdentifier);
@@ -200,6 +208,11 @@ class Type {
   static String getTypeInstanceName(GNode typeNode){
     //TODO: Support arrays
     return getInstanceName(typeNode.getGeneric(0));
+  }
+
+  static String getTypeName(GNode typeNode){
+    //TODO: Support arrays
+    return getClassTypeName(typeNode.getGeneric(0));
   }
 
   static String getClassTypeName(GNode qualifiedIdentifier){

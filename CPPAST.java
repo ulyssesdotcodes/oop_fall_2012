@@ -356,8 +356,6 @@ public class CPPAST {
     return formalParameter;
   }
   
-  //TODO:Refactor to simply wrap each methods in an "ImplementedMethod" and "InheritedMethod" node
-  //so we can have arbitrary ordering allowing for vtable-consistent overloads
   //Take in parent methods and class, add parent methods as InheritedMethod nodes to class
   void addAllInheritedMethods(GNode parentMethods, GNode currentClass){
     for(int i = 0; i < parentMethods.size(); i++){
@@ -374,7 +372,10 @@ public class CPPAST {
         inheritedMethod.add(GNode.create("From")).getGeneric(1).addNode(currentClass.getGeneric(1));
       }
       //Add the parent method to the class. If it is inherited from further up the tree than the parent it will already be formatted as an inherited method
-      currentClass.getGeneric(4).addNode(inheritedMethod);
+      // Make sure we don't add private or static methods
+      
+      if (inheritedMethod.getProperty("static") == null && inheritedMethod.getProperty("private") == null)
+        currentClass.getGeneric(4).addNode(inheritedMethod);
     }
   }
 

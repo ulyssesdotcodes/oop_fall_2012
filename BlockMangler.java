@@ -70,7 +70,7 @@ public class BlockMangler {
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE,
               GNode.create("Type",
-                Disambiguator.disambiguate(classDeclaration.getString(0))));
+                Disambiguator.disambiguate(classDeclaration.getString(0)), null));
           return Constants.CLASS_IDENTIFIER;
         }
 
@@ -107,7 +107,7 @@ public class BlockMangler {
 
       public String visitBooleanLiteral(GNode n) {
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "boolean")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "boolean"), null));
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
@@ -117,7 +117,7 @@ public class BlockMangler {
       public String visitIntegerLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle longs
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "int")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
       
@@ -127,7 +127,7 @@ public class BlockMangler {
       public String visitFloatingPointLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle float
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "double")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "double"), null));
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
@@ -137,7 +137,7 @@ public class BlockMangler {
       public String visitStringLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
         n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String"), null));
         return Constants.CLASS_IDENTIFIER;
       }
 
@@ -153,7 +153,7 @@ public class BlockMangler {
         String rightType = ((GNode)n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0).getString(0);
 
         String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType)));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType), null));
 
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
@@ -163,7 +163,7 @@ public class BlockMangler {
         if (n.get(0) instanceof String || n.get(2) instanceof String){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String"), null));
           return Constants.CLASS_IDENTIFIER;
         }
   
@@ -180,7 +180,7 @@ public class BlockMangler {
         {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String")));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String"), null));
           return Constants.CLASS_IDENTIFIER; 
         }
          
@@ -190,7 +190,7 @@ public class BlockMangler {
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         
         String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType)));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType), null));
         
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;    
       }
@@ -205,7 +205,7 @@ public class BlockMangler {
         
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
         n.setProperty(Constants.IDENTIFIER_DECLARATION, cppClass);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0))));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)), null));
 
         return Constants.CLASS_IDENTIFIER;
       }
@@ -241,7 +241,7 @@ public class BlockMangler {
           if (classDeclaration != null){
             n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
             n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
-            n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0))));
+            n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0)), null));
           }
         }
         // If our child is a CLASS_IDENTIFIER, and we're still in a SelectionExpression, we must be referring to some accessible field
@@ -313,7 +313,7 @@ public class BlockMangler {
         GNode caller = n.getGeneric(0);
 
         GNode callerType;
-        int callType;
+        String callType;
 
 
         if (caller != null){
@@ -331,7 +331,7 @@ public class BlockMangler {
           }
         }
         else{
-          callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)));
+          callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)), null);
           // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
           callType = Constants.CALL_UNKNOWN; 
         }
@@ -344,7 +344,7 @@ public class BlockMangler {
 
         GNode callInfo = null;
         try {
-          callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType);
+          callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType, cppClass); 
         }
         catch (Exception e) {
           System.err.println(n);
@@ -355,6 +355,11 @@ public class BlockMangler {
 
         // Rename the call
         n.set(2, callInfo.getString(0));
+
+        GNode calledMethod = callInfo.getGeneric(2);
+        n.setProperty("static",  calledMethod.getProperty("static"));
+        n.setProperty("private", calledMethod.getProperty("private"));
+
 
         GNode returnType = callInfo.getGeneric(1);
         

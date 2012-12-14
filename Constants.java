@@ -35,9 +35,9 @@ public class Constants {
   public static final String PRIMITIVE_TYPE_IDENTIFIER = "qimpp.Constants.PrimitiveTypeIdentifier";
 
 
-  public static final int CALL_STATIC = 1;
-  public static final int CALL_DYNAMIC = 2;
-  public static final int CALL_UNKNOWN = 3;
+  public static final String CALL_STATIC = "static";
+  public static final String CALL_DYNAMIC = "dynamic";
+  public static final String CALL_UNKNOWN = "unknown";
 
   // ============================================================
 

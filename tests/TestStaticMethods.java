@@ -8,6 +8,7 @@ public class TestStaticMethods {
 
   public static void main ( String[] args ) {
     String foo = "Hello";
+    foo = "Goodbye";
     printMe(foo);
     qimpp.tests.TestStaticMethods.printMe(foo);
   }

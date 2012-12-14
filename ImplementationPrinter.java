@@ -405,6 +405,7 @@ public class ImplementationPrinter extends Visitor {
 
   boolean inMethod = false;
   boolean didMain = false;
+  boolean staticMethod = false;
 	/** 
    * Visit the specified method declaration node.
    * Only visited in implemented methods.
@@ -431,7 +432,11 @@ public class ImplementationPrinter extends Visitor {
     if (!inMain) {
       printer.p(" ").p(currentNamespace).p("__").p(this.currentClass);
       printer.p("::").p(Type.getCppMangledMethodName(n)); // method name  
-      dispatch(n.getGeneric(2)); // parameters
+      if (n.getProperty("static") != null)
+        staticMethod = true;
+      //Print the FormalParameters
+      dispatch(n.getGeneric(2));
+      staticMethod = false;
     } 
     else {
       printer.p(" main(int argc, char** argv)"); // method name
@@ -470,11 +475,23 @@ public class ImplementationPrinter extends Visitor {
 
   public void visitCallExpression(GNode n) {
     //If we're using a local call
+    boolean staticCall = false;
     if (n.getGeneric(0) == null){
       //Print the call
-      indentOut().p("__this->__vptr->");
+      if (n.getProperty("static") != null && n.getProperty("private") != null){        
+        printer.p(" __this->__vptr->");
+      }
+      else{
+        printer.p(Type.getClassTypeName(currentClassNode.getString(0))).p("::");
+      }
       printer.p(n.getString(2));
       printer.p("(");
+      // Print the parameters
+      if (n.getProperty("static") == null){
+          printer.p(" __this ");
+          if (n.getGeneric(3).size()!= 0)
+            printer.p(", ");
+      }
       dispatch(n.getGeneric(3));
       printer.p(")");
     }
@@ -491,26 +508,43 @@ public class ImplementationPrinter extends Visitor {
     }
 
     else {
-      //TODO: Chained calls
-      // Print the correct call here
-      // Get the type of the calling expression or field name, and make a _this to reference it
-      // It is necessarily an instance, and should be associated with a QualifiedIdentifier
-      GNode callingTypeNode = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
-      printer.p("({ ").p(Type.getInstanceName(callingTypeNode.getGeneric(0)))
-        .p(" _this = ");
-      //Print the nested expression
-      dispatch(n.getGeneric(0));
-      //End the expression;
-      printer.p(" ;");
+      if (n.getProperty("static") == null && n.getProperty("private") == null){        
+        //TODO: Chained calls
+        // Print the correct call here
+        // Get the type of the calling expression or field name, and make a _this to reference it
+        // It is necessarily an instance, and should be associated with a QualifiedIdentifier
+        GNode callingTypeNode = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        printer.p("({ ").p(Type.getInstanceName(callingTypeNode.getGeneric(0)))
+          .p(" _this = ");
+        //Print the nested expression
+        dispatch(n.getGeneric(0));
+        //End the expression;
+        printer.p(" ;");
 
-      // Print the actual call
-      printer.p(" _this->__vptr->").p(n.getString(2)).p("( _this ");
-      // We don't want to print the comma if there are not more arguments
-      if (n.getGeneric(3).size()!= 0){
-        printer.p(", ");
-        dispatch(n.getGeneric(3));
+        // Print the actual call
+        printer.p(" _this->__vptr->").p(n.getString(2)).p("( _this ");
+        // We don't want to print the comma if there are not more arguments
+        if (n.getGeneric(3).size()!= 0){
+          printer.p(", ");
+          dispatch(n.getGeneric(3));
+        }
+        printer.p(");").p(" })");
       }
-      printer.p(");").p(" })");
+      else {
+        GNode callingTypeNode = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        isTypeStaticReference = true;
+        dispatch(callingTypeNode);
+        isTypeStaticReference = false;
+
+        printer.p("::").p(n.getString(2)).p("(");
+        if (n.getProperty("static") == null){
+          printer.p(" __this ");
+          if (n.getGeneric(3).size()!= 0)
+            printer.p(", ");
+        }
+        dispatch(n.getGeneric(3));
+        printer.p(")");        
+      }
     }
     printer.flush();
   }
@@ -732,12 +766,17 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified formal parameters node. */
 	public void visitFormalParameters(GNode n) {
-		printer.p('(').p(this.currentClass).p(" __this");
+		printer.p('(');
+    boolean firstArg = true;
+    if (!staticMethod){
+      printer.p(this.currentClass).p(" __this");
+      firstArg = false;
+    }
 		for (Iterator<?> iter = n.iterator(); iter.hasNext(); ) {
-			if (iter.hasNext()) {
+      if(!firstArg)
 				printer.p(", ");
-			}
-      
+      firstArg = false;
+
       GNode formalParameter = (GNode)iter.next();
 
       printer.p(Disambiguator.getColonDelimitedName(formalParameter.getGeneric(1).getGeneric(0)))
