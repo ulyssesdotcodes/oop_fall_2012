@@ -65,6 +65,10 @@ public class BlockMangler {
         GNode stackVar = resolveScopes(n);
         GNode classField = resolveClassField(identifier);
 
+        //System.err.println("class? " + classDeclaration);
+        //System.err.println("stack? " + stackVar);
+        //System.err.println("field? " + classField);
+
         if (classDeclaration != null) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
@@ -81,7 +85,6 @@ public class BlockMangler {
           return Constants.STACKVAR_IDENTIFIER; 
         }
 
-        
         else if (classField != null){
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FIELD_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classField);
@@ -303,7 +306,6 @@ public class BlockMangler {
       public void visitInstanceOfExpression(GNode n) {
         String rightSide =
           Type.getClassTypeName(n.getGeneric(1).getGeneric(0));
-      
         n.set(1, rightSide); 
       }
 

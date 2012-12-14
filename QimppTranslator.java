@@ -192,6 +192,7 @@ public class QimppTranslator extends Tool {
           //Get the string by dispatching the Type GNode
           dispatch(n.getGeneric(0));
           dispatch(n.getGeneric(2));
+          System.err.println("FIELD DECLARATION ~");
                     
           GNode type = (GNode)dispatch(n.getGeneric(1));
           //Create a new GNode to hold all of the declarators;
@@ -201,6 +202,7 @@ public class QimppTranslator extends Tool {
           //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
+            System.err.println(inBlock + " NAME: " + name);
             if (!inBlock) {
               GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
               GNode modifiers = n.getGeneric(0);
@@ -208,9 +210,15 @@ public class QimppTranslator extends Tool {
               for (Object o : modifiers){
                 currentField.setProperty(((GNode)o).getString(0), new Boolean(true));
               }
-
             }
           }
+        }
+
+        /** Visit block. */
+        public void visitBlock(GNode n) {
+          inBlock = true;
+          visit(n); 
+          inBlock = false;
         }
 
         public void visitMethodDeclaration(GNode n) {
