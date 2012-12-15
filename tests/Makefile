@@ -67,7 +67,8 @@ SOURCE = \
 	TestCasting.java \
 	TestTryCatchExpression.java \
 	TestDivideByZeroException.java \
-	TestNotEquals.java
+	TestNotEquals.java \
+	TestStringConcatination.java
 
 JNI_SOURCE =
 

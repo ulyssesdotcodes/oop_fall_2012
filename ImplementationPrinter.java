@@ -313,9 +313,8 @@ public class ImplementationPrinter extends Visitor {
 	public void visitCompilationUnit(GNode n) {
 		printer.p("#include <iostream>\n");
     printer.p("#include <sstream>\n");
+    printer.p("#include <string>\n");
 		printer.p("#include \"out.h\"\n\n");
-    printer.p("#define SSTR( x ) dynamic_cast< std::ostringstream & >(");
-    printer.p("( std::ostringstream() << std::dec << x ) ).str()\n");
     printer.pln();
     visit(n);
     		printer.flush();
@@ -937,9 +936,23 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
+    
+    GNode leftTypeNode = (GNode)n.getGeneric(0)
+            .getProperty(Constants.IDENTIFIER_TYPE_NODE);
+    System.err.println("lefttypenode: " + leftTypeNode);
+    boolean isConcatExpression = false;
+    if (leftTypeNode != null) {
+      isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
+            .equals("String");
+    }
+    if (isConcatExpression) {
+      printer.p("__rt::literal(({\nstd::stringstream __sstr;\n__sstr <<");
+    }
+
     printer.p(' ');
     dispatch(n.getGeneric(0));
-    if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.CLASS_IDENTIFIER){
+    if ((n.getStringProperty(Constants.IDENTIFIER_TYPE) 
+        == Constants.CLASS_IDENTIFIER) || isConcatExpression) {
       printer.p(" << ");
     }
     else {
@@ -951,6 +964,9 @@ public class ImplementationPrinter extends Visitor {
     dispatch(n.getGeneric(2)); 
     exitContext(prec2);
 
+    if (isConcatExpression) {
+      printer.p(";\nstd::string __s = __sstr.str();\n__s.c_str();\n}))");
+    }
     endExpression(prec1);
   }
 
