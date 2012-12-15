@@ -66,7 +66,8 @@ SOURCE = \
 	TestNotExpression.java \
 	TestCasting.java \
 	TestTryCatchExpression.java \
-	TestDivideByZeroException.java
+	TestDivideByZeroException.java \
+	TestNotEquals.java
 
 JNI_SOURCE =
 
