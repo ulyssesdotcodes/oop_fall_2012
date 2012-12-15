@@ -1,18 +1,19 @@
 package qimpp.tests;
 
-/** Test Try/Catch expression */
+/** Test Try/Catch expression 2 */
 public class TestTryCatchExpression {
+  public String writeString() {
+    return "Hey there!";
+  }
 
   public static void main (String[] args) {
- 
-    int d, a; 
-    try { 
-      d = 0; 
-      a = 42 / d; 
-      System.out.println("This will not be printed."); 
-    } 
-    catch (Exception e) {  
-      System.out.println("Division by zero."); 
-    } 
-  }  
+    TestTryCatchExpression tc = null;
+
+    try {
+      System.out.println(tc.writeString());
+    } catch (Exception e) {
+      System.out.println("Null Pointer Exception.");
+    }
+  }
+
 }

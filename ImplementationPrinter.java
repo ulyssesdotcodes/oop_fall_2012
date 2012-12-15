@@ -473,15 +473,18 @@ public class ImplementationPrinter extends Visitor {
     }
   }
 
+  // TODO: HACK
+  boolean inCallExpression = true;
+
   public void visitCallExpression(GNode n) {
     //If we're using a local call
+    inCallExpression   = true;
     boolean staticCall = false;
     if (n.getGeneric(0) == null){
       //Print the call
       if (n.getProperty("static") != null && n.getProperty("private") != null){        
         printer.p(" __this->__vptr->");
-      }
-      else{
+      } else {
         printer.p(Type.getClassTypeName(currentClassNode.getString(0))).p("::");
       }
       printer.p(n.getString(2));
@@ -499,7 +502,9 @@ public class ImplementationPrinter extends Visitor {
     {
       indentOut().p("std::cout << ");
       inPrintStatement = true;
+      inCallExpression = false;
       visit(n);  
+      inCallExpression = true;
       inPrintStatement = false;
      // printer.p(")");
       if (n.getString(2).equals("println")){
@@ -546,6 +551,7 @@ public class ImplementationPrinter extends Visitor {
         printer.p(")");        
       }
     }
+    inCallExpression = false;
     printer.flush();
   }
 
@@ -651,10 +657,13 @@ public class ImplementationPrinter extends Visitor {
 		visit(n);
 	}
 
+  boolean dontCheckNull;
+
   /** Visit the specified expression node. */
 	public void visitExpression(GNode n) {
-		
+	  dontCheckNull = true;	
     dispatch(n.getGeneric(0));
+    dontCheckNull = false;
 		printer.p(' ').p(n.getString(1)).p(' ');
 		dispatch(n.getGeneric(2));
 	}
@@ -707,30 +716,46 @@ public class ImplementationPrinter extends Visitor {
    *  is stack allocated GNode("Name", Type(...), true) 
    */
 	public void visitPrimaryIdentifier(GNode n) {
-    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
-      if (inConstructor)
-        printer.p("this->");
-      else 
-        printer.p("__this->");
+    boolean isQualifiedIdentifier = false;
+    GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+    if (typeNode != null && typeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))  
+      isQualifiedIdentifier = true;
+    if (inCallExpression && !inConstructor && !dontCheckNull && isQualifiedIdentifier) {
+      printer.p("({").p(" __rt::checkNotNull(");
+      if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
+        if (inConstructor)
+          printer.p("this->");
+        else 
+          printer.p("__this->");
+      }
+      //TODO: change this
+      //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+      //if (inPrintStatement && typeNode != null) {
+      //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
+      //    System.err.println("IT IS A BOOLEAN");
+      //    printer.p("str(");
+      //  }
+      //}
+     
+      // Make sure to delimit fully-qualified names correctly
+      printer.p(n.getString(0).replace("\\.", "::"));     
+      printer.p("); ");
     }
-    //TODO: change this
-    //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
-    //if (inPrintStatement && typeNode != null) {
-    //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
-    //    System.err.println("IT IS A BOOLEAN");
-    //    printer.p("str(");
-    //  }
-    //}
-   
-    // Make sure to delimit fully-qualified names correctly
-    printer.p(n.getString(0).replace("\\.", "::"));     
     
+    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
+      if (inConstructor) printer.p("this->");
+      else printer.p("__this->");
+    }
+
+    printer.p(n.getString(0).replace("\\.", "::"));     
     //if (inPrintStatement && typeNode != null) {
     //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
     //  printer.p(")");
     //  } 
     //}
-
+    if (inCallExpression && !inConstructor && !dontCheckNull && isQualifiedIdentifier) {
+      printer.p("; })");
+    }
   }
 
   public void visitThisExpression(GNode n){
@@ -1141,6 +1166,12 @@ public class ImplementationPrinter extends Visitor {
     endExpression(prec);
   }                 
 
+  /** Visit the specified null literal. */
+  public void visitNullLiteral(GNode n) {
+    final int prec = startExpression(160);
+    printer.p("__rt::null()");
+    endExpression(prec);
+  }
 
   /** Visit the specified integer literal. */
   public void visitIntegerLiteral(GNode n) {
