@@ -65,7 +65,7 @@ public class BlockMangler {
         GNode stackVar = resolveScopes(n);
         GNode classField = resolveClassField(identifier);
 
-        //System.err.println("class? " + classDeclaration);
+        System.err.println("class? " + classDeclaration);
         //System.err.println("stack? " + stackVar);
         //System.err.println("field? " + classField);
 
@@ -349,6 +349,7 @@ public class BlockMangler {
         }
         else{
           callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)), null);
+          System.out.println("Caller type: " + callerType);
           // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
           callType = Constants.CALL_UNKNOWN; 
         }

@@ -56,7 +56,6 @@ SOURCE = \
 	QimppTranslator.java \
 	SymbolTable.java \
 	Translator.java \
-	TranslatorTest.java \
 	Type.java \
 	TypeTest.java \
 	Utilities.java \

@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import xtc.lang.JavaFiveParser;
 
@@ -62,7 +63,7 @@ public class QimppTranslator extends Tool {
   CPPAST cppast;
   InheritanceTreeManager treeManager;
   GNode root;
-
+  //bool inReturnStatement;
   HashMap<String, String> currentNameMap;
 
   boolean inBlock;
@@ -116,13 +117,17 @@ public class QimppTranslator extends Tool {
 
   public void process(Node node) {
     // Create a hashmap to hold maps of ambiguous names to unambiguous names
-    currentNameMap = new HashMap<String, String>() {{
-      put("String", "java.lang.String");
-      put("Object", "java.lang.Object");
-      put("Class", "java.lang.Class");
-      put("Exception", "java.lang.Exception"); 
-    }};
+    
+    if(currentNameMap == null){
+      currentNameMap = new HashMap<String, String>() {{
+        put("String", "java.lang.String");
+        put("Object", "java.lang.Object");
+        put("Class", "java.lang.Class");
+        put("Exception", "java.lang.Exception"); 
+      }};
+    }
     currentPackageName = "";
+    //inReturnStatement = false;
 
     // First, get contextual information with an initial visit of types and the package declaration
     
@@ -137,7 +142,6 @@ public class QimppTranslator extends Tool {
           parentClassNode = currentClass;
 
           currentNameMap.put(n.getString(1), qualifiedClassName);
-          System.err.println("Put " + n.getString(1) + ", Qualified: " + qualifiedClassName);
           
           //add the current class to the inheritance tree, but parent it to Object for now
           String[] qualifiedArray = qualifiedClassName.split("\\.");
@@ -290,6 +294,14 @@ public class QimppTranslator extends Tool {
           //Determine the type translated into C++ using 
           //Type.primitiveType(String) and Type.qualifiedIdentifier(String)
           visit(n);
+
+
+          Iterator iter = currentNameMap.keySet().iterator();
+          while(iter.hasNext()){
+            String key = iter.next().toString();
+            System.out.println(key + ": " + currentNameMap.get(key).toString());
+          }
+
           GNode identifier = n.getGeneric(0);
           String typename = Disambiguator.getDotDelimitedName(identifier);
           System.err.println("STRING");
@@ -367,6 +379,7 @@ public class QimppTranslator extends Tool {
                 } catch (Exception e) {
                   // If we can't find it in the source root, then it must be a reference to a file in the current package
                   try {
+                    System.out.println("Can't find it in the source root");
                      String currentPackageQualifiedTypename = currentPackageName + "." + typename;
                      currentNameMap.put(typename, currentPackageQualifiedTypename);
                      process(currentPackageQualifiedTypename.replace(".", "/")+".java");
@@ -389,7 +402,7 @@ public class QimppTranslator extends Tool {
             
             currentClassName = tempClassName;
             currentPackageName = tempPackageName;
-            currentNameMap = tempNameMap;
+            //currentNameMap = tempNameMap;
 
             currentClass = tempClass;
 
@@ -424,7 +437,7 @@ public class QimppTranslator extends Tool {
 
           // If this SelectionExpression is referring to a class, 
           // handle it as a type, making sure it's translated
-          if (Character.isUpperCase(name.charAt(0))) {
+          if (currentNameMap.containsKey(selectionExpressionBuilder.toString())) {
             GNode type = GNode.create("Type", 
                 GNode.create("QualifiedIdentifier", 
                   selectionExpressionBuilder.toString()),
@@ -439,14 +452,15 @@ public class QimppTranslator extends Tool {
         public void visitPrimaryIdentifier(GNode n) {
           // Check if this is a ambiguous name, and if it is, replace it with the fully qualified name
           String name = n.getString(0);
+          //if(currentNameMap.containsKey(name)) name = currentNameMap.get(name);
           // Make sure it's not an unvisited name in the local namespace
           //TODO: This assumes that class names are capitalized
-          if (Character.isUpperCase(name.charAt(0)) && !name.equals("System")){
+          if (currentNameMap.containsKey(name) && !name.equals("System")){
             GNode type = GNode.create("Type", 
                 GNode.create("QualifiedIdentifier",
                 name));
             visitType(type);
-            n.set(0, type.getGeneric(0).getString(0));
+            n.set(0, currentNameMap.get(name));
           } 
           // If we're inside a SelectionExpression, build the expression
           if (selectionExpressionDepth > 0){
@@ -458,6 +472,11 @@ public class QimppTranslator extends Tool {
           GNode type = GNode.create("Type");
           type.addNode(GNode.create("PrimitiveType")).getGeneric(0).add("void");
           return type;
+        }
+
+        public GNode visitReturnStatement(GNode n){
+          visit(n);
+          return n;
         }
 
         public GNode visitExtension(GNode n){
@@ -646,6 +665,7 @@ public class QimppTranslator extends Tool {
       }
       
       public GNode visitReturnStatement(GNode n) {
+        
         return n;
       }
  
