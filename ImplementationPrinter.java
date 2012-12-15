@@ -741,6 +741,11 @@ public class ImplementationPrinter extends Visitor {
       printer.p("); ");
     }
     
+    if (typeNode != null && typeNode.getGeneric(0).getString(0).equals("byte") 
+        && (inPrintStatement || inConcatExpression)) {
+      printer.p("(int)");
+    }
+    
     if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
       else printer.p("__this->");
@@ -933,6 +938,8 @@ public class ImplementationPrinter extends Visitor {
 		}
 	}
 
+  boolean inConcatExpression = false;
+
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
@@ -951,6 +958,7 @@ public class ImplementationPrinter extends Visitor {
       isConcatExpression = true;
     }
     if (isConcatExpression) {
+      inConcatExpression = true;
       printer.p("__rt::literal(({\nstd::stringstream __sstr;\n__sstr <<");
     }
 
@@ -971,6 +979,7 @@ public class ImplementationPrinter extends Visitor {
 
     if (isConcatExpression) {
       printer.p(";\nstd::string __s = __sstr.str();\n__s.c_str();\n}))");
+      inConcatExpression = false;
     }
     endExpression(prec1);
   }

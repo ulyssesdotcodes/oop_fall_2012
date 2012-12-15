@@ -68,7 +68,9 @@ SOURCE = \
 	TestTryCatchExpression.java \
 	TestDivideByZeroException.java \
 	TestNotEquals.java \
-	TestStringConcatination.java
+	TestStringConcatination.java \
+	TestMethodCall.java \
+  TestByte.java	
 
 JNI_SOURCE =
 
