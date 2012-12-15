@@ -941,7 +941,8 @@ public class ImplementationPrinter extends Visitor {
             .getProperty(Constants.IDENTIFIER_TYPE_NODE);
     System.err.println("lefttypenode: " + leftTypeNode);
     boolean isConcatExpression = false;
-    if (leftTypeNode != null) {
+    if (leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
+        .equals("QualifiedIdentifier")) {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
             .equals("String");
     }
