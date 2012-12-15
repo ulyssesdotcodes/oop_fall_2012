@@ -455,6 +455,7 @@ public class QimppTranslator extends Tool {
           //if(currentNameMap.containsKey(name)) name = currentNameMap.get(name);
           // Make sure it's not an unvisited name in the local namespace
           //TODO: This assumes that class names are capitalized
+          String s;
           if (currentNameMap.containsKey(name) && !name.equals("System")){
             GNode type = GNode.create("Type", 
                 GNode.create("QualifiedIdentifier",
@@ -466,6 +467,7 @@ public class QimppTranslator extends Tool {
           if (selectionExpressionDepth > 0){
             selectionExpressionBuilder.append(name);
           }
+
         }
         
         public GNode visitVoidType(GNode n){

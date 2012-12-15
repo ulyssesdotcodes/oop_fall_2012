@@ -65,9 +65,9 @@ public class BlockMangler {
         GNode stackVar = resolveScopes(n);
         GNode classField = resolveClassField(identifier);
 
-        System.err.println("class? " + classDeclaration);
+        //System.err.println("class? " + classDeclaration);
         //System.err.println("stack? " + stackVar);
-        //System.err.println("field? " + classField);
+        System.err.println("field? " + classField);
 
         if (classDeclaration != null) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
@@ -282,7 +282,7 @@ public class BlockMangler {
         }
 
         // If we're referring to some foreign class, we want to search it for this field's declaration
-        else if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.FOREIGN_CLASS_FIELD_IDENTIFIER)){
+        else{ //if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.FOREIGN_CLASS_FIELD_IDENTIFIER)){
            GNode searchClassType = ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getGeneric(1);
            // Use the Type's QualifiedIdentifier's class
            String searchClassName = Disambiguator.getDotDelimitedName(searchClassType.getGeneric(0));          
@@ -292,6 +292,7 @@ public class BlockMangler {
               throw new NullPointerException();
            }
 
+          System.out.println("Working on: " + n);
            // Set the value of the reference to the value of the field declaration
            n.set(1, fieldDeclaration.getString(0));
 
