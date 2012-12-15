@@ -946,6 +946,10 @@ public class ImplementationPrinter extends Visitor {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
             .equals("String");
     }
+    if (n.getGeneric(0).getName().equals("StringLiteral") 
+        || n.getGeneric(0).getName().equals("CharacterLiteral")) {
+      isConcatExpression = true;
+    }
     if (isConcatExpression) {
       printer.p("__rt::literal(({\nstd::stringstream __sstr;\n__sstr <<");
     }

@@ -156,44 +156,59 @@ public class BlockMangler {
         String rightType = ((GNode)n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0).getString(0);
 
         String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType), null));
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, 
+            GNode.create("Type", 
+              GNode.create("PrimitiveType", resultType), null));
 
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
       public String visitAdditiveExpression(GNode n){
 
-        if (n.get(0) instanceof String || n.get(2) instanceof String){
+        if (n.get(0) instanceof String || n.get(2) instanceof String) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
-          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String"), null));
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, 
+              inheritanceTree.getClassDeclarationNode("java.lang.String"));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, 
+              GNode.create("Type", 
+                Disambiguator.disambiguate("java.lang.String"), null));
           return Constants.CLASS_IDENTIFIER;
         }
   
         dispatch(n.getGeneric(0));
         dispatch(n.getGeneric(2));
 
-        GNode leftTypeNode = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
-        GNode rightTypeNode = (GNode) n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        GNode leftTypeNode = 
+          (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
+        GNode rightTypeNode = 
+          (GNode)n.getGeneric(2).getProperty(Constants.IDENTIFIER_TYPE_NODE);
 
-        if (leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier") ||
-            rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
+        if ((leftTypeNode != null && 
+              leftTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))
+              || (rightTypeNode != null && 
+                rightTypeNode.getGeneric(0).getName().equals("QualifiedIdentifier")))
         //if (n.getGeneric(0).getName().equals("QualifiedIdentifier") ||
         //    n.getGeneric(2).getName().equals("QualifiedIdentifier"))
         {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
-          n.setProperty(Constants.IDENTIFIER_DECLARATION, inheritanceTree.getClassDeclarationNode("java.lang.String"));
-          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate("java.lang.String"), null));
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, 
+              inheritanceTree.getClassDeclarationNode("java.lang.String"));
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, 
+              GNode.create("Type", 
+                Disambiguator.disambiguate("java.lang.String"), null));
           return Constants.CLASS_IDENTIFIER; 
         }
-         
-        String leftType = leftTypeNode.getGeneric(0).getString(0);
-        String rightType = rightTypeNode.getGeneric(0).getString(0);
-
-        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         
-        String resultType = Type.compare(leftType, rightType);
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", resultType), null));
+        n.setProperty(Constants.IDENTIFIER_TYPE, 
+                      Constants.PRIMITIVE_TYPE_IDENTIFIER);
+
+        if (null != leftTypeNode && null != rightTypeNode) {
+          String leftType = leftTypeNode.getGeneric(0).getString(0);
+          String rightType = rightTypeNode.getGeneric(0).getString(0);
+          String resultType = Type.compare(leftType, rightType);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", 
+                GNode.create("PrimitiveType", resultType), null));
+        }
         
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;    
       }
