@@ -323,6 +323,16 @@ public class BlockMangler {
         n.set(1, rightSide); 
       }
 
+      public String visitCastExpression(GNode n){
+        visit(n);
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
+        GNode classDeclaration = inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(n.getGeneric(0).getGeneric(0))); 
+        n.setProperty(Constants.IDENTIFIER_DECLARATION, classDeclaration);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, n.getGeneric(0));
+
+        return Constants.CLASS_IDENTIFIER;
+      }
+
       public String visitCallExpression(GNode n){
         visit(n);
         
