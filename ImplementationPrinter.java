@@ -502,7 +502,8 @@ public class ImplementationPrinter extends Visitor {
       indentOut().p("std::cout << ");
       inPrintStatement = true;
       inCallExpression = false;
-      visit(n);  
+      if(0 == n.getGeneric(3).size()) printer.p("\"\""); 
+      else visit(n); 
       inCallExpression = true;
       inPrintStatement = false;
      // printer.p(")");
@@ -518,8 +519,9 @@ public class ImplementationPrinter extends Visitor {
         // Get the type of the calling expression or field name, and make a _this to reference it
         // It is necessarily an instance, and should be associated with a QualifiedIdentifier
         GNode callingTypeNode = (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
-        printer.p("({ ").p(Type.getInstanceName(callingTypeNode.getGeneric(0)))
-          .p(" _this = ");
+        printer.p("({ ");
+        dispatch(callingTypeNode);
+        printer.p(" _this = ");
         //Print the nested expression
         dispatch(n.getGeneric(0));
         //End the expression;
@@ -831,15 +833,19 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified type node. */
 	public void visitType(GNode n) {
     GNode dimensions = n.getGeneric(1);
-    if (dimensions != null)
-      for (int i = 0; i < dimensions.size(); i++)
+    if (dimensions != null) {
+      for (int i = 0; i < dimensions.size(); i++) {
         printer.p(" __rt::Ptr<__rt::Array<");
+      }
+    }
       
 		visit(n);
 
-    if (dimensions != null)
-      for (int i = 0; i < dimensions.size(); i++)
+    if (dimensions != null) {
+      for (int i = 0; i < dimensions.size(); i++) {
         printer.p(" > > ");
+      }
+    }
 	}
 
   /** Visit the specified field declaration. */
