@@ -21,6 +21,7 @@ public class MethodResolver {
   public static GNode resolve (String methodName, GNode classType, GNode argTypes, InheritanceTreeManager inheritanceTree, String callType, GNode callingClassDeclaration ) {
     MethodResolver.callType = callType;
     //TODO: Implement overloading. For now we just return the first method with the right name
+    MethodResolver.inheritanceTree = inheritanceTree;
     String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
     MethodResolver.callingClassDeclaration = callingClassDeclaration;
@@ -32,7 +33,6 @@ public class MethodResolver {
 
     GNode calledMethod = getMostSpecific(argCastMatches);
 
-    MethodResolver.inheritanceTree = inheritanceTree;
     methodName = Type.getCppMangledMethodName(calledMethod);
      
     return GNode.create("CallInfo", methodName, calledMethod.getGeneric(1), calledMethod);
@@ -112,7 +112,9 @@ public class MethodResolver {
 
     if (sourceName.equals(targetName)) return true;
 
+    System.err.println("INHERITANCE TREE is " + inheritanceTree);
     GNode sourceClassTreeNode = inheritanceTree.getClassTreeNode(sourceName);
+    System.err.println("INHERITANCE TREE is " + inheritanceTree);
     GNode targetClassTreeNode = inheritanceTree.getClassTreeNode(targetName);
 
     while (sourceName != "java.lang.Object"){
