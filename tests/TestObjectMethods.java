@@ -14,6 +14,13 @@ public class TestObjectMethods {
       System.out.println("FAIL t == r");
     }
 
+    if (t.equals(r)) {
+      System.out.println("PASS t.equals(r)");
+    } else {
+      System.out.println("FAIL t.equals(r)");
+    }
+
+
   }
 
 }
