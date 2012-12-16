@@ -534,9 +534,23 @@ public class CPPAST {
     type.add(null);
     return type;
   }
+
+  GNode generateObjectClassDeclaration(){
+    GNode methods = generateObjectMethods();
+    GNode Object = GNode.create("ClassDeclaration", "java.lang.Object", null, null, null, methods);
+    return Object;
+  }
+
+  GNode generateStringClassDeclaration(){
+    return null;
+  }
+
+  GNode generateClassClassDeclaration(){
+    return null;
+  }
   
   GNode generateObjectMethods(){
-    GNode objectMethods = GNode.create("ObjectMethods");
+    GNode objectMethods = GNode.create("Methods");
     GNode objectType = generateObjectType();
     
     //Hashcode

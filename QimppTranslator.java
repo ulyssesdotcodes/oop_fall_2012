@@ -107,7 +107,7 @@ public class QimppTranslator extends Tool {
   }
   
   public void run(String[] args){
-    treeManager = new InheritanceTreeManager(GNode.create("ObjectClassDeclaration")); 
+    treeManager = new InheritanceTreeManager(cppast.generateObjectClassDeclaration()); 
     // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
     currentClassName = args[args.length - 1];
     
