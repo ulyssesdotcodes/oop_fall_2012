@@ -19,6 +19,50 @@ CompilationUnit(
     null,
     null,
     ClassBody(
+      FieldDeclaration(
+        Modifiers(
+          Modifier(
+            "public"
+          )
+        ),
+        Type(
+          PrimitiveType(
+            "int"
+          ),
+          null
+        ),
+        Declarators(
+          Declarator(
+            "count",
+            null,
+            null
+          )
+        )
+      ),
+      ConstructorDeclaration(
+        Modifiers(
+          Modifier(
+            "public"
+          )
+        ),
+        null,
+        "TestObjectMethods",
+        FormalParameters(),
+        null,
+        Block(
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "count"
+              ),
+              "=",
+              IntegerLiteral(
+                "0"
+              )
+            )
+          )
+        )
+      ),
       MethodDeclaration(
         Modifiers(
           Modifier(
@@ -386,6 +430,112 @@ CompilationUnit(
                   Arguments(
                     StringLiteral(
                       "\"FAIL t != r\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            LogicalNegationExpression(
+              CallExpression(
+                PrimaryIdentifier(
+                  "t"
+                ),
+                null,
+                "equals",
+                Arguments(
+                  PrimaryIdentifier(
+                    "r"
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS ! t.equals(r)\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL ! t.equals(r)\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            EqualityExpression(
+              IntegerLiteral(
+                "0"
+              ),
+              "==",
+              SelectionExpression(
+                PrimaryIdentifier(
+                  "t"
+                ),
+                "count"
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS Test.<init>()\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL Test.<init>()\""
                     )
                   )
                 )

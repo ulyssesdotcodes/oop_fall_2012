@@ -555,8 +555,16 @@ public class CPPAST {
 
   GNode generateArrayClassDeclaration(){
     GNode methods = generateArrayMethods(); // duplicate
+    GNode lenField = GNode.create("FieldDeclaration", "length",
+                                 GNode.create("Type", GNode.create("PrimitiveType", "int")));
+    GNode fields = GNode.create("FieldDeclarations", lenField ); 
     GNode ArrayDec = 
-      GNode.create("ClassDeclaration", "rt.Array", null, null, null, methods);
+      GNode.create("ClassDeclaration", "rt.Array", null, null, fields, methods);
+
+    HashMap<String, GNode> arrFieldMap = new HashMap<String, GNode>();
+    arrFieldMap.put("length", lenField);
+
+    ArrayDec.setProperty("FieldMap", arrFieldMap);
     return ArrayDec;
   }
 

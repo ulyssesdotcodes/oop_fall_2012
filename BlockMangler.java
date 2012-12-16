@@ -247,9 +247,13 @@ public class BlockMangler {
         if (selectionExpressionDepth == 0)
           selectionExpressionBuilder = new StringBuilder();
 
+        System.err.println("-------------------\nSELECTIONEXPRESSION\n------------------------");
+        System.err.println(n);
+
 
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
+        System.err.println(n.getProperty(Constants.IDENTIFIER_TYPE));
         selectionExpressionBuilder.append("." + n.getString(1));
         //TODO: Debug code
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == null){
@@ -258,12 +262,32 @@ public class BlockMangler {
         }
         // End debug code
         n.setProperty(Constants.IDENTIFIER_DECLARATION, n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION));
+        System.err.println(n.getProperty(Constants.IDENTIFIER_DECLARATION));
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE));
-        selectionExpressionDepth--;
+        System.err.println(n.getProperty(Constants.IDENTIFIER_TYPE_NODE));
 
+        selectionExpressionDepth--;
         String expression = selectionExpressionBuilder.toString();
+        // Bug out if it's System.out
+        if (expression.equals("System.out")) {
+           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRINT_IDENTIFIER);
+           //TODO:Hack
+           n.setProperty(Constants.IDENTIFIER_DECLARATION, new Object());
+           return Constants.PRINT_IDENTIFIER;
+        }
+
+        // Test if we're getting a field of ARRAY
+        if (!(n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER) && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null)){
+          if (((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(1) != null){
+            System.err.println("SWITCHING TO ARRAY IDENTIFIER");
+            n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("QualifiedIdentifier",
+                                                                      "__rt", "Array"), null));
+          }
+        }
+
         // Part of the way in, we may find that we have a fully qualified type. In that case set the class declaration
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER) && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
+          System.err.println("It's a fully qualified class");
           GNode classDeclaration = inheritanceTree.getClassDeclarationNode(selectionExpressionBuilder.toString());
           if (classDeclaration != null){
             n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
@@ -271,6 +295,27 @@ public class BlockMangler {
             n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", Disambiguator.disambiguate(classDeclaration.getString(0)), null));
           }
         }
+        else if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.STACKVAR_IDENTIFIER){
+          System.out.println((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE));
+          GNode foreignClass = inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(
+                ((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0)));
+
+          GNode foreignFieldDeclaration = resolveClassField(n.getString(1), foreignClass);
+          
+           String underscores = foreignClass.getString(0);
+           underscores = underscores.replace('.', '_');
+
+           n.set(1, underscores+"_"+n.getString(1));
+           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
+
+           n.set(1, foreignFieldDeclaration.getString(0));
+
+
+          n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FOREIGN_CLASS_FIELD_IDENTIFIER);
+          n.setProperty(Constants.IDENTIFIER_DECLARATION, foreignFieldDeclaration);
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, foreignFieldDeclaration.getGeneric(1));
+        }
+
         // If our child is a CLASS_IDENTIFIER, and we're still in a SelectionExpression, we must be referring to some accessible field
         else if ((n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.QUALIFIED_CLASS_IDENTIFIER
                   && n.getProperty(Constants.IDENTIFIER_DECLARATION) != null)
@@ -284,6 +329,13 @@ public class BlockMangler {
               throw new RuntimeException("Failed to identify field " + n.getString(1));
            }
            // Reset the field to its proper name
+
+           String underscores = ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getString(0);
+           underscores = underscores.replace('.', '_');
+
+           n.set(1, underscores+"_"+n.getString(1));
+           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
+
            n.set(1, foreignFieldDeclaration.getString(0));
 
            n.setProperty(Constants.IDENTIFIER_DECLARATION, foreignFieldDeclaration);
@@ -301,19 +353,20 @@ public class BlockMangler {
               throw new NullPointerException();
            }
 
+          String underscores = ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getString(0);
+          underscores = underscores.replace('.', '_');
+
+          n.set(1, underscores+"_"+n.getString(1));
+
           System.out.println("Working on: " + n);
            // Set the value of the reference to the value of the field declaration
-           n.set(1, fieldDeclaration.getString(0));
 
+           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
            n.setProperty(Constants.IDENTIFIER_DECLARATION, fieldDeclaration);
            n.setProperty(Constants.IDENTIFIER_TYPE, fieldDeclaration.getGeneric(1));
         }
         
-        if (expression.equals("System.out")) {
-           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRINT_IDENTIFIER);
-           //TODO:Hack
-           n.setProperty(Constants.IDENTIFIER_DECLARATION, new Object());
-        } 
+        
 
         // Bye this point we should have figured out what the selectionExpression is referring to
         if (selectionExpressionDepth == 0 && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
