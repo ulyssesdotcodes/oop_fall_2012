@@ -3,11 +3,15 @@ package qimpp.tests;
 /** Test basic number types and arithmetic */
 public class TestMethodCall {
   
- /* public static Object R1; 
-  public static Object R2;
-  public static Object R3;
-  public static Object R4;
-*/
+ public static Object R1 = new Object(); 
+ public static Object R2 = new Object();
+ public static Object R3 = new Object();
+ public static Object R4 = new Object();
+
+ static{
+   R1 = new Object();
+ }
+
   public TestMethodCall() {
   /*  R1 = new Object();
     R2 = new Object();
@@ -26,7 +30,8 @@ public class TestMethodCall {
 */
   public static void main ( String[] args ) {
   
-    String s2 = "hello";
+    String s2;
+    s2 = "hello";
     String s1 = "hello";
 
     TestMethodCall t = new TestMethodCall();

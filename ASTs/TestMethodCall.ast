@@ -38,7 +38,15 @@ CompilationUnit(
           Declarator(
             "R1",
             null,
-            null
+            NewClassExpression(
+              null,
+              null,
+              QualifiedIdentifier(
+                "Object"
+              ),
+              Arguments(),
+              null
+            )
           )
         )
       ),
@@ -61,7 +69,15 @@ CompilationUnit(
           Declarator(
             "R2",
             null,
-            null
+            NewClassExpression(
+              null,
+              null,
+              QualifiedIdentifier(
+                "Object"
+              ),
+              Arguments(),
+              null
+            )
           )
         )
       ),
@@ -84,7 +100,15 @@ CompilationUnit(
           Declarator(
             "R3",
             null,
-            null
+            NewClassExpression(
+              null,
+              null,
+              QualifiedIdentifier(
+                "Object"
+              ),
+              Arguments(),
+              null
+            )
           )
         )
       ),
@@ -107,20 +131,20 @@ CompilationUnit(
           Declarator(
             "R4",
             null,
-            null
+            NewClassExpression(
+              null,
+              null,
+              QualifiedIdentifier(
+                "Object"
+              ),
+              Arguments(),
+              null
+            )
           )
         )
       ),
-      ConstructorDeclaration(
-        Modifiers(
-          Modifier(
-            "public"
-          )
-        ),
-        null,
-        "TestMethodCall",
-        FormalParameters(),
-        null,
+      BlockDeclaration(
+        "static",
         Block(
           ExpressionStatement(
             Expression(
@@ -138,109 +162,20 @@ CompilationUnit(
                 null
               )
             )
-          ),
-          ExpressionStatement(
-            Expression(
-              PrimaryIdentifier(
-                "R2"
-              ),
-              "=",
-              NewClassExpression(
-                null,
-                null,
-                QualifiedIdentifier(
-                  "Object"
-                ),
-                Arguments(),
-                null
-              )
-            )
-          ),
-          ExpressionStatement(
-            Expression(
-              PrimaryIdentifier(
-                "R3"
-              ),
-              "=",
-              NewClassExpression(
-                null,
-                null,
-                QualifiedIdentifier(
-                  "Object"
-                ),
-                Arguments(),
-                null
-              )
-            )
-          ),
-          ExpressionStatement(
-            Expression(
-              PrimaryIdentifier(
-                "R4"
-              ),
-              "=",
-              NewClassExpression(
-                null,
-                null,
-                QualifiedIdentifier(
-                  "Object"
-                ),
-                Arguments(),
-                null
-              )
-            )
           )
         )
       ),
-      MethodDeclaration(
+      ConstructorDeclaration(
         Modifiers(
           Modifier(
             "public"
           )
         ),
         null,
-        Type(
-          QualifiedIdentifier(
-            "Object"
-          ),
-          null
-        ),
-        "m1",
+        "TestMethodCall",
         FormalParameters(),
         null,
-        null,
-        Block(
-          ReturnStatement(
-            PrimaryIdentifier(
-              "R1"
-            )
-          )
-        )
-      ),
-      MethodDeclaration(
-        Modifiers(
-          Modifier(
-            "public"
-          )
-        ),
-        null,
-        Type(
-          QualifiedIdentifier(
-            "Object"
-          ),
-          null
-        ),
-        "m2",
-        FormalParameters(),
-        null,
-        null,
-        Block(
-          ReturnStatement(
-            PrimaryIdentifier(
-              "R3"
-            )
-          )
-        )
+        Block()
       ),
       MethodDeclaration(
         Modifiers(
@@ -285,9 +220,18 @@ CompilationUnit(
               Declarator(
                 "s2",
                 null,
-                StringLiteral(
-                  "\"hello\""
-                )
+                null
+              )
+            )
+          ),
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "s2"
+              ),
+              "=",
+              StringLiteral(
+                "\"hello\""
               )
             )
           ),
@@ -321,27 +265,11 @@ CompilationUnit(
               Declarator(
                 "t",
                 null,
-                null
-              )
-            )
-          ),
-          FieldDeclaration(
-            Modifiers(),
-            Type(
-              QualifiedIdentifier(
-                "Child2"
-              ),
-              null
-            ),
-            Declarators(
-              Declarator(
-                "r",
-                null,
                 NewClassExpression(
                   null,
                   null,
                   QualifiedIdentifier(
-                    "Child2"
+                    "TestMethodCall"
                   ),
                   Arguments(),
                   null
@@ -421,30 +349,60 @@ CompilationUnit(
               )
             )
           ),
-          ExpressionStatement(
-            Expression(
-              PrimaryIdentifier(
-                "o"
+          FieldDeclaration(
+            Modifiers(),
+            Type(
+              QualifiedIdentifier(
+                "Class"
               ),
-              "=",
-              CallExpression(
-                PrimaryIdentifier(
-                  "r"
-                ),
+              null
+            ),
+            Declarators(
+              Declarator(
+                "k1",
                 null,
-                "m1",
-                Arguments()
+                CallExpression(
+                  PrimaryIdentifier(
+                    "t"
+                  ),
+                  null,
+                  "getClass",
+                  Arguments()
+                )
+              )
+            )
+          ),
+          FieldDeclaration(
+            Modifiers(),
+            Type(
+              QualifiedIdentifier(
+                "Class"
+              ),
+              null
+            ),
+            Declarators(
+              Declarator(
+                "k2",
+                null,
+                CallExpression(
+                  PrimaryIdentifier(
+                    "s1"
+                  ),
+                  null,
+                  "getClass",
+                  Arguments()
+                )
               )
             )
           ),
           ConditionalStatement(
             EqualityExpression(
               PrimaryIdentifier(
-                "R2"
+                "k1"
               ),
-              "==",
+              "!=",
               PrimaryIdentifier(
-                "o"
+                "k2"
               )
             ),
             Block(
@@ -460,7 +418,7 @@ CompilationUnit(
                   "println",
                   Arguments(
                     StringLiteral(
-                      "\"PASS r.m1()\""
+                      "\"PASS k1 != k2\""
                     )
                   )
                 )
@@ -479,7 +437,439 @@ CompilationUnit(
                   "println",
                   Arguments(
                     StringLiteral(
-                      "\"FAIL r.m1()\""
+                      "\"FAIL K1 != k2\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            CallExpression(
+              CallExpression(
+                PrimaryIdentifier(
+                  "k1"
+                ),
+                null,
+                "getName",
+                Arguments()
+              ),
+              null,
+              "equals",
+              Arguments(
+                StringLiteral(
+                  "\"xtc.oop.Test\""
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS k1.getName().equals(\\\"xtc.oop.Test\\\")\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL k1.getName().equals(\\\"xtc.oop.Test\\\")\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            CallExpression(
+              StringLiteral(
+                "\"xtc.oop.Test\""
+              ),
+              null,
+              "equals",
+              Arguments(
+                CallExpression(
+                  PrimaryIdentifier(
+                    "k1"
+                  ),
+                  null,
+                  "getName",
+                  Arguments()
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS \\\"xtc.oop.Test\\\".equals(k1.getName())\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL \\\"xtc.oop.Test\\\".equals(k1.getName())\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            CallExpression(
+              CallExpression(
+                PrimaryIdentifier(
+                  "k1"
+                ),
+                null,
+                "toString",
+                Arguments()
+              ),
+              null,
+              "equals",
+              Arguments(
+                StringLiteral(
+                  "\"class xtc.oop.Test\""
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS k1.toString().equals(\\\"class xtc.oop.Test\\\")\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL k1.toString().equals(\\\"class xtc.oop.Test\\\")\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            LogicalNegationExpression(
+              CallExpression(
+                PrimaryIdentifier(
+                  "k1"
+                ),
+                null,
+                "equals",
+                Arguments(
+                  PrimaryIdentifier(
+                    "k2"
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS ! k1.equals(k2)\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL ! k1.equals(k2)\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "k2"
+              ),
+              "=",
+              PrimaryIdentifier(
+                "k1"
+              )
+            )
+          ),
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "k1"
+              ),
+              "=",
+              CallExpression(
+                PrimaryIdentifier(
+                  "k1"
+                ),
+                null,
+                "getSuperclass",
+                Arguments()
+              )
+            )
+          ),
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "k2"
+              ),
+              "=",
+              CallExpression(
+                PrimaryIdentifier(
+                  "k2"
+                ),
+                null,
+                "getSuperclass",
+                Arguments()
+              )
+            )
+          ),
+          ConditionalStatement(
+            EqualityExpression(
+              PrimaryIdentifier(
+                "k1"
+              ),
+              "==",
+              PrimaryIdentifier(
+                "k2"
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS k1.super() == k2.super().super()\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL K1.super() == k2.super().super()\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ConditionalStatement(
+            CallExpression(
+              PrimaryIdentifier(
+                "k1"
+              ),
+              null,
+              "equals",
+              Arguments(
+                PrimaryIdentifier(
+                  "k2"
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS k1.super().equals(k2.super().super())\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL k1.super().equals(k2.super().super())\""
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          ExpressionStatement(
+            Expression(
+              PrimaryIdentifier(
+                "k1"
+              ),
+              "=",
+              CallExpression(
+                PrimaryIdentifier(
+                  "k1"
+                ),
+                null,
+                "getSuperclass",
+                Arguments()
+              )
+            )
+          ),
+          ConditionalStatement(
+            EqualityExpression(
+              NullLiteral(),
+              "==",
+              PrimaryIdentifier(
+                "k1"
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"PASS null == k1.super().super()\""
+                    )
+                  )
+                )
+              )
+            ),
+            Block(
+              ExpressionStatement(
+                CallExpression(
+                  SelectionExpression(
+                    PrimaryIdentifier(
+                      "System"
+                    ),
+                    "out"
+                  ),
+                  null,
+                  "println",
+                  Arguments(
+                    StringLiteral(
+                      "\"FAIL null == k1.super().super()\""
                     )
                   )
                 )

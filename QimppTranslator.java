@@ -192,7 +192,14 @@ public class QimppTranslator extends Tool {
          
           System.err.println("Inserted class in tree manager ");
           System.err.println(new ArrayList<String>(Arrays.asList(qualifiedArray))); 
+
+          staticInitializerBlock = GNode.create("Block");
+          staticInitializerStatements = GNode.create("Block");
+
           visit(n);
+
+          addStaticInitializerMethod();
+          setStaticInitializerMethodInstructions();
 
         }
 
@@ -250,8 +257,14 @@ public class QimppTranslator extends Tool {
           //There may be multiple e.g. Java: double x,y,z; => C++: double x; double y; double z;
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
+            GNode statement = declarators.getGeneric(i).getGeneric(2);
+            // Add the initialization to the static initializer if there is an initialization
             System.err.println(inBlock + " NAME: " + name);
             if (blockDepth == 0) {
+
+              if (statement != null){
+                addStaticInitializerStatement(name, statement);
+              }
               GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
               GNode modifiers = n.getGeneric(0);
 
@@ -267,6 +280,44 @@ public class QimppTranslator extends Tool {
           blockDepth++;
           visit(n); 
           blockDepth--;
+        }
+
+        GNode staticInitializerBlock;
+        GNode staticInitializerStatements;
+        GNode staticInitializerMethod;
+
+        public void addStaticInitializerMethod(){
+          String methodName = "__static_init";
+          GNode returnType = GNode.create("ReturnType", GNode.create("PrimitiveType", "void"), null);
+          GNode parameters = GNode.create("FormalParameters");
+          staticInitializerMethod = cppast.addMethod(methodName, returnType, currentClass, parameters);
+
+          
+          staticInitializerMethod.setProperty("private", new Boolean(true));
+        }
+
+        public void addStaticInitializerStatement(String identifier, GNode statement){
+          
+          GNode assgnStatement = GNode.create("ExpressionStatement", GNode.create("Expression", GNode.create("PrimaryIdentifier", identifier),
+                                                                        "=", statement));
+          staticInitializerStatements.add(assgnStatement);
+        }
+
+        public void addStaticInitializerBlock(GNode block){
+          for (Object o : block){
+            staticInitializerBlock.add(o);
+          }  
+        }
+
+        public void setStaticInitializerMethodInstructions(){
+          GNode block = GNode.create("Block");
+          for (Object o : staticInitializerStatements){
+            block.add(o);
+          }
+          for (Object o : staticInitializerBlock){
+            block.add(o);
+          }
+          cppast.setMethodInstructions(block, staticInitializerMethod);
         }
 
         public void visitMethodDeclaration(GNode n) {
@@ -409,6 +460,10 @@ public class QimppTranslator extends Tool {
             String tempPackageName = currentPackageName;
             GNode tempClass = currentClass;
 
+            GNode tempStatInitBlock = staticInitializerBlock;
+            GNode tempStatInitStat = staticInitializerStatements;
+            GNode tempStatInitMethod = staticInitializerMethod;
+
             HashMap<String, String> tempNameMap = currentNameMap;
             
             // disambiguate() - figure out the fully qualified name
@@ -463,6 +518,10 @@ public class QimppTranslator extends Tool {
             //currentNameMap = tempNameMap;
 
             currentClass = tempClass;
+            
+            staticInitializerBlock = tempStatInitBlock;
+            staticInitializerStatements = tempStatInitStat;
+            staticInitializerMethod = tempStatInitMethod;
 
             return n;
 
@@ -560,6 +619,8 @@ public class QimppTranslator extends Tool {
           // Add inherited mehthods and fields using the parent's class
           // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
           // should only be one argument to addAllInheritedMethods
+          System.err.println("---------------\nADDING INHERITED METHODS\n---------------------");
+          System.err.println("In class: " + currentClassName);
           cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
 
           cppast.addAllInheritedFields(parentClassNode, currentClass); 
