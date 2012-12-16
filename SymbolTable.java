@@ -1082,6 +1082,8 @@ public class SymbolTable {
         //table.current().node(n);
         table.mark(n);
 
+        // There can be primary identifiers in Declarators
+        visit(n);
         // return the declarator name
         return n.getString(0);
       }
@@ -1112,6 +1114,7 @@ public class SymbolTable {
        * Class-level fields are resolved in the ClassDeclaration node's "FieldMap" property
        */
       public void visitFieldDeclaration(GNode n) {
+        visit(n);
         if (inMethod) {
           ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
           for ( String name : fieldNames ) {

@@ -59,7 +59,6 @@ public class BlockMangler {
           selectionExpressionBuilder.insert(0, identifier);
         }
         
-        System.err.println("IDENTIFIER " + identifier);
         GNode classDeclaration = 
           inheritanceTree.getClassDeclarationNode(identifier);
         GNode stackVar = resolveScopes(n);
@@ -67,7 +66,6 @@ public class BlockMangler {
 
         //System.err.println("class? " + classDeclaration);
         //System.err.println("stack? " + stackVar);
-        System.err.println("field? " + classField);
 
         if (classDeclaration != null) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
@@ -350,7 +348,6 @@ public class BlockMangler {
         }
         else{
           callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)), null);
-          System.out.println("Caller type: " + callerType);
           // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
           callType = Constants.CALL_UNKNOWN; 
         }
@@ -363,6 +360,10 @@ public class BlockMangler {
 
         GNode callInfo = null;
         try {
+          System.err.println("CALL_EXP");
+          System.err.println(n);
+          System.err.println("CALLER_TYPE");
+          System.err.println(callerType);
           callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType, cppClass); 
         }
         catch (Exception e) {
