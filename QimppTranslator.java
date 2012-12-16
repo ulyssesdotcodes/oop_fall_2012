@@ -67,6 +67,7 @@ public class QimppTranslator extends Tool {
   HashMap<String, String> currentNameMap;
 
   boolean inBlock;
+  int blockDepth = 0;
 
   /** Create a new translator. */
   public QimppTranslator() {
@@ -208,7 +209,7 @@ public class QimppTranslator extends Tool {
           for(int i = 0; i < declarators.size(); i++){
             String name = (String)dispatch(declarators.getGeneric(i));
             System.err.println(inBlock + " NAME: " + name);
-            if (!inBlock) {
+            if (blockDepth == 0) {
               GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
               GNode modifiers = n.getGeneric(0);
 
@@ -221,9 +222,9 @@ public class QimppTranslator extends Tool {
 
         /** Visit block. */
         public void visitBlock(GNode n) {
-          inBlock = true;
+          blockDepth++;
           visit(n); 
-          inBlock = false;
+          blockDepth--;
         }
 
         public void visitMethodDeclaration(GNode n) {

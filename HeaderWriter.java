@@ -162,6 +162,10 @@ public class HeaderWriter extends Visitor {
     fields.add(n); 
   }
 
+ /* public void visitBlock(GNode n) {
+    // do nothing
+  }
+*/
   public void visitInheritedMethodContainer(GNode n){
     inherited = true;
     if (!n.getGeneric(0).getString(0).equals("main"))
