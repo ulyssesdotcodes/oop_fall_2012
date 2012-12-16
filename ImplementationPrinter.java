@@ -943,13 +943,14 @@ public class ImplementationPrinter extends Visitor {
   /** Visit the specified additive expression. */
   public void visitAdditiveExpression(GNode n) {
     final int prec1 = startExpression(120);
+    boolean isConcatExpression = false;
     
     GNode leftTypeNode = (GNode)n.getGeneric(0)
             .getProperty(Constants.IDENTIFIER_TYPE_NODE);
     GNode rightTypeNode = (GNode)n.getGeneric(2)
             .getProperty(Constants.IDENTIFIER_TYPE_NODE);
-    boolean isConcatExpression = false;
-    boolean rightIsChar = false;
+    
+       boolean rightIsChar = false;
     if (leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
         .equals("QualifiedIdentifier")) {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
@@ -964,6 +965,11 @@ public class ImplementationPrinter extends Visitor {
         .equals("PrimitiveType")) {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(0)
         .equals("char");
+    }
+   if (n.getGeneric(0).getName().equals("BasicCastExpression")) {
+      System.err.println(">>> IN BASIC CAST EXPRESSION");
+      isConcatExpression = n.getGeneric(0).getGeneric(0)
+          .getString(0).equals("char"); 
     }
 
     if (n.getGeneric(0).getName().equals("StringLiteral") 
@@ -1020,15 +1026,18 @@ public class ImplementationPrinter extends Visitor {
       .p(" >(").p(n.getNode(1)).p(")");
   }
 
+  boolean inBasicCastExpression = false;
   /** Visit the specified basic cast expression. */
   public void visitBasicCastExpression(GNode n) {
     final int prec = startExpression(140);
+    inBasicCastExpression = true;
     printer.p('(').p(n.getNode(0));
     if(null != n.get(1)) {
       printer.p(n.getNode(1));
     }
     printer.p(')').p(n.getNode(2));  
     
+    inBasicCastExpression = false;
     endExpression(prec);
   }
  
