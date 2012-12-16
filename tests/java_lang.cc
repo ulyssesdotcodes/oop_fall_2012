@@ -244,6 +244,16 @@ namespace __rt {
     return k;
   }
  
+  // Template specialization for arrays of shorts.
+  template<>
+  java::lang::Class Array<int16_t>::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[S"),
+                              java::lang::__Object::__class(),
+                              java::lang::__Integer::TYPE());
+    return k;
+  } 
+  
   // Template specialization for arrays of char.
   template<>
   java::lang::Class Array<char>::__class() {
@@ -293,8 +303,18 @@ namespace __rt {
                               Array<int32_t>::__class());
     return k;
   }
+  
+  // Template specialization for arrays of array of shorts.
+  template<>
+  java::lang::Class Array<__rt::Ptr<__rt::Array<int16_t> > >::__class() {
+    static java::lang::Class k =
+      new java::lang::__Class(literal("[[S"),
+                              Array<Ptr<Array<java::lang::Object> > >::__class(),
+                              Array<int16_t>::__class());
+    return k;
+  }
 
-  // Template specialization for arrays of array of chars.
+ // Template specialization for arrays of array of chars.
   template<>
   java::lang::Class Array<__rt::Ptr<__rt::Array<char> > >::__class() {
     static java::lang::Class k =
