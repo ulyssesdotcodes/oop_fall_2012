@@ -374,6 +374,7 @@ public class BlockMangler {
           System.err.println(n);
           System.err.println("CALLER_TYPE");
           System.err.println(callerType);
+          System.err.println(inheritanceTree);
           callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType, cppClass); 
         }
         catch (Exception e) {

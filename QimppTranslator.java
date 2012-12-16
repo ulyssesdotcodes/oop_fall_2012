@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import xtc.lang.JavaFiveParser;
 
@@ -65,8 +66,11 @@ public class QimppTranslator extends Tool {
   GNode root;
   //bool inReturnStatement;
   HashMap<String, String> currentNameMap;
+  HashMap<String, Boolean> enqueued;
+  LinkedList<Node> readQueue;
 
   boolean inBlock;
+  boolean processImmediately;
   int blockDepth = 0;
 
   /** Create a new translator. */
@@ -109,8 +113,9 @@ public class QimppTranslator extends Tool {
   
   public void run(String[] args){
     treeManager = new InheritanceTreeManager(cppast.generateObjectClassDeclaration()); 
-    
-     String[] stringQualified = {"java", "lang", "String"};
+    readQueue = new LinkedList<Node>();
+    enqueued = new HashMap<String, Boolean>();
+    String[] stringQualified = {"java", "lang", "String"};
     String[] classQualified = {"java", "lang", "Class"};
     treeManager.insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, cppast.generateStringClassDeclaration());
     treeManager.insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, cppast.generateClassClassDeclaration());
@@ -120,6 +125,35 @@ public class QimppTranslator extends Tool {
     
     super.run(args);
     //cppast.printAST();
+  }
+
+  public void processEnqueue(String name) throws IOException, ParseException {
+
+    // Locate the file.
+    File file = locate(name);
+
+    // Open the file.
+    Reader in = runtime.getReader(file);
+
+    // Parse the file.
+    Node root;
+    try {
+      root = parse(in, file);
+    } finally {
+      // Close the file.
+      try {
+        in.close();
+      } catch (IOException x) {
+        // Ignore.
+      }
+    }
+
+    if (!enqueued.containsKey(name)){
+      // Process the AST.
+      readQueue.add(root);
+      enqueued.put(name, new Boolean(true));
+
+    }
   }
 
   public void process(Node node) {
@@ -237,6 +271,11 @@ public class QimppTranslator extends Tool {
           //TODO: math names and remove
           try{
             String methodName = n.getString(3);
+            /*
+            if (methodName.equals("m8")){
+              System.out.println("m8!!!!!");
+              System.exit();
+            }*/
             if (methodName.equals("main")) {
               n.set(2, GNode.create("Type", 
                     GNode.create("PrimitiveType", "int"), 
@@ -382,14 +421,24 @@ public class QimppTranslator extends Tool {
 
             if (classTreeNode == null) {
                 try{
-                  process(typename.replace(".", "/")+".java");
+                  if (processImmediately){
+                    process(typename.replace(".", "/")+".java");
+                    enqueued.put(typename.replace(".", "/")+".java", new Boolean(true));
+                  }
+                  else
+                    processEnqueue(typename.replace(".", "/")+".java");
                 } catch (Exception e) {
                   // If we can't find it in the source root, then it must be a reference to a file in the current package
                   try {
                     System.out.println("Can't find it in the source root");
                      String currentPackageQualifiedTypename = currentPackageName + "." + typename;
                      currentNameMap.put(typename, currentPackageQualifiedTypename);
-                     process(currentPackageQualifiedTypename.replace(".", "/")+".java");
+                     if (processImmediately){
+                      process(currentPackageQualifiedTypename.replace(".", "/")+".java");
+                      enqueued.put(currentPackageQualifiedTypename.replace(".", "/")+".java", new Boolean(true));
+                     }
+                     else
+                      processEnqueue(currentPackageQualifiedTypename.replace(".", "/")+".java");
                      
                      // Copy-paste yay...
                      String qualifiedName = currentNameMap.get(typename);
@@ -491,7 +540,9 @@ public class QimppTranslator extends Tool {
         public GNode visitExtension(GNode n){
         
           // Assume the name of the parent is fully qualified
+          processImmediately = true;
           visit(n);
+          processImmediately = false;
 
           GNode parentNameQualifiedIdentifier = n.getGeneric(0).getGeneric(0);
           parentName = Disambiguator.getDotDelimitedName(parentNameQualifiedIdentifier);
@@ -532,6 +583,12 @@ public class QimppTranslator extends Tool {
     };
 
     initialVisitor.dispatch(node);
+
+    Node target = readQueue.poll();
+    while (target != null){
+      process(target);
+      target = readQueue.poll();
+    }
 
     /** SYMBOL TABLE */
     SymbolTable table = new SymbolTable();
