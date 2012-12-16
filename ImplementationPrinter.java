@@ -720,8 +720,12 @@ public class ImplementationPrinter extends Visitor {
     if (typeNode != null && typeNode.getGeneric(0).getName().equals("QualifiedIdentifier"))  
       isQualifiedIdentifier = true;
     if (inCallExpression && !inConstructor && !dontCheckNull && isQualifiedIdentifier) {
+
       printer.p("({").p(" __rt::checkNotNull(");
-      if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
+     
+      if (null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+          .getProperty("static") &&
+          n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
         if (inConstructor)
           printer.p("this->");
         else 
@@ -745,12 +749,18 @@ public class ImplementationPrinter extends Visitor {
         && (inPrintStatement || inConcatExpression)) {
       printer.p("(int)");
     }
-    
-    if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
+  
+    if (null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+        .getProperty("static") &&
+        n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
       else printer.p("__this->");
     }
 
+    System.out.println("=========================");
+    System.out.println("-> " + n);
+    System.out.println("-> " + n.getLocation());
+    System.out.println("IDENTIFIER DECLARATION: " + (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)); 
     printer.p(n.getString(0).replace("\\.", "::"));     
     //if (inPrintStatement && typeNode != null) {
     //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
@@ -793,6 +803,7 @@ public class ImplementationPrinter extends Visitor {
     endExpression(prec);
   }
 
+
   /** Visit the specified formal parameters node. */
 	public void visitFormalParameters(GNode n) {
 		printer.p('(');
@@ -806,15 +817,12 @@ public class ImplementationPrinter extends Visitor {
 				printer.p(", ");
       firstArg = false;
 
-      GNode formalParameter = (GNode)iter.next();
-
-      printer.p(Disambiguator.getColonDelimitedName(formalParameter.getGeneric(1).getGeneric(0)))
-			.p(" ").p(formalParameter.getString(0));
+      printer.p((Node)iter.next());
       
 		}
 		printer.p(')');
 	}
-
+  
   /** Visit the specified type node. */
 	public void visitType(GNode n) {
     GNode dimensions = n.getGeneric(1);
@@ -839,6 +847,7 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified primitive type node. */
   public void visitPrimitiveType(GNode n) {
+    System.out.println("SLDKJFLKSDJFLKS" + n);
     printer.p(Type.primitiveType(n.getString(0)));
   }
 

@@ -116,7 +116,8 @@ class Type {
    * @returns C++ equivalent of primative type.
    */
   static String primitiveType(String type){
-    return primitives.get(type);
+    if(primitives.containsKey(type)) return primitives.get(type);
+    return type;
   }
 
   /**

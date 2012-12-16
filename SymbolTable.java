@@ -1060,7 +1060,7 @@ public class SymbolTable {
 
           for ( String name : fieldNames ) {
             // Associate the name with its field declaration
-              table.current().addDefinition(name, n);
+            table.current().addDefinition(name, n);
           }
         }
       } 

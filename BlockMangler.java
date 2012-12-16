@@ -220,6 +220,7 @@ public class BlockMangler {
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;    
       }
 
+      
 
       
       public String visitThisExpression(GNode n){
@@ -330,6 +331,7 @@ public class BlockMangler {
         String rightSide =
           Type.getClassTypeName(n.getGeneric(1).getGeneric(0));
         n.set(1, rightSide); 
+        visit(n);
       }
 
       public String visitCastExpression(GNode n){
@@ -540,8 +542,9 @@ public class BlockMangler {
 
   private GNode resolveScopes(GNode primaryIdentifier){
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
-    System.out.println("SCOPEZ: " + scope);
+
     if (scope == null) {
+      System.err.println("SCOPEZ: " + primaryIdentifier + " " + scope);
       return null;
     }
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
