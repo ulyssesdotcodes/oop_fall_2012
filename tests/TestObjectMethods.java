@@ -2,6 +2,13 @@ package qimpp.tests;
 
 /** Test basic number types and arithmetic */
 public class TestObjectMethods {
+  
+  public int count;
+
+  public TestObjectMethods() {
+    count = 0;
+  }
+
   public static void main ( String[] args ) {
     TestObjectMethods t;
     Child r = new Child();
@@ -51,6 +58,20 @@ public class TestObjectMethods {
     } else {
       System.out.println("FAIL t != r");
     }
+
+    if (! t.equals(r)) {
+      System.out.println("PASS ! t.equals(r)");
+    } else {
+      System.out.println("FAIL ! t.equals(r)");
+    }
+
+
+    if (0 == t.count) {
+      System.out.println("PASS Test.<init>()");
+    } else {
+      System.out.println("FAIL Test.<init>()");
+    }
+
 
 
   }
