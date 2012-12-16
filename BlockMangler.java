@@ -133,6 +133,15 @@ public class BlockMangler {
       }
 
       /**
+       * Set the appropriate properties for a char literal
+       */
+      public String visitCharacterLiteral(GNode n){
+        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "char"), null));
+        return Constants.PRIMITIVE_TYPE_IDENTIFIER;
+      }
+
+      /**
        * Set the appropriate properties for a string literal
        */
       public String visitStringLiteral(GNode n){
@@ -419,6 +428,9 @@ public class BlockMangler {
           (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
         // Make a Declarators of one dimension lower
         GNode newDimensions = GNode.create("Dimensions");
+        System.err.println("PRIMARY IDENTIFIER TYPE");
+        System.err.println(primaryIdentifierType);
+        System.err.println(n);
         for (int i = 1; i < primaryIdentifierType.getGeneric(1).size(); i++)
           newDimensions.add("[");
 

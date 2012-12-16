@@ -23,6 +23,7 @@ public class MethodResolver {
     //TODO: Implement overloading. For now we just return the first method with the right name
     MethodResolver.inheritanceTree = inheritanceTree;
     String className = Disambiguator.getDotDelimitedName(classType.getGeneric(0));
+    System.out.println("CLASS NAME: " + className);
     GNode classDeclaration = inheritanceTree.getClassDeclarationNode(className);
     MethodResolver.callingClassDeclaration = callingClassDeclaration;
     ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 

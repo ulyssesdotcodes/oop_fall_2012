@@ -118,7 +118,7 @@ public class QimppTranslator extends Tool {
     String[] stringQualified = {"java", "lang", "String"};
     String[] classQualified = {"java", "lang", "Class"};
     treeManager.insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, cppast.generateStringClassDeclaration());
-    treeManager.insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, cppast.generateClassClassDeclaration());
+    treeManager.insertClass(new ArrayList<String>(Arrays.asList(classQualified)), null, cppast.generateClassClassDeclaration());
 
     // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
     currentClassName = args[args.length - 1];
