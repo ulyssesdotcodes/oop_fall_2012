@@ -852,7 +852,6 @@ public class ImplementationPrinter extends Visitor {
 
   /** Visit the specified primitive type node. */
   public void visitPrimitiveType(GNode n) {
-    System.out.println("SLDKJFLKSDJFLKS" + n);
     printer.p(Type.primitiveType(n.getString(0)));
   }
 
