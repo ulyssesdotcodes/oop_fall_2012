@@ -946,13 +946,26 @@ public class ImplementationPrinter extends Visitor {
     
     GNode leftTypeNode = (GNode)n.getGeneric(0)
             .getProperty(Constants.IDENTIFIER_TYPE_NODE);
-    System.err.println("lefttypenode: " + leftTypeNode);
+    GNode rightTypeNode = (GNode)n.getGeneric(2)
+            .getProperty(Constants.IDENTIFIER_TYPE_NODE);
     boolean isConcatExpression = false;
+    boolean rightIsChar = false;
     if (leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
         .equals("QualifiedIdentifier")) {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
             .equals("String");
     }
+    if (rightTypeNode != null && rightTypeNode.getGeneric(0).getName()
+          .equals("PrimitiveType")) {
+      rightIsChar = leftTypeNode.getGeneric(0).getString(0)
+          .equals("char");
+    }
+    if (!rightIsChar && leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
+        .equals("PrimitiveType")) {
+      isConcatExpression = leftTypeNode.getGeneric(0).getString(0)
+        .equals("char");
+    }
+
     if (n.getGeneric(0).getName().equals("StringLiteral") 
         || n.getGeneric(0).getName().equals("CharacterLiteral")) {
       isConcatExpression = true;
