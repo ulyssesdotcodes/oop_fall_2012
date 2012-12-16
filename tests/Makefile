@@ -72,7 +72,9 @@ SOURCE = \
 	TestMethodCall.java \
   TestByte.java \
 	TestShortArray.java \
-	TestConcatenation.java	
+	TestConcatenation.java \
+	TestObjectMethods.java \
+	Child.java	
 
 JNI_SOURCE =
 

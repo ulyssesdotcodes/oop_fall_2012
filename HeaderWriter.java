@@ -164,7 +164,8 @@ public class HeaderWriter extends Visitor {
 
   public void visitInheritedMethodContainer(GNode n){
     inherited = true;
-    inherited_methods.add(n);
+    if (!n.getGeneric(0).getString(0).equals("main"))
+      inherited_methods.add(n);
     inherited = false;
   }
 
@@ -456,7 +457,8 @@ public class HeaderWriter extends Visitor {
     String current_class = name(n);
     for (GNode m : inherited_methods) {
       //Get the implementedMethodDec node of the inheritedMethodContainer and write the VT method from it.
-      writeVTMethod(m.getGeneric(0), current_class);
+      if (m.getProperty("static") == null && m.getProperty("private") == null)
+        writeVTMethod(m.getGeneric(0), current_class);
     }
   }
 
@@ -509,7 +511,8 @@ public class HeaderWriter extends Visitor {
     indentOut().p("toString((String(*)(").p(name(node)).p("))&__Object::toString)\n");
   } */
 
-  /** Write out all the inherited VT addresses of the class' superclass(es)' methods
+  /** 
+   * Write out all the inherited VT addresses of the class' superclass(es)' methods
    * @param i the index of the class we are writing */
   // TODO: this
   private void writeInheritedVTAddresses(GNode n) {
@@ -538,6 +541,9 @@ public class HeaderWriter extends Visitor {
     GNode inheritedMethodContainer;
     inheritedMethodContainer = n;
     n = inheritedMethodContainer.getGeneric(0);
+    if (n.getString(0).equals("main")) {
+      return;  
+    }
     indentOut().p(Type.getCppMangledMethodName(n)).p("((");
     printer.p(getType(n, true));
     printer.p("(*)(").p(current_class);
