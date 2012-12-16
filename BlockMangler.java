@@ -339,11 +339,11 @@ public class BlockMangler {
           }
           callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
           if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.QUALIFIED_CLASS_IDENTIFIER){
-            callType = Constants.CALL_STATIC;
+            callType = Constants.CALL_UNKNOWN;
           }
           // It must be a call from some object
           else {
-            callType = Constants.CALL_DYNAMIC;
+            callType = Constants.CALL_UNKNOWN;
           }
         }
         else{
