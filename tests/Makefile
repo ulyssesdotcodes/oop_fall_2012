@@ -70,7 +70,8 @@ SOURCE = \
 	TestNotEquals.java \
 	TestStringConcatination.java \
 	TestMethodCall.java \
-  TestByte.java	
+  TestByte.java \
+	TestShortArray.java	
 
 JNI_SOURCE =
 
