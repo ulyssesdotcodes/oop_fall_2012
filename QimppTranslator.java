@@ -158,9 +158,10 @@ public class QimppTranslator extends Tool {
     }
   }
 
+  int processDepth = -1;
   public void process(Node node) {
     // Create a hashmap to hold maps of ambiguous names to unambiguous names
-    
+    processDepth++;
     if(currentNameMap == null){
       currentNameMap = new HashMap<String, String>() {{
         put("String", "java.lang.String");
@@ -645,10 +646,24 @@ public class QimppTranslator extends Tool {
 
     initialVisitor.dispatch(node);
 
-    Node target = readQueue.poll();
-    while (target != null){
-      process(target);
-      target = readQueue.poll();
+    if (processDepth == 0){
+      // Reset currentClassName when we come back
+      String tempPackageName = currentPackageName;
+      GNode tempClass = currentClass;
+      String tempClassName = currentClassName;
+
+      Node target = readQueue.poll();
+      while (target != null){
+        process(target);
+        target = readQueue.poll();
+      }
+
+      currentClassName = tempClassName;
+      currentPackageName = tempPackageName;
+      //currentNameMap = tempNameMap;
+
+      currentClass = tempClass;
+      
     }
 
     /** SYMBOL TABLE */
@@ -803,6 +818,8 @@ public class QimppTranslator extends Tool {
       }
 
     }.dispatch(node);
+    
+    processDepth--;
   }
 
   /**
