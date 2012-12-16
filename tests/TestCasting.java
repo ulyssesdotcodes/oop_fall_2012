@@ -21,6 +21,31 @@ public class TestCasting {
     Object obj = s;
     String str = (String)obj;
     System.out.println("str: \"" + str + "\"");
+
+    TestCasting t = new TestCasting();
+    
+    o = t;
+
+    if (o instanceof TestCasting) {
+      System.out.println("PASS o instanceof Test");
+    } else {
+      System.out.println("FAIL o instanceof Test");
+    }
+
+    if (o instanceof Object) {
+      System.out.println("PASS o instanceof Object");
+    } else {
+      System.out.println("FAIL o instanceof Object");
+    }
+
+    if (! (o instanceof String)) {
+      System.out.println("PASS ! (o instanceof String)");
+    } else {
+      System.out.println("FAIL ! (o instanceof String)");
+    }
+
+
+
   }
 }
 

@@ -1105,6 +1105,7 @@ public class ImplementationPrinter extends Visitor {
       .p(Constants.QUALIFIER).p("__class(), ");
     dispatch(n.getGeneric(0));
     printer.p(')');
+    endExpression(prec1);
   }
  
   /** Visit the specified for statement. */
