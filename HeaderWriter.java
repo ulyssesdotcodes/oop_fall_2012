@@ -586,7 +586,6 @@ public class HeaderWriter extends Visitor {
 // =======================
 
   private String name(GNode n) {
-    System.out.println("Name of what? :" + n.toString());
     // Get the final identifier from the qualified name
     String[] qualifiedNameArray = n.getString(0).split("\\.");
     String name = qualifiedNameArray[qualifiedNameArray.length - 1];

@@ -117,8 +117,10 @@ public class QimppTranslator extends Tool {
     enqueued = new HashMap<String, Boolean>();
     String[] stringQualified = {"java", "lang", "String"};
     String[] classQualified = {"java", "lang", "Class"};
+    String[] arrayQualified = {"__rt", "Array"};
     treeManager.insertClass(new ArrayList<String>(Arrays.asList(stringQualified)), null, cppast.generateStringClassDeclaration());
     treeManager.insertClass(new ArrayList<String>(Arrays.asList(classQualified)), null, cppast.generateClassClassDeclaration());
+    treeManager.insertClass(new ArrayList<String>(Arrays.asList(arrayQualified)), null, cppast.generateArrayClassDeclaration());
 
     // This gets the class name from the command line of the root class. Fix this later, as it only supports one argument
     currentClassName = args[args.length - 1];
@@ -465,7 +467,6 @@ public class QimppTranslator extends Tool {
             return n;
 
           }
-
         }
 
         public String visitDeclarator(GNode n) {

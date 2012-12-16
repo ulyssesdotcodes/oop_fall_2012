@@ -357,6 +357,14 @@ public class BlockMangler {
             return null;
           }
           callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+
+          if (callerType.size() > 1 && null != callerType.getGeneric(1)) {
+            GNode newQualifiedIdentifier = 
+              GNode.create("QualifiedIdentifier", "__rt", "Array");
+            GNode newTypeNode = GNode.create("Type", newQualifiedIdentifier, null);
+            callerType = newTypeNode;
+          }
+
           if (caller.getProperty(Constants.IDENTIFIER_TYPE) == Constants.QUALIFIED_CLASS_IDENTIFIER){
             callType = Constants.CALL_UNKNOWN;
           }
@@ -365,7 +373,7 @@ public class BlockMangler {
             callType = Constants.CALL_UNKNOWN;
           }
         }
-        else{
+        else {
           callerType = GNode.create("Type", Disambiguator.disambiguate(cppClass.getString(0)), null);
           // We cannot know if this is a static or dynamic call, we need MethodResolver to determine that
           callType = Constants.CALL_UNKNOWN; 
@@ -420,6 +428,16 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+      public void visitDeclarator(GNode n) {
+        if (null != n.getGeneric(1)) {
+          GNode fakePrimary = GNode.create("PrimaryIdentifier", n.getString(0));
+          fakePrimary.setProperty(Constants.SCOPE, 
+              n.getProperty(Constants.SCOPE));
+          GNode fieldNode = resolveScopes(fakePrimary);
+          fieldNode.getGeneric(1).set(1, n.getGeneric(1));
+        } 
+        visit(n);
+      }
 
 
       public void visitSubscriptExpression(GNode n){
@@ -522,6 +540,7 @@ public class BlockMangler {
 
   private GNode resolveScopes(GNode primaryIdentifier){
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
+    System.out.println("SCOPEZ: " + scope);
     if (scope == null) {
       return null;
     }

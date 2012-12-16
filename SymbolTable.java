@@ -1050,7 +1050,14 @@ public class SymbolTable {
 
       public void visitBasicForControl(GNode n) {
         if (n.getNode(0) != null) {
-          ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
+          ArrayList<String> fieldNames = new ArrayList<String>();
+          //iterate through declarators and add to fieldNames.
+          GNode declarators = n.getGeneric(2);
+          for (Object declarator : declarators) {
+            String fieldName = (String)((GNode)declarator).getString(0);
+            fieldNames.add(fieldName);
+          }
+
           for ( String name : fieldNames ) {
             // Associate the name with its field declaration
               table.current().addDefinition(name, n);
@@ -1078,27 +1085,20 @@ public class SymbolTable {
        * scopes.
        *
        */
-      public String visitDeclarator(GNode n) {
+      public void visitDeclarator(GNode n) {
         //table.current().node(n);
         table.mark(n);
 
         // There can be primary identifiers in Declarators
         visit(n);
-        // return the declarator name
-        return n.getString(0);
       }
 
       /**
        * Visit all declarators (usually for a FieldDeclaration) and return a list of their names.
        * @returns an ArrayList containing the names
        */
-      public ArrayList<String> visitDeclarators(GNode n) {
-        ArrayList<String> names = new ArrayList<String>();
-        // Return the name of the first declarator. This works for fields.
-        for (Iterator<Object> iter = n.iterator(); iter.hasNext(); ) {
-          names.add((String)dispatch((GNode)iter.next()));
-        }       
-        return names;
+      public void visitDeclarators(GNode n) {
+        visit(n);
       }
 
       public void visitFormalParameter(GNode n) {
@@ -1114,14 +1114,21 @@ public class SymbolTable {
        * Class-level fields are resolved in the ClassDeclaration node's "FieldMap" property
        */
       public void visitFieldDeclaration(GNode n) {
-        visit(n);
         if (inMethod) {
-          ArrayList<String> fieldNames = (ArrayList) dispatch(n.getGeneric(2));
+          ArrayList<String> fieldNames = new ArrayList<String>();
+          //iterate through declarators and add to fieldNames.
+          GNode declarators = n.getGeneric(2);
+          for (Object declarator : declarators) {
+            String fieldName = (String)((GNode)declarator).getString(0);
+            fieldNames.add(fieldName);
+          }
+
           for ( String name : fieldNames ) {
             // Associate the name with its field declaration
             table.current().addDefinition(name, n);
           }
         }
+        visit(n);
       }
 
       // ======================================================================
