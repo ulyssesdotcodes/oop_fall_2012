@@ -112,12 +112,14 @@ public class MethodResolver {
 
     if (sourceName.equals(targetName)) return true;
 
-    System.err.println("INHERITANCE TREE is " + inheritanceTree);
+    System.err.println("SOURCE NAME: " + sourceName);
+    System.err.println("TARGET NAME: " + targetName);
     GNode sourceClassTreeNode = inheritanceTree.getClassTreeNode(sourceName);
-    System.err.println("INHERITANCE TREE is " + inheritanceTree);
     GNode targetClassTreeNode = inheritanceTree.getClassTreeNode(targetName);
 
-    while (sourceName != "java.lang.Object"){
+    while (!sourceName.equals("java.lang.Object")){
+      System.err.println("SOURCE_CLASS_TREE_NODE");
+      System.err.println(sourceClassTreeNode);
       sourceClassTreeNode = (GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.PARENT_CLASS);
       sourceName = (String)((GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.CLASS_DECLARATION)).get(0);
       if (sourceName.equals(targetName)) return true;
