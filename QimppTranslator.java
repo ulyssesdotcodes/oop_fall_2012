@@ -524,7 +524,6 @@ public class QimppTranslator extends Tool {
           if (selectionExpressionDepth > 0){
             selectionExpressionBuilder.append(name);
           }
-
         }
         
         public GNode visitVoidType(GNode n){

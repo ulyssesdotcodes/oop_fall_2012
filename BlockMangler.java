@@ -87,6 +87,7 @@ public class BlockMangler {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.FIELD_IDENTIFIER);
           n.setProperty(Constants.IDENTIFIER_DECLARATION, classField);
           n.setProperty(Constants.IDENTIFIER_TYPE_NODE, classField.getGeneric(1));
+          n.setProperty("class", Type.getClassTypeName(cppClass.getString(0)));
 
           // Set the value of the reference to the value of the field declaration
           n.set(0, classField.getString(0));

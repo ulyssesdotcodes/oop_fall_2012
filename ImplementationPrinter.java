@@ -730,7 +730,12 @@ public class ImplementationPrinter extends Visitor {
           printer.p("this->");
         else 
           printer.p("__this->");
+      } else if (inMain && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+          .getProperty("static")) {
+         String className = currentClassNode.getString(0);
+         printer.p(Type.getClassTypeName(className)).p("::");
       }
+
       //TODO: change this
       //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
       //if (inPrintStatement && typeNode != null) {
@@ -755,12 +760,12 @@ public class ImplementationPrinter extends Visitor {
         n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
       else printer.p("__this->");
+    } else if (inMain && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+        .getProperty("static")) {
+       String className = currentClassNode.getString(0);
+       printer.p(Type.getClassTypeName(className)).p("::");
     }
 
-    System.out.println("=========================");
-    System.out.println("-> " + n);
-    System.out.println("-> " + n.getLocation());
-    System.out.println("IDENTIFIER DECLARATION: " + (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)); 
     printer.p(n.getString(0).replace("\\.", "::"));     
     //if (inPrintStatement && typeNode != null) {
     //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
