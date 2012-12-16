@@ -120,7 +120,6 @@ public class MethodResolver {
     while (sourceName != "java.lang.Object"){
       sourceClassTreeNode = (GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.PARENT_CLASS);
       sourceName = (String)((GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.CLASS_DECLARATION)).get(0);
-      System.err.println(sourceName);
       if (sourceName.equals(targetName)) return true;
     }
 
@@ -198,8 +197,10 @@ public class MethodResolver {
             continue;
           } 
         }
+        /*
         if (method.getProperty("public") == null){
           System.out.println("LOOKING FOR A PROTECTED METHOD");
+          System.out.println(method.getString(0));
 
           // If a method is not public, it is automatically protected, and the packages have to match
           String[] callingPackage = callingClassDeclaration.getString(0).split("\\.");
@@ -220,7 +221,8 @@ public class MethodResolver {
         }
         else{
           matches.add(method);
-        }
+        }*/
+        matches.add(method);
       }
       
     }

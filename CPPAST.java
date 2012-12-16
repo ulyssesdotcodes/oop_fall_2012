@@ -537,16 +537,20 @@ public class CPPAST {
 
   GNode generateObjectClassDeclaration(){
     GNode methods = generateObjectMethods();
-    GNode Object = GNode.create("ClassDeclaration", "java.lang.Object", null, null, null, methods);
-    return Object;
+    GNode objectDec = GNode.create("ClassDeclaration", "java.lang.Object", null, null, null, methods);
+    return objectDec;
   }
 
   GNode generateStringClassDeclaration(){
-    return null;
+    GNode methods = generateStringMethods();
+    GNode stringDec = GNode.create("ClassDeclaration", "java.lang.String", null, null, null, methods);
+    return stringDec;
   }
 
   GNode generateClassClassDeclaration(){
-    return null;
+    GNode methods = generateClassMethods();
+    GNode objectDec = GNode.create("ClassDeclaration", "java.lang.Class", null, null, null, methods);
+    return objectDec;
   }
   
   GNode generateObjectMethods(){
@@ -589,6 +593,165 @@ public class CPPAST {
     objectMethod.addNode(GNode.create("Block"));
     objectMethods.add(objectMethod);
     
+    return objectMethods;
+  }
+
+
+  GNode generateStringMethods(){
+    GNode objectMethods = GNode.create("Methods");
+    GNode objectType = generateObjectType();
+    
+    //Hashcode
+    GNode objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("hashCode");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //equals
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("equals");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //getClass
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("getClass");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("Class");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //toString
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("toString");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("String");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("length");
+    objectMethod.add(GNode.create("ReturnType", GNode.create("PrimitiveType", "int"), null));
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("charAt");
+    objectMethod.add(GNode.create("ReturnType", GNode.create("PrimitiveType", "char"), null));
+    objectMethod.addNode(GNode.create("FormalParameters", GNode.create("FormalParameter", "i", GNode.create("Type", GNode.create("PrimitiveType", "int")))));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    
+    return objectMethods;
+  }
+
+  GNode generateClassMethods(){
+    GNode objectMethods = GNode.create("Methods");
+    GNode objectType = generateObjectType();
+    
+    //Hashcode
+    GNode objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("hashCode");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("int");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //equals
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("equals");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters")).getGeneric(2).addNode(GNode.create("FormalParameter")).getGeneric(0).add("obj").addNode(objectType);
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //getClass
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("getClass");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).getGeneric(0).add("java").add("lang").add("Class");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+    
+    //toString
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("toString");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).add(null).getGeneric(0).add("java").add("lang").add("String");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    //getName
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("getName");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).add(null).getGeneric(0).add("java").add("lang").add("String");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    //getParentClass
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("getSuperclass");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("QualifiedIdentifier")).add(null).getGeneric(0).add("java").add("lang").add("Class");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    //isPrimitive
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("isPrimitive");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).add(null).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    //isArray
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("isArray");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).add(null).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+    //getComponentType
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("isArray");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).add(null).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters"));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
+
+    //isInstance
+    objectMethod = GNode.create("ImplementedMethodDeclaration");
+    objectMethod.add("isInstance");
+    objectMethod.add(GNode.create("ReturnType")).getGeneric(1).add(GNode.create("PrimitiveType")).add(null).getGeneric(0).add("boolean");
+    objectMethod.addNode(GNode.create("FormalParameters", GNode.create("FormalParameter", "i", GNode.create("Type", GNode.create("QualifiedIdentifier", "java", "lang", "Class"), null))));
+    //objectMethod.addNode(GNode.create("From")).getGeneric(3).addNode(objectType);
+    objectMethod.addNode(GNode.create("Block"));
+    objectMethods.add(objectMethod);
+
     return objectMethods;
   }
   
