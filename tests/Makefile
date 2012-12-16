@@ -74,7 +74,8 @@ SOURCE = \
 	TestShortArray.java \
 	TestConcatenation.java \
 	TestObjectMethods.java \
-	Child.java	
+	Child.java \
+	Child2.java	
 
 JNI_SOURCE =
 

@@ -355,7 +355,11 @@ public class HeaderWriter extends Visitor {
 
   private void writeField(GNode n) {
     String type = getType(n, true); 
-    indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
+    if (n.getProperty("static") != null)
+      indentOut().p("static ").p(type).p(" ").p(getFieldPrefix(n)).p(";\n");
+    else
+      indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
+   
   }
 
   private void writeMethods(GNode n){
