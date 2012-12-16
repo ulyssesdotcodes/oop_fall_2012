@@ -1007,6 +1007,19 @@ public class ImplementationPrinter extends Visitor {
       .p(" >(").p(n.getNode(1)).p(")");
   }
 
+  /** Visit the specified basic cast expression. */
+  public void visitBasicCastExpression(GNode n) {
+    final int prec = startExpression(140);
+    printer.p('(').p(n.getNode(0));
+    if(null != n.get(1)) {
+      printer.p(n.getNode(1));
+    }
+    printer.p(')').p(n.getNode(2));  
+    
+    endExpression(prec);
+  }
+ 
+
   /** Visit the specified conditional statement. */
   public void visitConditionalStatement(GNode n) {
     final int     flag   = null == n.get(2) ? STMT_IF : STMT_IF_ELSE;
