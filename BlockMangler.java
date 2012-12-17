@@ -63,7 +63,7 @@ public class BlockMangler {
         String identifier = n.getString(0);
 
         if (identifier.equals("R1")){
-          System.err.println("--------------\nTHIS IS IT\n------------");
+          
           resolveClassField(identifier);
         }
 
@@ -76,8 +76,8 @@ public class BlockMangler {
         GNode stackVar = resolveScopes(n);
         GNode classField = resolveClassField(identifier);
 
-        //System.err.println("class? " + classDeclaration);
-        //System.err.println("stack? " + stackVar);
+        //
+        //
 
         if (classDeclaration != null) {
           n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
@@ -269,18 +269,18 @@ public class BlockMangler {
 
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
-        System.err.println(n.getProperty(Constants.IDENTIFIER_TYPE));
+        
         selectionExpressionBuilder.append("." + n.getString(1));
         //TODO: Debug code
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == null){
-          System.err.println(n);
+          
           throw new NullPointerException();
         }
         // End debug code
         n.setProperty(Constants.IDENTIFIER_DECLARATION, n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION));
-        System.err.println(n.getProperty(Constants.IDENTIFIER_DECLARATION));
+        
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE));
-        System.err.println(n.getProperty(Constants.IDENTIFIER_TYPE_NODE));
+        
 
         selectionExpressionDepth--;
         String expression = selectionExpressionBuilder.toString();
@@ -295,7 +295,7 @@ public class BlockMangler {
         // Test if we're getting a field of ARRAY
         if (!(n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER) && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null)){
           if (((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(1) != null){
-            System.err.println("SWITCHING TO ARRAY IDENTIFIER");
+            
             n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("QualifiedIdentifier",
                                                                       "__rt", "Array"), null));
           }
@@ -303,7 +303,7 @@ public class BlockMangler {
 
         // Part of the way in, we may find that we have a fully qualified type. In that case set the class declaration
         if (n.getStringProperty(Constants.IDENTIFIER_TYPE).equals(Constants.QUALIFIED_CLASS_IDENTIFIER) && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
-          System.err.println("It's a fully qualified class");
+          
           GNode classDeclaration = inheritanceTree.getClassDeclarationNode(selectionExpressionBuilder.toString());
           if (classDeclaration != null){
             n.setProperty(Constants.IDENTIFIER_TYPE, Constants.QUALIFIED_CLASS_IDENTIFIER);
@@ -312,7 +312,7 @@ public class BlockMangler {
           }
         }
         else if (n.getStringProperty(Constants.IDENTIFIER_TYPE) == Constants.STACKVAR_IDENTIFIER){
-          System.out.println((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE));
+          
           GNode foreignClass = inheritanceTree.getClassDeclarationNode(Disambiguator.getDotDelimitedName(
                 ((GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE)).getGeneric(0)));
 
@@ -322,7 +322,7 @@ public class BlockMangler {
            underscores = underscores.replace('.', '_');
 
            n.set(1, underscores+"_"+n.getString(1));
-           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
+           
 
            n.set(1, foreignFieldDeclaration.getString(0));
 
@@ -340,8 +340,8 @@ public class BlockMangler {
            GNode foreignFieldDeclaration = resolveClassField(n.getString(1), (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION));
            // Debug
            if (foreignFieldDeclaration == null) {
-              System.err.println(n.getProperty(Constants.IDENTIFIER_DECLARATION));
-              System.err.println(((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("FieldMap"));
+              
+              
               throw new RuntimeException("Failed to identify field " + n.getString(1));
            }
            // Reset the field to its proper name
@@ -350,7 +350,7 @@ public class BlockMangler {
            underscores = underscores.replace('.', '_');
 
            n.set(1, underscores+"_"+n.getString(1));
-           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
+           
 
            n.set(1, foreignFieldDeclaration.getString(0));
 
@@ -374,10 +374,10 @@ public class BlockMangler {
 
           n.set(1, underscores+"_"+n.getString(1));
 
-          System.out.println("Working on: " + n);
+          
            // Set the value of the reference to the value of the field declaration
 
-           System.err.println("MANGLED NAME TO " + underscores+"_"+n.getString(1));
+           
            n.setProperty(Constants.IDENTIFIER_DECLARATION, fieldDeclaration);
            n.setProperty(Constants.IDENTIFIER_TYPE, fieldDeclaration.getGeneric(1));
         }
@@ -386,11 +386,11 @@ public class BlockMangler {
 
         // Bye this point we should have figured out what the selectionExpression is referring to
         if (selectionExpressionDepth == 0 && n.getProperty(Constants.IDENTIFIER_DECLARATION) == null){
-          System.err.println(n.getStringProperty(Constants.IDENTIFIER_TYPE));
-          System.err.println(n.getGeneric(0).getStringProperty(Constants.IDENTIFIER_TYPE));
-          System.err.println(expression);
-          System.err.println(n);
-          System.err.println(selectionExpressionBuilder.toString());
+          
+          
+          
+          
+          
           throw new RuntimeException("Selected unknown class or field!");
         }
 
@@ -429,8 +429,8 @@ public class BlockMangler {
             return null;
           }
           callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
-          System.out.println(caller);
-          System.out.println(caller.getLocation());
+          
+          
 
           if (callerType.size() > 1 && null != callerType.getGeneric(1)) {
             GNode newQualifiedIdentifier = 
@@ -453,10 +453,10 @@ public class BlockMangler {
           callType = Constants.CALL_UNKNOWN; 
         }
         GNode argumentTypes = GNode.create("ArgumentTypes");
-        System.err.println(n);
+        
         for ( Object o : n.getGeneric(3)) {
-          System.err.println("Yowza!");
-          System.err.println(o);
+          
+          
           argumentTypes.add(((GNode)o).getProperty(Constants.IDENTIFIER_TYPE_NODE));
         }
 
@@ -464,16 +464,16 @@ public class BlockMangler {
 
         GNode callInfo = null;
         try {
-          System.err.println("CALL_EXP");
-          System.err.println(n);
-          System.err.println("CALLER_TYPE");
-          System.err.println(callerType);
-          System.err.println(inheritanceTree);
+          
+          
+          
+          
+          
           callInfo = MethodResolver.resolve(n.getString(2), callerType, argumentTypes, inheritanceTree, callType, cppClass); 
         }
         catch (Exception e) {
-          System.err.println(n);
-          System.err.println(callerType);
+          
+          
           e.printStackTrace(System.err);
           System.exit(1);
         }
@@ -523,9 +523,9 @@ public class BlockMangler {
           (GNode)n.getGeneric(0).getProperty(Constants.IDENTIFIER_TYPE_NODE);
         // Make a Declarators of one dimension lower
         GNode newDimensions = GNode.create("Dimensions");
-        System.err.println("PRIMARY IDENTIFIER TYPE");
-        System.err.println(primaryIdentifierType);
-        System.err.println(n);
+        
+        
+        
         for (int i = 1; i < primaryIdentifierType.getGeneric(1).size(); i++)
           newDimensions.add("[");
 
@@ -545,15 +545,15 @@ public class BlockMangler {
        */
       public String visitNewClassExpression(GNode n) {
         GNode classType = n.getGeneric(2);
-        System.out.println("1");
+        
         dispatch(classType);
-        System.out.println("2");
+        
         n.setProperty(Constants.IDENTIFIER_TYPE,
             classType.getProperty(Constants.IDENTIFIER_TYPE));
-        System.out.println("3");
+        
         n.setProperty(Constants.IDENTIFIER_DECLARATION,
             classType.getProperty(Constants.IDENTIFIER_DECLARATION));
-        System.out.println("4");
+        
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE,
             classType.getProperty(Constants.IDENTIFIER_TYPE_NODE));
 
@@ -619,13 +619,13 @@ public class BlockMangler {
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
 
     if (scope == null) {
-      System.err.println("SCOPEZ: " + primaryIdentifier + " " + scope);
+      
       return null;
     }
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     
     if (result == null){ 
-      System.err.println("Could not locate " + primaryIdentifier.getString(0));
+      
     }
     return result;
   }
@@ -635,9 +635,9 @@ public class BlockMangler {
     GNode fieldDeclaration = null;
     while (targetClass != null &&  !targetClass.getString(0).equals("java.lang.Object")){
       HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
-      System.err.println(fieldNameMap);
+      
       fieldDeclaration = fieldNameMap.get(fieldName);
-      System.err.println(fieldDeclaration);
+      
       if (fieldDeclaration != null){
         fieldDeclaration.setProperty("ContainingClass", targetClass);
         return fieldDeclaration;

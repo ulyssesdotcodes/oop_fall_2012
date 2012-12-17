@@ -102,7 +102,7 @@ public class CPPAST {
    * @returns class node.
    */  
   GNode addClass(String name, String parent){
-    System.out.println("Adding class " + name);
+    
   
     //Add to Structs
     GNode declaration = GNode.create("Declaration");
@@ -130,7 +130,7 @@ public class CPPAST {
 
     classes.addNode(classNode);
     
-    System.out.println("Class added");
+    
     return classNode;
   }
  
@@ -272,15 +272,15 @@ public class CPPAST {
     GNode methodsNode = classNode.getGeneric(4);
     
     setMethodParameters(parameters, methodNode);
-    System.err.println("METHOD NAME");
-    System.err.println(Type.getCppMangledMethodName(methodNode));
+    
+    
     for(int i = 0; i < methodsNode.size(); i++){
       GNode method = methodsNode.getGeneric(i);
       if(method.getName().equals("InheritedMethodContainer")) method = method.getGeneric(0);
         //TODO: Check for exact match
       if(Type.getCppMangledMethodName(method).equals(Type.getCppMangledMethodName(methodNode))){
-        System.err.println("REPLACING METHOD");
-        System.err.println("at " + i + " is " + Type.getCppMangledMethodName(method));
+        
+        
         methodsNode.set(i, methodNode);
         overridingMethod = true;
         break;
@@ -344,7 +344,7 @@ public class CPPAST {
    * @param method Method node.
    */ 
   void setMethodInstructions(GNode block, GNode method) {
-    System.out.println("In CPPAST:setMethodInstructions");
+    
     method.remove(3);
     method.add(3, block);
   }
@@ -493,29 +493,29 @@ public class CPPAST {
     int methodIndex = getInheritedMethodIndex(name, classNode);
     if(methodIndex != -1) classNode.getGeneric(5).remove(methodIndex);
     
-    //System.out.println("RemoveInheritedMethod " + classNode);
+    //
     
     new Visitor () {
       
       public void visitInheritedMethods( GNode n ) {
       
-        //System.out.println("Removing extras: " + " methodName " + name);
+        //
         for (Object o : n){
           Boolean matches = false;
           if (o instanceof Node){ 
             matches = (Boolean)dispatch((Node)o);
-            //System.out.println("Matches: "  + matches );
+            //
           }
           if ( matches == true ) {
             n.remove(n.indexOf(o));
-            //System.out.println("REMOVED " + name);
+            //
           }
         }
       }
       
       
       public Boolean visitMethodDeclaration ( GNode n ) {
-        //System.out.println("*** " + name + " " + n.getString(0));
+        //
         if (n.getString(0).equals(name)){
           return true;
         }
@@ -526,7 +526,7 @@ public class CPPAST {
       }
       
       public void visit(Node n) {
-        ////System.out.println("We're hitting this");
+        ////
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
     }.dispatch(classNode);

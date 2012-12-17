@@ -33,7 +33,7 @@ public class ImplementationPrinterTest {
       String output = out.toString("UTF8");
     assertTrue(1==1);
     } catch(UnsupportedEncodingException e) {
-      System.out.println("shit.");
+      
     }
   }
  

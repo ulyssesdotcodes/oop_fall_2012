@@ -35,7 +35,7 @@ public class HeaderWriterTest {
       assert(output.equals(compare));
     }
     catch(UnsupportedEncodingException e) {
-      System.out.println("shit.");
+      
     }
   }
  
@@ -48,7 +48,7 @@ public class HeaderWriterTest {
     GNode block = GNode.create("Block", expressionStatement);
     GNode constructor = GNode.create("Constructor", null, block);
     GNode cd = GNode.create("ClassDeclaration", modifiers, "Foo", constructor);
-    System.out.println(cd.toString());
+    
     //hw.generateHeader(cd);
   } 
 }

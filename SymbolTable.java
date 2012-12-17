@@ -978,8 +978,8 @@ public class SymbolTable {
       public void visitClassDeclaration(GNode n) {
         table.enter(n.getString(0), n);
         table.mark(n);
-        System.err.println("----------------\nVISITING\n------------------");
-        System.err.println(n.getGeneric(4).getName());
+        
+        
         visit(n.getGeneric(4));
         visit(n.getGeneric(1));
         table.exit();
@@ -1025,8 +1025,8 @@ public class SymbolTable {
         // Make sure we don't enter the scope of some already-named method
         table.enter(Disambiguator.getMethodOverloadName(n) , n);
         table.mark(n);
-        System.err.println(parameters.getName());
-        System.err.println(body.getName());
+        
+        
         visit(parameters);
         this.inMethod = true;
         visit(body);
@@ -1107,7 +1107,7 @@ public class SymbolTable {
       }
 
       public void visitFormalParameter(GNode n) {
-        System.err.println(n);
+        
         //Use CPPAST's version of FormalParameter
         if (!inMethod){
           table.current().addDefinition(n.getString(0), n);
@@ -1193,11 +1193,5 @@ public class SymbolTable {
         }
       }
     }.dispatch(node);
-
-    if (true) {
-      Printer printer = new Printer(System.out);
-      table.root().dump(printer);
-      printer.flush();
-    }
   }
 }

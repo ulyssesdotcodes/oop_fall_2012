@@ -771,7 +771,7 @@ public class ImplementationPrinter extends Visitor {
       //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
       //if (inPrintStatement && typeNode != null) {
       //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
-      //    System.err.println("IT IS A BOOLEAN");
+      //    
       //    printer.p("str(");
       //  }
       //}
@@ -1027,7 +1027,7 @@ public class ImplementationPrinter extends Visitor {
         .equals("char");
     }
    if (n.getGeneric(0).getName().equals("BasicCastExpression")) {
-      System.err.println(">>> IN BASIC CAST EXPRESSION");
+      
       isConcatExpression = n.getGeneric(0).getGeneric(0)
           .getString(0).equals("char"); 
     }
@@ -1161,7 +1161,7 @@ public class ImplementationPrinter extends Visitor {
   /** Visit instanceof expression. */
   public void visitInstanceOfExpression(GNode n) {
     final int prec1 = startExpression(40);
-    System.err.println("ERROR ERROR : " + n);
+    
 
     if(n.get(1) instanceof String) printer.p(n.getString(1));
     else printer.p(n.getNode(1));
@@ -1413,7 +1413,7 @@ public class ImplementationPrinter extends Visitor {
 
     GNode result = (GNode)scope.lookup(primaryIdentifier.getString(0)); 
     if (result == null){
-      System.err.println("Could not locate " + primaryIdentifier.getString(0));
+      
     }
     return result;
   }

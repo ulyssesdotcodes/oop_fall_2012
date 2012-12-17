@@ -27,10 +27,10 @@ public class MethodResolver {
     MethodResolver.callingClassDeclaration = callingClassDeclaration;
     ArrayList<GNode> nameMatches = findNameMatches(methodName, classDeclaration); 
 
-    System.err.println("CLASS NAME: " + className);
-    System.err.println("CLASS DECLARATION: " + classDeclaration);
-    System.err.println("NAME MATCHES");
-    System.err.println(nameMatches);
+    
+    
+    
+    
     ArrayList<GNode> argLengthMatches = findArgLengthMatches(nameMatches, argTypes.size());
     ArrayList<GNode> argCastMatches = findArgCastMatches(argLengthMatches, argTypes);
 
@@ -74,22 +74,22 @@ public class MethodResolver {
    * Check if one type is upcastable to another
    */
   private static boolean isCastable(GNode sourceArgTypes, GNode targetArgTypes){
-   System.err.println("CHECKING ARGS");
-   System.err.println(sourceArgTypes);
-   System.err.println(targetArgTypes);
+   
+   
+   
    for (int i = 0; i < targetArgTypes.size(); i++){
     // They must both be PrimitiveType or both QualifiedIdentifier
     GNode targetType = targetArgTypes.getGeneric(i);
     GNode sourceType = sourceArgTypes.getGeneric(i);
 
     if (!targetType.getGeneric(0).getName().equals(sourceType.getGeneric(0).getName())){
-      System.err.println("PRIMITIVE/QUALIFIED MISMATCH"); 
+       
       return false;
     }
     
     if (targetType.getGeneric(0).getName().equals("QualifiedIdentifier")){
       if (!isClassCastable(sourceType, targetType)){
-        System.err.println("NOT UPCASTABLE");
+        
         return false;
       }
     }
@@ -97,7 +97,7 @@ public class MethodResolver {
     // Primitive type
     else {
       if (!isPrimitiveTypeCastable(sourceType, targetType)){
-        System.err.println("PRIMITIVE TYPE NOT UPCASTABLE");
+        
         return false;
       }
     }
@@ -115,14 +115,14 @@ public class MethodResolver {
 
     if (sourceName.equals(targetName)) return true;
 
-    System.err.println("SOURCE NAME: " + sourceName);
-    System.err.println("TARGET NAME: " + targetName);
+    
+    
     GNode sourceClassTreeNode = inheritanceTree.getClassTreeNode(sourceName);
     GNode targetClassTreeNode = inheritanceTree.getClassTreeNode(targetName);
 
     while (!sourceName.equals("java.lang.Object")){
-      System.err.println("SOURCE_CLASS_TREE_NODE");
-      System.err.println(sourceClassTreeNode);
+      
+      
       sourceClassTreeNode = (GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.PARENT_CLASS);
       sourceName = (String)((GNode)sourceClassTreeNode.getProperty(InheritanceTreeManager.CLASS_DECLARATION)).get(0);
       if (sourceName.equals(targetName)) return true;
@@ -180,9 +180,9 @@ public class MethodResolver {
                                                   GNode classDeclaration) {
     GNode methodContainer = classDeclaration.getGeneric(4);
     ArrayList<GNode> matches = new ArrayList<GNode>();
-    //System.err.println(methodContainer);
-    //System.err.println("MethodContainer size");
-    //System.err.println(methodContainer.size());
+    //
+    //
+    //
     for (int i = 0; i < methodContainer.size(); i++){
       GNode method = methodContainer.getGeneric(i);
       if (method.getName().equals("InheritedMethodContainer")){
@@ -191,27 +191,27 @@ public class MethodResolver {
       
       if (method.getString(0).equals(methodName)) {
         if (method.getProperty("static") != null){
-          System.out.println("STATIC METHOD");
+          
           if (callType == Constants.CALL_DYNAMIC)
             continue;
         }
         if (method.getProperty("private") != null){
-          System.out.println("PRIVATE METHOD");
+          
           if (callingClassDeclaration != classDeclaration){
             continue;
           } 
         }
         /*
         if (method.getProperty("public") == null){
-          System.out.println("LOOKING FOR A PROTECTED METHOD");
-          System.out.println(method.getString(0));
+          
+          
 
           // If a method is not public, it is automatically protected, and the packages have to match
           String[] callingPackage = callingClassDeclaration.getString(0).split("\\.");
           String[] callerPackage = classDeclaration.getString(0).split("\\.");
 
-          System.out.println( callingClassDeclaration.getString(0));
-          System.out.println( classDeclaration.getString(0));
+          
+          
           boolean packageMatch = true;
           for (int j = 0; j < (callerPackage.length - 1); j++){
             if (callingPackage.length <= j || !callingPackage[j].equals(callerPackage[j])){

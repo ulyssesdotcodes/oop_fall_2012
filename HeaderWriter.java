@@ -102,9 +102,9 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visitClasses(GNode n){
-    System.out.println("===in classes , size: " +  n.size());
+    
     for (int i = n.size() - 1 ; i >= 0; i--) {
-      System.out.println("===node : " + i);
+      
       dispatch(n.getGeneric(i));
     }
   }
@@ -191,7 +191,7 @@ public class HeaderWriter extends Visitor {
   }
 
   public void visit(GNode n){
-    System.out.println("Visiting " + n.getName());
+    
     for (Object o : n) if (o instanceof Node) dispatch((Node)o);
   }
 
@@ -340,7 +340,7 @@ public class HeaderWriter extends Visitor {
     }
     
     else {
-      System.err.println("getType on : " + n.toString());
+      
     }
 
     //If the type has a dimension array and it's not null, then add in the dimensions. If it's the return type for a java.lang.Object method (constructed by hand) it won't have a null at 1 index, so we have to check for that.
@@ -478,7 +478,7 @@ public class HeaderWriter extends Visitor {
   // TODO: this
   private void writeVTMethods(GNode n) {
     String current_class = name(n);
-    System.err.println("METHODS SIZE " + methods.size());
+    
     for (GNode m : methods) {
       if (m.getName().equals("InheritedMethodContainer")) {
         writeVTMethod(m.getGeneric(0), current_class);

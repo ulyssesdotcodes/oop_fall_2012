@@ -191,8 +191,8 @@ public class QimppTranslator extends Tool {
           String[] qualifiedArray = qualifiedClassName.split("\\.");
           treeManager.insertClass(new ArrayList<String>(Arrays.asList(qualifiedArray)), null, currentClass);
          
-          System.err.println("Inserted class in tree manager ");
-          System.err.println(new ArrayList<String>(Arrays.asList(qualifiedArray))); 
+          
+           
 
           staticInitializerBlock = GNode.create("Block");
           staticInitializerStatements = GNode.create("Block");
@@ -254,7 +254,7 @@ public class QimppTranslator extends Tool {
           //Get the string by dispatching the Type GNode
           dispatch(n.getGeneric(0));
           dispatch(n.getGeneric(2));
-          System.err.println("FIELD DECLARATION ~");
+          
                     
           GNode type = (GNode)dispatch(n.getGeneric(1));
           //Create a new GNode to hold all of the declarators;
@@ -266,7 +266,7 @@ public class QimppTranslator extends Tool {
             String name = (String)dispatch(declarators.getGeneric(i));
             GNode statement = declarators.getGeneric(i).getGeneric(2);
             // Add the initialization to the static initializer if there is an initialization
-            System.err.println(inBlock + " NAME: " + name);
+            
             if (blockDepth == 0) {
 
               if (statement != null){
@@ -341,7 +341,7 @@ public class QimppTranslator extends Tool {
             String methodName = n.getString(3);
             /*
             if (methodName.equals("m8")){
-              System.out.println("m8!!!!!");
+              
               System.exit();
             }*/
             if (methodName.equals("main")) {
@@ -394,7 +394,7 @@ public class QimppTranslator extends Tool {
          */
         public void visitNewClassExpression(GNode n) {
           // Make sure this type has been translated 
-          System.err.println(n.getGeneric(2));
+          
           GNode type = GNode.create("Type", n.getGeneric(2), null);
           type = visitType(type);
           n.set(2, type.getGeneric(0));
@@ -411,8 +411,8 @@ public class QimppTranslator extends Tool {
 
           GNode identifier = n.getGeneric(0);
           String typename = Disambiguator.getDotDelimitedName(identifier);
-          System.err.println("STRING");
-          System.err.println(typename);
+          
+          
 
           if(identifier.hasName("PrimitiveType")){
             return n;
@@ -429,7 +429,7 @@ public class QimppTranslator extends Tool {
              GNode qualifiedIdentifierNode =
                Disambiguator.disambiguate(qualifiedName);
              n.set(0, qualifiedIdentifierNode);
-             System.err.println("REPLACING REFERENCE: " + qualifiedName);
+             
 
              typename = qualifiedName;
           }
@@ -442,8 +442,8 @@ public class QimppTranslator extends Tool {
              ) {
             GNode type = GNode.create("Type");
             type.add(Disambiguator.disambiguate(typename));
-            System.err.println("TYPE!");
-            System.err.println(n);
+            
+            
             type.add(n.get(1));
             return type;
           } 
@@ -451,13 +451,13 @@ public class QimppTranslator extends Tool {
           // then replace it with the fully qualified name
           
           else {
-            //System.err.println("Split: " + typename.split("\\.").length);
-            //System.err.println("Adding typename: " + typename);
-            System.err.println(typename);
+            //
+            //
+            
             String[] qualified = typename.split("\\.");
             
             if (typename.equals(currentClassName)){
-              System.err.println("SELF-VISIT");
+              
               return n;
             }
             
@@ -483,7 +483,7 @@ public class QimppTranslator extends Tool {
             // as necessary
             // For now we'll support only explicitly qualified name: 
             //  "qimpp.Foo" ["qimpp", "Foo"]
-            System.err.println(qualified);
+            
             GNode classTreeNode = 
               treeManager.dereference(new ArrayList(Arrays.asList(qualified)));
 
@@ -498,7 +498,7 @@ public class QimppTranslator extends Tool {
                 } catch (Exception e) {
                   // If we can't find it in the source root, then it must be a reference to a file in the current package
                   try {
-                    System.out.println("Can't find it in the source root");
+                    
                      String currentPackageQualifiedTypename = currentPackageName + "." + typename;
                      currentNameMap.put(typename, currentPackageQualifiedTypename);
                      if (processImmediately){
@@ -514,7 +514,7 @@ public class QimppTranslator extends Tool {
                      n.set(0, qualifiedIdentifierNode);
                   }
                   catch (Exception f){
-                    System.err.println("Cannot parse " + typename + " " + e);
+                    
                     cppast.printAST();
                     e.printStackTrace();
                     System.exit(1);
@@ -631,8 +631,8 @@ public class QimppTranslator extends Tool {
           // Add inherited mehthods and fields using the parent's class
           // TODO: Refactor here. Implemented and inherited methods should be interspersed, and there
           // should only be one argument to addAllInheritedMethods
-          System.err.println("---------------\nADDING INHERITED METHODS\n---------------------");
-          System.err.println("In class: " + currentClassName);
+          
+          
           cppast.addAllInheritedMethods(parentClassNode.getGeneric(4), currentClass);
 
           cppast.addAllInheritedFields(parentClassNode, currentClass); 
@@ -641,28 +641,28 @@ public class QimppTranslator extends Tool {
           //add the current class to the inheritance tree, but parent it to Object for now
           ArrayList parentQualified = new ArrayList<String>(Arrays.asList(parentName.split("\\.")));
           ArrayList childQualified = new ArrayList<String>(Arrays.asList(currentClassName.split("\\.")));
-          System.err.println(parentQualified);
-          System.err.println(childQualified);
+          
+          
           treeManager.reparent(childQualified, parentQualified);
           
           return null; 
         }
 
         public void visitConstructorDeclaration(GNode n) {
-          System.err.println("VISITING CONSTRUCTOR!!!");
-          System.err.println(currentClassName);
+          
+          
           //Add a constructor to currentClass and get the associated GNode
           currentConstructor = cppast.addConstructor(currentClass);
 
           //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
           if(n.getGeneric(4) != null){ 
             
-            System.err.println("ADDING PARAMS");
+            
             cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
           }
           //If there are instructions in the block, visit them and add them to the constructor
           if(n.getGeneric(5) != null){
-            System.err.println("ADDING INSTRUCTIONS");
+            
             cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
           }
         }
@@ -670,7 +670,7 @@ public class QimppTranslator extends Tool {
 
 
         public void visit(Node n) {
-          //System.err.println("We are currently running " + currentClassName);
+          //
           for (Object o : n) if (o instanceof Node) dispatch((Node)o);
         }
     };
@@ -754,9 +754,9 @@ public class QimppTranslator extends Tool {
 
       public void visitCompilationUnit(GNode n) {
         root = n;     
-        //System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
+        //
         visit(n);
-        //System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
+        //
         //Print the AST after we're done for debugging
         //cppast.printAST();
         
@@ -781,7 +781,7 @@ public class QimppTranslator extends Tool {
       }  
 
       public void visitPackageDeclaration(GNode n){
-        //System.out.println("Package " + dispatch(n.getGeneric(1)));
+        //
       }
 
       public void visitStringLiteral(GNode n){
@@ -824,7 +824,7 @@ public class QimppTranslator extends Tool {
       }
  
       public void visit(Node n) {
-        //System.err.println("We are currently running " + currentClassName);
+        //
         //
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
@@ -835,12 +835,12 @@ public class QimppTranslator extends Tool {
       try{
           PrintWriter h = new PrintWriter("out.h");
           new HeaderWriter(new Printer(h)).dispatch(cppast.compilationUnit);
-          cppast.printAST();
+//          cppast.printAST();
 
           PrintWriter cc = new PrintWriter("out.cc");
           new ImplementationPrinter(new Printer(cc), treeManager, cppast.compilationUnit).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
-          //System.out.println("Uh oh... " + e);
+          //
           e.printStackTrace();
         }
     }

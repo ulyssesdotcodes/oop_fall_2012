@@ -58,7 +58,7 @@ public class InheritanceTreeManager {
    * @param rootClassDeclaration the ClassDeclaration of the root class containing its fields and methods
    * */
   public InheritanceTreeManager(ArrayList<String> rootClass, GNode rootClassDeclaration){
-    ////System.out.println("Running main constructor");
+    ////
       
     root = GNode.create(CLASS_STRUCTURE_ROOT);
 
@@ -165,12 +165,12 @@ public class InheritanceTreeManager {
    * */
   public GNode dereference(final ArrayList<String> className){
     // Traverse with state variables
-    //System.err.println(this);
+    //
     //System.err.print("finding ");
     for (String s: className){
       //System.err.print(s);
     }
-    //System.err.println();
+    //
     
     foundNode = null;
     dereferenceDepth = 0;
@@ -186,11 +186,11 @@ public class InheritanceTreeManager {
         getClassTreeNodeName(n).equals
           (className.get(dereferenceDepth))
         ){
-          //////System.out.println("Found it!");
+          //////
           foundNode = n;
         }
         else {
-          //////System.out.println("Class " + n.getStringProperty(CLASS_NAME) + " not what we're looking for " + className.get(dereferenceDepth));
+          //////
         }
       }
 
@@ -206,7 +206,7 @@ public class InheritanceTreeManager {
           dereferenceDepth--;
         }
         else {
-            //////System.out.println("Not in " + n.getStringProperty(QUALIFIER_NAME));
+            //////
         }
       }
 
@@ -215,7 +215,7 @@ public class InheritanceTreeManager {
       }
     }.dispatch(root);
 
-    //////System.out.println("RootClassNode: " + Boolean.toString(rootClassNode == null));
+    //////
 
     return foundNode;
   }
@@ -225,7 +225,7 @@ public class InheritanceTreeManager {
     GNode parentNode = dereference(parent);
     
     if ( null == childNode || null == parentNode ) {
-      System.err.println(this);
+      
       throw new RuntimeException("Failed to reparent");
     } 
     
@@ -266,7 +266,7 @@ public class InheritanceTreeManager {
     } 
     else{
       GNode parent = dereference(parentName);
-      ////System.out.println("Parent exists: " + Boolean.toString( parent != null));
+      ////
       // If the parent doesn't exist, throw a runtime exception
       if ( null == parent) {
 
@@ -300,19 +300,19 @@ public class InheritanceTreeManager {
     // dereference sets deepestPackageNode
     if ( null != dereference(className)){
       // This class should not already be inserted! 
-      ////System.out.println("This class is inserted already!");
+      ////
       return false;
     }
     else{
       // Starting at the deepest already-defined point in the tree, make new entries
       GNode n = deepestPackageNode;
-      ////System.out.println(className.get(className.size() - 1) + " starts at " + Integer.toString(dereferenceDepth));
+      ////
       GNode current = n;
       for( int i = deepestDereference; i < className.size() - 1; i++ ){
         GNode newQualifier = GNode.create(PACKAGE_QUALIFIER);
         newQualifier.setProperty(QUALIFIER_NAME, className.get(i));
         current.add(newQualifier);
-        ////System.out.println("Added " + className.get(i) + " to " + current.getName());
+        ////
         current = newQualifier;
 
       }
