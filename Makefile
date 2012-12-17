@@ -55,6 +55,7 @@ SOURCE = \
 	InheritanceTreeManagerTest.java \
 	QimppTranslator.java \
 	SymbolTable.java \
+	StaticInitializerPrinter.java \
 	Translator.java \
 	Type.java \
 	TypeTest.java \

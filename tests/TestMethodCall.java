@@ -7,9 +7,15 @@ public class TestMethodCall {
  public static Object R2 = new Object();
  public static Object R3 = new Object();
  public static Object R4 = new Object();
+ public static int foo = 2;
 
  static{
    R1 = new Object();
+   foo = 3;
+ }
+
+ static{
+   foo = 4;
  }
 
   public TestMethodCall() {
@@ -29,9 +35,13 @@ public class TestMethodCall {
 
 */
   public static void main ( String[] args ) {
+   
   
     String s2;
     s2 = "hello";
+    s2 = R2.toString();
+    System.out.println(foo);
+    System.out.println(s2);
     String s1 = "hello";
 
     TestMethodCall t = new TestMethodCall();

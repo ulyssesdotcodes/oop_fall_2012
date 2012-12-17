@@ -294,6 +294,13 @@ public class QimppTranslator extends Tool {
         GNode staticInitializerStatements;
         GNode staticInitializerMethod;
 
+        public void visitBlockDeclaration(GNode n){
+          visit(n);
+          String modifier = n.getString(0);
+          if (modifier != null && modifier.equals("static"))
+            addStaticInitializerBlock(n.getGeneric(1));
+        }
+
         public void addStaticInitializerMethod(){
           String methodName = "__static_init";
           GNode returnType = GNode.create("ReturnType", GNode.create("PrimitiveType", "void"), null);
@@ -301,7 +308,7 @@ public class QimppTranslator extends Tool {
           staticInitializerMethod = cppast.addMethod(methodName, returnType, currentClass, parameters);
 
           
-          staticInitializerMethod.setProperty("private", new Boolean(true));
+          staticInitializerMethod.setProperty("static", new Boolean(true));
         }
 
         public void addStaticInitializerStatement(String identifier, GNode statement){
@@ -831,7 +838,7 @@ public class QimppTranslator extends Tool {
           cppast.printAST();
 
           PrintWriter cc = new PrintWriter("out.cc");
-          new ImplementationPrinter(new Printer(cc), treeManager).dispatch(cppast.compilationUnit);
+          new ImplementationPrinter(new Printer(cc), treeManager, cppast.compilationUnit).dispatch(cppast.compilationUnit);
         } catch (Exception e) {
           //System.out.println("Uh oh... " + e);
           e.printStackTrace();

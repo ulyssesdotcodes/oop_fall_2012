@@ -113,6 +113,8 @@ public class ImplementationPrinter extends Visitor {
   /** The inheritance tree */
   public InheritanceTreeManager inheritanceTree;
 
+  /** The root of the CPP AST*/
+  public GNode compilationUnit;
 
   /** 
 	 * Create a new C++ printer.
@@ -121,10 +123,11 @@ public class ImplementationPrinter extends Visitor {
    * @param lineUp The flag for whether to line up declarations and 
    * statements with their source locations.
 	 */
-	public ImplementationPrinter(Printer printer, InheritanceTreeManager inheritanceTree) {
+	public ImplementationPrinter(Printer printer, InheritanceTreeManager inheritanceTree, GNode compilationUnit) {
 		this.printer = printer;
 		this.lineUp = true;
     this.inheritanceTree = inheritanceTree;
+    this.compilationUnit = compilationUnit;
     printer.register(this);
 	}
 
@@ -451,8 +454,13 @@ public class ImplementationPrinter extends Visitor {
 	}
 
   public void visitBlock(GNode n) {
+    
     printer.pln(" {");
     printer.incr();
+    if (inMain){
+      StaticInitializerPrinter sip = new StaticInitializerPrinter(printer);
+      sip.dispatch(compilationUnit);      
+    }
     indentOut();
     visit(n); // block
     printer.decr(); 
