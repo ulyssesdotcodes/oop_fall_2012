@@ -32,12 +32,20 @@ public class BlockMangler {
     this.inheritanceTree = itm;
   }
  
-  // replaces nOld GNode with nNew GNode
+  /** Replaces nOld GNode with nNew GNode.
+   *
+   * @param nOld the old GNode
+   * @param nNew the new GNode
+   */
   public void copyloc(GNode nOld, GNode nNew) {
     nNew.setLocation(nOld);
   }
 
-  // takes java block 
+  /** Takes in java block and mangles it
+   *
+   *@param java the java block node
+   *@return the mangled node
+   */
   public GNode mangle(GNode java) {
 
     if (java.getProperty("Mangled") != null){
@@ -57,7 +65,10 @@ public class BlockMangler {
 
       /** 
        * Determine if this is a class, a stackvar, field or the start of a fully
-       * qualified class name and set the proper properties of the node 
+       * qualified class name and set the proper properties of the node
+       *
+       * @param n the node to visit
+       * @return the identifier 
        */
       public String visitPrimaryIdentifier(GNode n){
         String identifier = n.getString(0);
@@ -118,7 +129,13 @@ public class BlockMangler {
         }
 
       }
-
+    
+      /**
+       * Sets the appropriate properties for a Boolean Literal
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitBooleanLiteral(GNode n) {
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
         n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "boolean"), null));
@@ -126,7 +143,10 @@ public class BlockMangler {
       }
 
       /**
-       * Set the appropriate properties for an IntegerLiteral
+       * Sets the appropriate properties for an Integer Literal
+       *
+       *@param n the node to visit.
+       *@return the identifier
        */
       public String visitIntegerLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
@@ -136,7 +156,10 @@ public class BlockMangler {
       }
       
       /**
-       * Set the appropriate properties for a flp literal
+       * Sets the appropriate properties for a Floating Point Literal
+       *
+       *@param n the node to visit.
+       *@return the identifier
        */
       public String visitFloatingPointLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
@@ -146,7 +169,10 @@ public class BlockMangler {
       }
 
       /**
-       * Set the appropriate properties for a char literal
+       * Sets the appropriate properties for a Character Literal
+       *
+       *@param n the node to visit.
+       *@return the identifier
        */
       public String visitCharacterLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
@@ -155,7 +181,10 @@ public class BlockMangler {
       }
 
       /**
-       * Set the appropriate properties for a string literal
+       * Sets the appropriate properties for a String Literal
+       *
+       *@param n the node to visit.
+       *@return the identifier
        */
       public String visitStringLiteral(GNode n){
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
@@ -164,6 +193,13 @@ public class BlockMangler {
         return Constants.CLASS_IDENTIFIER;
       }
 
+
+      /**
+       * Sets the appropriate properties for a multiplicative expression
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitMultiplicativeExpression(GNode n){
         // A multiplicative expression always returns a primitive type
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
@@ -183,6 +219,12 @@ public class BlockMangler {
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
 
+      /**
+       * Sets the appropriate properties for an additive expression
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitAdditiveExpression(GNode n){
 
         if (n.get(0) instanceof String || n.get(2) instanceof String) {
@@ -236,6 +278,12 @@ public class BlockMangler {
       
 
       
+      /**
+       * Sets the appropriate properties for a this expression
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitThisExpression(GNode n){
         // Just to be consistent for ThisExpressions
         if (selectionExpressionBuilder != null){
@@ -252,7 +300,8 @@ public class BlockMangler {
       private int selectionExpressionDepth = 0;
       private StringBuilder selectionExpressionBuilder;
       /**
-       * Have the SelectionExpressions carry the innermost PrimaryIdentifier's type, except for the outermost one
+       * Set the appropriate properties for a Selection Expression.
+       *Have the SelectionExpressions carry the innermost PrimaryIdentifier's type, except for the outermost one
        * for a qualified identifier
        */
       public String visitSelectionExpression(GNode n){
@@ -389,6 +438,11 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+      /**
+       * Sets the appropriate properties for an Instanceof Expression
+       *
+       *@param n the node to visit.
+       */
       public void visitInstanceOfExpression(GNode n) {
         String rightSide =
           Type.getClassTypeName(n.getGeneric(1).getGeneric(0));
@@ -396,6 +450,12 @@ public class BlockMangler {
         visit(n);
       }
 
+      /**
+       * Sets the appropriate properties for a Cast Expression
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitCastExpression(GNode n){
         visit(n);
         n.setProperty(Constants.IDENTIFIER_TYPE, Constants.CLASS_IDENTIFIER);
@@ -406,6 +466,12 @@ public class BlockMangler {
         return Constants.CLASS_IDENTIFIER;
       }
 
+      /**
+       * Sets the appropriate properties for a Call Expression
+       *
+       *@param n the node to visit.
+       *@return the identifier
+       */
       public String visitCallExpression(GNode n){
         visit(n);
         
@@ -497,6 +563,11 @@ public class BlockMangler {
         return n.getStringProperty(Constants.IDENTIFIER_TYPE);
       }
 
+      /**
+       * Sets the appropriate properties for a Declarator
+       *
+       *@param n the node to visit.
+       */
       public void visitDeclarator(GNode n) {
         if (null != n.getGeneric(1)) {
           GNode fakePrimary = GNode.create("PrimaryIdentifier", n.getString(0));
@@ -509,6 +580,11 @@ public class BlockMangler {
       }
 
 
+      /**
+       * Sets the appropriate properties for a Subscript Expression
+       *
+       *@param n the node to visit.
+       */
       public void visitSubscriptExpression(GNode n){
         dispatch(n.getGeneric(0));
         GNode primaryIdentifierType =
@@ -534,6 +610,9 @@ public class BlockMangler {
 
       /**
        * Set the appropriate properties for a new class expression so it can be nested
+       *
+       *@param n the node to visit.
+       *@return the identifier.
        */
       public String visitNewClassExpression(GNode n) {
         GNode classType = n.getGeneric(2);
@@ -593,6 +672,11 @@ public class BlockMangler {
       */
 
 
+      /**
+       * The generic Visit method.
+       *
+       *@param n the node to visit.
+       */
       public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       } 
@@ -607,6 +691,12 @@ public class BlockMangler {
     return null;
   }
 
+   /**
+   * Resolves the scope of a primary identifier.
+   *
+   *@param primaryIdentidier the Primary Identifier node
+   *@return the scope
+   */
   private GNode resolveScopes(GNode primaryIdentifier){
     SymbolTable.Scope scope = (SymbolTable.Scope)primaryIdentifier.getProperty(Constants.SCOPE);
 
@@ -622,6 +712,12 @@ public class BlockMangler {
     return result;
   }
 
+      /**
+       * Resolves class field.
+       *
+       *@param fieldName the name of the field.
+       *@return the field declaration
+       */
   private GNode resolveClassField(String fieldName){
     HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
     System.err.println(fieldNameMap);

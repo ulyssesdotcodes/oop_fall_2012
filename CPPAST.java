@@ -78,21 +78,6 @@ public class CPPAST {
     return directives;
   }
   
-  /*Methods to add:
-   *GNode addClass(String name) - adds a class and a struct to the tree returns a GNode to the class
-   *GNode addField(String name, String type, GNode class) - adds a field to a class returns the GNode of the field
-   *GNode addMethod(String name, String returnType, GNode class) - adds a method to a class returns the method GNode
-   *GNode addMethodInstruction(GNode instruction, GNode method) - adds instruction to method
-   *GNode addMethodParameter(String paramType, String param, GNode method) - adds a parameter to method
-   *
-   *GNode getClass(String name) - gets a GNode to a class by it's name
-   *GNode getMethod(String name, GNode* class) - gets a GNode to a method by it's name
-   *GNode getField(String name, GNode* class) - gets a GNode to a Field by it's name
-   *
-   *void removeMethod(String name, GNode* class) - removes a method from a class
-   
-   *void printAST() - prints the AST for debugging
-  */
   
   /**
    * Add class node.
@@ -365,7 +350,12 @@ public class CPPAST {
     return formalParameter;
   }
   
-  //Take in parent methods and class, add parent methods as InheritedMethod nodes to class
+    /**
+    * Adds all inherited methods to the AST.
+    *
+    *@param parentMethods the parent method.
+    *@param currentClass the current class.
+    */
   void addAllInheritedMethods(GNode parentMethods, GNode currentClass){
     for(int i = 0; i < parentMethods.size(); i++){
       //By default just assume the method itself is inherited and already has a container
@@ -388,6 +378,13 @@ public class CPPAST {
     }
   }
 
+
+    /**
+    * Adds all inherited fields to the AST.
+    *
+    *@param parentMethods the parent method.
+    *@param currentClass the current class.
+    */
   void addAllInheritedFields(GNode parentClassNode, GNode currentClass){
     currentClass.setProperty("FieldMap", new HashMap<String,GNode>((HashMap<String,GNode>)parentClassNode.getProperty("FieldMap")));
     currentFieldMap = (HashMap<String,GNode>)currentClass.getProperty("FieldMap");
@@ -496,6 +493,11 @@ public class CPPAST {
     
     new Visitor () {
       
+     /**
+      * Visits Inherited Methods node. Removes overwritten methods.
+      *
+      *@param n the node to visit.
+      */
       public void visitInheritedMethods( GNode n ) {
       
         //System.out.println("Removing extras: " + " methodName " + name);
@@ -512,7 +514,13 @@ public class CPPAST {
         }
       }
       
-      
+
+    /**
+    * Visits Method Declaration node.
+    *
+    *@param n the node to visit.
+    *@return true if the method name equals the class name
+    */      
       public Boolean visitMethodDeclaration ( GNode n ) {
         //System.out.println("*** " + name + " " + n.getString(0));
         if (n.getString(0).equals(name)){
@@ -523,7 +531,11 @@ public class CPPAST {
           return false;
         }
       }
-      
+      /**
+       * Generic Visit method.
+       *
+       *@param n the node to visit.
+       */
       public void visit(Node n) {
         ////System.out.println("We're hitting this");
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);

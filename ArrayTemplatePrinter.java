@@ -1,3 +1,22 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2012 Robert Grimm
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+ 
 package qimpp;
 
 import java.util.Iterator;
@@ -12,7 +31,13 @@ import xtc.tree.Token;
 import xtc.tree.Visitor;
 
 import java.util.HashMap;
-
+/**
+ * Prints the proper template for arrays.
+ *
+ * @author QIMPP
+ * Version 0.1
+ */
+ 
 public class ArrayTemplatePrinter extends Visitor {
 
   Printer printer;
@@ -26,7 +51,6 @@ public class ArrayTemplatePrinter extends Visitor {
     printer.register(this);
   }
   
-  //TODO: Figure out a better way to do this or centralize this method
   /**
    * Convert a non-underscored name to an underscored name
    * @param cppQualifiedName the fully-qualified classname delimited by ::
@@ -46,7 +70,11 @@ public class ArrayTemplatePrinter extends Visitor {
     return underscoredName.toString();
   }
 
-  /** Visit the class declaration, print the relevant info and go no deeper */
+  /** 
+   * Visit the class declaration, print the relevant info and go no deeper 
+   *
+   * @param n the node to visit.
+   */
   public void visitClassDeclaration( GNode n ) {
     String name = n.getString(0);
     name = name.replaceAll("\\.", "::");

@@ -95,7 +95,12 @@ public class QimppTranslator extends Tool {
 
     // Perform consistency checks on command line arguments.
   }
-
+  /**
+   * Locates the file to translate
+   *
+   * @param name the name of the file
+   * @return the file
+   */
   public File locate(String name) throws IOException {
     File file = super.locate(name);
     if (Integer.MAX_VALUE < file.length()) {
@@ -103,7 +108,13 @@ public class QimppTranslator extends Tool {
     }
     return file;
   }
-
+  /**
+   * Parses the file with the Java Five Parser
+   *
+   * @param in the reader
+   * @param file the file
+   * @return the result as a root node
+   */
   public Node parse(Reader in, File file) throws IOException, ParseException {
     JavaFiveParser parser =
       new JavaFiveParser(in, file.toString(), (int)file.length());
@@ -111,6 +122,11 @@ public class QimppTranslator extends Tool {
     return (Node)parser.value(result);
   }
   
+  /**
+   * Run the translator
+   *
+   * @param args the arguments
+   */
   public void run(String[] args){
     treeManager = new InheritanceTreeManager(cppast.generateObjectClassDeclaration()); 
     readQueue = new LinkedList<Node>();
@@ -129,6 +145,11 @@ public class QimppTranslator extends Tool {
     //cppast.printAST();
   }
 
+  /**
+   * Locates, opens, and parses the file.
+   *
+   * @param name the name of the file
+   */
   public void processEnqueue(String name) throws IOException, ParseException {
 
     // Locate the file.
@@ -159,6 +180,11 @@ public class QimppTranslator extends Tool {
   }
 
   int processDepth = -1;
+  /**
+   * Processes the parsed file
+   *
+   * @param node the root node of the parsed file
+   */
   public void process(Node node) {
     // Create a hashmap to hold maps of ambiguous names to unambiguous names
     processDepth++;
@@ -176,7 +202,12 @@ public class QimppTranslator extends Tool {
     // First, get contextual information with an initial visit of types and the package declaration
     
     Visitor initialVisitor = new Visitor () {
-
+    
+        /**
+         * Visits Class Declaration node.
+         *
+         * @param n the node to visit.
+         */
         public void visitClassDeclaration(GNode n) {
         
           //Add the current class to the cppast, and set it as the current class global variable.
@@ -210,7 +241,11 @@ public class QimppTranslator extends Tool {
 
         }
 
-        /** Set the current package name context */
+        /**
+         * Visits Class Declaration node. Sets the current package name context.
+         *
+         * @param n the node to visit.
+         */
         public void visitPackageDeclaration(GNode n){
 
           GNode qualifiedIdentifier = n.getGeneric(1);
@@ -226,9 +261,12 @@ public class QimppTranslator extends Tool {
           currentPackageName = packageNameBuilder.toString();
         }
 
-        //TODO: * imports
-        /** Handle explicit imports */
-        public void visitImportDeclaration(GNode n){
+        /**
+         * Visits Import Declaration node. 
+         *
+         * @param n the node to visit.
+         */        
+         public void visitImportDeclaration(GNode n){
           //  Assuming it's not a * import
           GNode qualifiedIdentifier = n.getGeneric(1);
           StringBuilder qualifiedNameBuilder = new StringBuilder();
@@ -248,8 +286,11 @@ public class QimppTranslator extends Tool {
           // Add the disambiguation to the hashmap
           currentNameMap.put(unqualifiedName, qualifiedNameBuilder.toString());
         }
-
-        /** Adds the field to the CPPAST */
+        /**
+         * Visits Field Declaration node. Adds field to CPPAST.
+         *
+         * @param n the node to visit.
+         */
         public void visitFieldDeclaration(GNode n) {
           //Get the string by dispatching the Type GNode
           dispatch(n.getGeneric(0));
@@ -281,8 +322,12 @@ public class QimppTranslator extends Tool {
             }
           }
         }
-
-        /** Visit block. */
+        /**
+         * Visits Block node. Increases Block Depth and visits children.
+         *
+         * @param n the node to visit.
+         * @return n.
+         */
         public GNode visitBlock(GNode n) {
           blockDepth++;
           visit(n); 
@@ -293,14 +338,21 @@ public class QimppTranslator extends Tool {
         GNode staticInitializerBlock;
         GNode staticInitializerStatements;
         GNode staticInitializerMethod;
-
+        
+        /**
+         * Visits Block Declaration node
+         *
+         * @param n the node to visit.
+         */
         public void visitBlockDeclaration(GNode n){
           visit(n);
           String modifier = n.getString(0);
           if (modifier != null && modifier.equals("static"))
             addStaticInitializerBlock(n.getGeneric(1));
         }
-
+        /**
+         * Adds a Static Initializer Method to the CPPAST.
+         */
         public void addStaticInitializerMethod(){
           String methodName = "__static_init";
           GNode returnType = GNode.create("ReturnType", GNode.create("PrimitiveType", "void"), null);
@@ -311,6 +363,12 @@ public class QimppTranslator extends Tool {
           staticInitializerMethod.setProperty("static", new Boolean(true));
         }
 
+        /**
+         * Adds a Static Initializer Statement to the CPPAST.
+         *
+         * @param identifier the type of identifier
+         * @param statement the statement
+         */
         public void addStaticInitializerStatement(String identifier, GNode statement){
           
           GNode assgnStatement = GNode.create("ExpressionStatement", GNode.create("Expression", GNode.create("PrimaryIdentifier", identifier),
@@ -318,12 +376,20 @@ public class QimppTranslator extends Tool {
           staticInitializerStatements.add(assgnStatement);
         }
 
+        /**
+         * Adds a Static Initializer Block to the CPPAST.
+         *
+         * @param block the block to add
+         */
         public void addStaticInitializerBlock(GNode block){
           for (Object o : block){
             staticInitializerBlock.add(o);
           }  
         }
 
+        /**
+         * Sets Static Initializer Method instructions in the CPPAST.
+         */
         public void setStaticInitializerMethodInstructions(){
           GNode block = GNode.create("Block");
           for (Object o : staticInitializerStatements){
@@ -335,6 +401,12 @@ public class QimppTranslator extends Tool {
           cppast.setMethodInstructions(block, staticInitializerMethod);
         }
 
+
+        /**
+         * Visits Method Declaration node.
+         *
+         *@param n the node to visit.
+         */
         public void visitMethodDeclaration(GNode n) {
           //TODO: math names and remove
           try{
@@ -369,6 +441,12 @@ public class QimppTranslator extends Tool {
           } catch(Exception e) { e.printStackTrace(); }
         }
 
+        /**
+         * Visits Formal Parameter node.
+         *
+         * @param n the node to visit.
+         * @return the parameter
+         */
         public GNode visitFormalParameter(GNode n){
           
           //Create a parameter by getting the name and dispatching the type
@@ -378,6 +456,12 @@ public class QimppTranslator extends Tool {
           return param;
         }
  
+        /**
+         * Visits FormalParameters node. Runs through all parameters and adds the result to a GNode.
+         *
+         * @param n the node to visit.
+         * @return the parameters.
+         */
         public GNode visitFormalParameters(GNode n){
           visit(n);
           //Loop through all the params dispatching them and adding the result to a parameters GNode
@@ -389,8 +473,10 @@ public class QimppTranslator extends Tool {
         }
         
         /**
-         * NewClassExpression hold a QualifiedIdentifier not wrapped by a type. 
+         * Visits an New Class Expression node. NewClassExpression holds a QualifiedIdentifier not wrapped by a type. 
          * We need to disambiguate it if possible.
+         *
+         * @param n the node to visit.
          */
         public void visitNewClassExpression(GNode n) {
           // Make sure this type has been translated 
@@ -402,7 +488,10 @@ public class QimppTranslator extends Tool {
 
         /** 
          * Visit all types. If it is unknown, process the file for that type. 
-         * If it is known, fully qualify it 
+         * If it is known, fully qualify it.
+         *
+         * @param n the node to visit.
+         * @return the fully qualified node.
          */
         public GNode visitType(GNode n) {
           //Determine the type translated into C++ using 
@@ -540,6 +629,13 @@ public class QimppTranslator extends Tool {
           }
         }
 
+
+        /**
+         * Visits Declarator node. 
+         *
+         * @param n the node to visit.
+         * @return the name of the declarator
+         */
         public String visitDeclarator(GNode n) {
           visit(n);
           //A declarator just needs to return the name of it right now
@@ -551,6 +647,8 @@ public class QimppTranslator extends Tool {
         /**
          * Visit a selection expression, and if it's referring to a class 
          * type by name, make sure that type is translated.
+         *
+         * @param n the node to visit.
          */
         public void visitSelectionExpression(GNode n){
           if (selectionExpressionDepth == 0){
@@ -576,6 +674,8 @@ public class QimppTranslator extends Tool {
 
         /**
          * Visit a PrimaryIdentifier node.
+         *
+         * @param n the node to visit.
          */
         public void visitPrimaryIdentifier(GNode n) {
           // Check if this is a ambiguous name, and if it is, replace it with the fully qualified name
@@ -597,17 +697,37 @@ public class QimppTranslator extends Tool {
           }
         }
         
+        /**
+         * Visits Void Type node.
+         *
+         * @param n the node to visit.
+         * @return the fully qualified node
+         */
         public GNode visitVoidType(GNode n){
           GNode type = GNode.create("Type");
           type.addNode(GNode.create("PrimitiveType")).getGeneric(0).add("void");
           return type;
         }
 
+
+        /**
+         * Visits Return Statement node.
+         *
+         * @param n the node to visit.
+         * @return the node.
+         */
         public GNode visitReturnStatement(GNode n){
           visit(n);
           return n;
         }
 
+
+        /**
+         * Visits Extension node.
+         *
+         * @param n the node to visit.
+         * @return null.
+         */
         public GNode visitExtension(GNode n){
         
           // Assume the name of the parent is fully qualified
@@ -648,6 +768,11 @@ public class QimppTranslator extends Tool {
           return null; 
         }
 
+        /**
+         * Visits Constructor Declaration node.
+         *
+         * @param n the node to visit.
+         */
         public void visitConstructorDeclaration(GNode n) {
           System.err.println("VISITING CONSTRUCTOR!!!");
           System.err.println(currentClassName);
@@ -669,6 +794,11 @@ public class QimppTranslator extends Tool {
 
 
 
+        /**
+         * Generic Visit method
+         *
+         * @param n the node to visit.
+         */
         public void visit(Node n) {
           //System.err.println("We are currently running " + currentClassName);
           for (Object o : n) if (o instanceof Node) dispatch((Node)o);
@@ -714,6 +844,8 @@ public class QimppTranslator extends Tool {
       /**
        * Visit a block of code, and mangle it appropriately before we print it
        * Do not visit deeper here
+       *
+       * @param n the node to visit.
        */
       public GNode visitBlock(GNode n) {
         inBlock = true;
@@ -741,10 +873,21 @@ public class QimppTranslator extends Tool {
         return n;
       }*/
 
+      /**
+       * Visits Class Body node.
+       *
+       * @param n the node to visit.
+       */
       public void visitClassBody(GNode n){
         visit(n);
       }
         
+        
+      /**
+       * Visits Class Declaration node.
+       *
+       * @param n the node to visit.
+       */
       public void visitClassDeclaration(GNode n){
         // Add a default no-arg constructor. If there is an explicit constructor, we can add it
         // later.
@@ -752,6 +895,11 @@ public class QimppTranslator extends Tool {
         visit(n);
       }
 
+      /**
+       * Visits Compilation unit node.
+       *
+       * @param n the node to visit.
+       */
       public void visitCompilationUnit(GNode n) {
         root = n;     
         //System.out.println("In QinppTranslator:visitCompilationUnit before visit(n)");
@@ -767,29 +915,60 @@ public class QimppTranslator extends Tool {
       
       
       
+      /**
+       * Visits Expression Statement node.
+       *
+       * @param n the node to visit.
+       */
       public GNode visitExpressionStatement(GNode n) {
-        //TODO: figure out what we need to do to the expressionstatements to make them parseable including fetching needed files
         return n;
       }
-
+      
+      /**
+       * Visits Expression node.
+       *
+       * @param n the node to visit.
+       */
       public void visitExpression(GNode n){
         visit(n);
       }
-                      
+      
+      /**
+       * Visits New Class Expression node.
+       *
+       * @param n the node to visit.
+       */                      
       public void visitNewClassExpression(GNode n) {       
         visit(n);
       }  
-
+      
+      /**
+       * Visits Package Declaration node.
+       *
+       * @param n the node to visit.
+       */
       public void visitPackageDeclaration(GNode n){
         //System.out.println("Package " + dispatch(n.getGeneric(1)));
       }
-
+      
+      /**
+       * Visits String Literal node.
+       *
+       * @param n the node to visit.
+       */
       public void visitStringLiteral(GNode n){
         visit(n);
       }
         
         
       
+      
+      /**
+       * Visits Type node and returns fully qualified Type node.
+       *
+       * @param n the node to visit.
+       * @return the fully qualified node.
+       */
       
       public GNode visitType(GNode n) {
         //Determine the type translated into C++ using Type.primitiveType(String) and Type.qualifiedIdentifier(String)
@@ -818,11 +997,22 @@ public class QimppTranslator extends Tool {
         }
       }
       
+      /**
+       * Visits Return Statement node.
+       *
+       * @param n the node to visit.
+       */
+      
       public GNode visitReturnStatement(GNode n) {
         
         return n;
       }
- 
+       
+      /**
+       * Generic Visit method for Visitor.
+       *
+       * @param n the node to visit.
+       */
       public void visit(Node n) {
         //System.err.println("We are currently running " + currentClassName);
         //
