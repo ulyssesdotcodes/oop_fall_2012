@@ -232,6 +232,7 @@ public class HeaderWriter extends Visitor {
 //  WRITE STRUCT
 // ===================
 
+  boolean isOutsideStruct;
   /** Write out the struct definition for a given class, with all its newly defined methods 
   *  
   * @param node  the node being written
@@ -243,7 +244,7 @@ public class HeaderWriter extends Visitor {
     printer.pln();
     printer.incr();
       writeVPtr(n);
-      writeFields();
+      writeFields(n);
       printer.pln();
       writeConstructor(n);
       printer.pln();
@@ -254,8 +255,14 @@ public class HeaderWriter extends Visitor {
       writeVTable(n); 
     printer.decr();
     indentOut().p("};\n").pln();
+    printer.pln();
+    isOutsideStruct = true;
+    writeFields(n);
+    isOutsideStruct = false;
+    printer.pln();
     }catch(Exception e) { e.printStackTrace(); }
   }
+
   
   private void writeVPtr(GNode node){
     indentOut().p("__").p(name(node)).p("_VT* __vptr;\n");
@@ -285,10 +292,10 @@ public class HeaderWriter extends Visitor {
    *
    * @param index The index of the class we are writing.
    */
-  private void writeFields() {
+  private void writeFields(GNode n) {
     //Interate through the FieldDeclarations
     for (GNode f : fields) {
-      writeField(f);
+      writeField(f, n);
     }
     /** 
     for(Iterator<Object> iter = node.getGeneric(2).iterator(); iter.hasNext();){
@@ -353,13 +360,17 @@ public class HeaderWriter extends Visitor {
     return (ret.length()!=0) ? ret : "NOT A VALID TYPE";
   }
 
-  private void writeField(GNode n) {
+  private void writeField(GNode n, GNode k) {
     String type = getType(n, true); 
     if (n.getProperty("static") != null)
-      indentOut().p("static ").p(type).p(" ").p(getFieldPrefix(n)).p(";\n");
+      if (!isOutsideStruct)
+        indentOut().p("static ").p(type).p(" ").p(getFieldPrefix(n)).p(";\n");
+      else
+        indentOut().p(type).p(" ").p(Type.getClassTypeName(k.getString(0)))
+          .p("::").p(getFieldPrefix(n)).p(";\n");
     else
-      indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
-   
+      if (!isOutsideStruct)
+        indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
   }
 
   private void writeMethods(GNode n){

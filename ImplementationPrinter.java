@@ -681,13 +681,18 @@ public class ImplementationPrinter extends Visitor {
     // Don't do anything for print commands
     if (n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.PRINT_IDENTIFIER)
       return;
-
-    selectionExpressionDepth++;
-    GNode type = (GNode)dispatch(n.getGeneric(0));
-    selectionExpressionDepth--;
-
+    
     String childIdentifierType = n.getGeneric(0).getStringProperty(Constants.IDENTIFIER_TYPE);
     GNode childIdentifierDeclaration = (GNode) n.getGeneric(0).getProperty(Constants.IDENTIFIER_DECLARATION); 
+   
+    if(childIdentifierType == Constants.QUALIFIED_CLASS_IDENTIFIER){
+      printer.p(Type.getClassTypeName(n.getGeneric(0).getString(0)));
+    } else {
+
+      selectionExpressionDepth++;
+      GNode type = (GNode)dispatch(n.getGeneric(0));
+      selectionExpressionDepth--;
+    }
     // Note: Speeding up String comparisons since we're using constants. USE THEM!
     if (childIdentifierType == Constants.CLASS_IDENTIFIER 
         || childIdentifierType == Constants.STACKVAR_IDENTIFIER
@@ -725,17 +730,24 @@ public class ImplementationPrinter extends Visitor {
 
       printer.p("({").p(" __rt::checkNotNull(");
      
-      if (null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+      if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
           .getProperty("static") &&
           n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
         if (inConstructor)
           printer.p("this->");
         else 
           printer.p("__this->");
-      } else if (inMain && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+      } else if (inMain && null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
           .getProperty("static")) {
          String className = currentClassNode.getString(0);
          printer.p(Type.getClassTypeName(className)).p("::");
+      } else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
+         int colonIndex = n.getString(0).indexOf("::");
+         if(colonIndex != -1){
+         String className = n.getString(0).substring(0, n.getString(0).indexOf("::"));
+
+         n.set(0, Type.getClassTypeName(className) + n.getString(0).substring(n.getString(0).indexOf("::")));
+         }
       }
 
       //TODO: change this
@@ -748,7 +760,7 @@ public class ImplementationPrinter extends Visitor {
       //}
      
       // Make sure to delimit fully-qualified names correctly
-      printer.p(n.getString(0).replace("\\.", "::"));     
+      printer.p(n.getString(0).replace(".", "::"));
       printer.p("); ");
     }
     
@@ -756,19 +768,25 @@ public class ImplementationPrinter extends Visitor {
         && (inPrintStatement || inConcatExpression)) {
       printer.p("(int)");
     }
-  
-    if (null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+    if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
         .getProperty("static") &&
         n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
       else printer.p("__this->");
-    } else if (inMain && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+    } else if (inMain && null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
         .getProperty("static")) {
        String className = currentClassNode.getString(0);
        printer.p(Type.getClassTypeName(className)).p("::");
+    }  else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
+         int colonIndex = n.getString(0).indexOf("::");
+         if(colonIndex != -1){
+         String className = n.getString(0).substring(0, n.getString(0).indexOf("::"));
+
+         n.set(0, Type.getClassTypeName(className) + n.getString(0).substring(n.getString(0).indexOf("::")));
+         }
     }
 
-    printer.p(n.getString(0).replace("\\.", "::"));     
+    printer.p(n.getString(0).replace(".", "::"));     
     //if (inPrintStatement && typeNode != null) {
     //  if (typeNode.getGeneric(0).getString(0).equals("boolean")) {
     //  printer.p(")");
@@ -969,7 +987,7 @@ public class ImplementationPrinter extends Visitor {
     GNode rightTypeNode = (GNode)n.getGeneric(2)
             .getProperty(Constants.IDENTIFIER_TYPE_NODE);
     
-       boolean rightIsChar = false;
+    boolean rightIsChar = false;
     if (leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
         .equals("QualifiedIdentifier")) {
       isConcatExpression = leftTypeNode.getGeneric(0).getString(2)
@@ -979,6 +997,9 @@ public class ImplementationPrinter extends Visitor {
           .equals("PrimitiveType")) {
       rightIsChar = leftTypeNode.getGeneric(0).getString(0)
           .equals("char");
+    }
+    if (n.getGeneric(2).getName().equals("CharacterLiteral")) {
+      rightIsChar = true; 
     }
     if (!rightIsChar && leftTypeNode != null && leftTypeNode.getGeneric(0).getName()
         .equals("PrimitiveType")) {
@@ -992,7 +1013,8 @@ public class ImplementationPrinter extends Visitor {
     }
 
     if (n.getGeneric(0).getName().equals("StringLiteral") 
-        || n.getGeneric(0).getName().equals("CharacterLiteral")) {
+        || (n.getGeneric(0).getName().equals("CharacterLiteral") 
+          && !rightIsChar)) {
       isConcatExpression = true;
     }
     if (isConcatExpression) {
@@ -1119,9 +1141,15 @@ public class ImplementationPrinter extends Visitor {
   /** Visit instanceof expression. */
   public void visitInstanceOfExpression(GNode n) {
     final int prec1 = startExpression(40);
-    printer.p(n.getString(1)).p(Constants.QUALIFIER)
-      .p("__class()->isInstance(").p(n.getString(1))
-      .p(Constants.QUALIFIER).p("__class(), ");
+    System.err.println("ERROR ERROR : " + n);
+
+    if(n.get(1) instanceof String) printer.p(n.getString(1));
+    else printer.p(n.getNode(1));
+    printer.p(Constants.QUALIFIER)
+      .p("__class()->isInstance(");
+    if(n.get(1) instanceof String) printer.p(n.getString(1));
+    else printer.p(n.getNode(1));
+    printer.p(Constants.QUALIFIER).p("__class(), ");
     dispatch(n.getGeneric(0));
     printer.p(')');
     endExpression(prec1);

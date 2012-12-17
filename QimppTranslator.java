@@ -266,7 +266,7 @@ public class QimppTranslator extends Tool {
               if (statement != null){
                 addStaticInitializerStatement(name, statement);
               }
-              GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass);
+              GNode currentField = cppast.addField(currentClassName.replace('.', '_') + "_" + name, name, type, currentClass, false);
               GNode modifiers = n.getGeneric(0);
 
               for (Object o : modifiers){
@@ -394,13 +394,6 @@ public class QimppTranslator extends Tool {
           //Determine the type translated into C++ using 
           //Type.primitiveType(String) and Type.qualifiedIdentifier(String)
           visit(n);
-
-
-          Iterator iter = currentNameMap.keySet().iterator();
-          while(iter.hasNext()){
-            String key = iter.next().toString();
-            System.out.println(key + ": " + currentNameMap.get(key).toString());
-          }
 
           GNode identifier = n.getGeneric(0);
           String typename = Disambiguator.getDotDelimitedName(identifier);

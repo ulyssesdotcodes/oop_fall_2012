@@ -155,25 +155,30 @@ public class CPPAST {
    * @param classNode ClassDeclaration node.
    * @returns field node.
    */ 
-  GNode addField(String fullName, String ambigName, GNode type, GNode classNode){
+  GNode addField(String fullName, String ambigName, GNode type, GNode classNode, boolean isStatic){
     //Get the fields node
     //String classFieldName = classNode.getString(0) + "_" + name;
+      
     GNode fieldNode = GNode.create("FieldDeclaration");
     fieldNode.add(fullName);
     fieldNode.addNode(type);
     classNode.getGeneric(3).addNode(fieldNode);
     currentFieldMap.put(ambigName, fieldNode);
+    if(isStatic)
+      fieldNode.setProperty("static", true);
     return fieldNode;
   }
 
   /**
    * Overload without adding the name to the field map
    */
-  GNode addField(String name, GNode type, GNode classNode){
+  GNode addField(String name, GNode type, GNode classNode, boolean isStatic){
     GNode fieldNode = GNode.create("FieldDeclaration");
     fieldNode.add(name);
     fieldNode.add(type);
     classNode.getGeneric(3).addNode(fieldNode);
+    if(isStatic)
+      fieldNode.setProperty("static", true);
     return fieldNode;
   }
   
@@ -389,7 +394,7 @@ public class CPPAST {
 
     for(Object fieldobj : parentClassNode.getGeneric(3)){
       GNode field = (GNode)fieldobj;
-      addField(field.getString(0), field.getGeneric(1), currentClass);
+      addField(field.getString(0), field.getGeneric(1), currentClass, null != field.getProperty("static"));
     }
   }
   
