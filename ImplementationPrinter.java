@@ -453,13 +453,15 @@ public class ImplementationPrinter extends Visitor {
     inMain = false;
 	}
 
+  boolean doneStatic = false;
   public void visitBlock(GNode n) {
     
     printer.pln(" {");
     printer.incr();
-    if (inMain){
+    if (inMain && !doneStatic){
       StaticInitializerPrinter sip = new StaticInitializerPrinter(printer);
       sip.dispatch(compilationUnit);      
+      doneStatic = true;
     }
     indentOut();
     visit(n); // block
