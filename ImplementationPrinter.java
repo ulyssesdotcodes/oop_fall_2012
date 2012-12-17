@@ -755,7 +755,8 @@ public class ImplementationPrinter extends Visitor {
           printer.p("__this->");
       } else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
           .getProperty("static")) {
-         String className = currentClassNode.getString(0);
+         GNode fieldDeclaration = (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION);
+         String className = ((GNode)fieldDeclaration.getProperty("ContainingClass")).getString(0);
          printer.p(Type.getClassTypeName(className)).p("::");
       } /*else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
          int colonIndex = n.getString(0).indexOf("::");
@@ -792,7 +793,9 @@ public class ImplementationPrinter extends Visitor {
       else printer.p("__this->");
     } else if ( null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
         .getProperty("static")) {
-       String className = currentClassNode.getString(0);
+
+       GNode fieldDeclaration = (GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION);
+       String className = ((GNode)fieldDeclaration.getProperty("ContainingClass")).getString(0);
        printer.p(Type.getClassTypeName(className)).p("::");
     } /* else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
          int colonIndex = n.getString(0).indexOf("::");
