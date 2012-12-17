@@ -394,7 +394,8 @@ public class CPPAST {
 
     for(Object fieldobj : parentClassNode.getGeneric(3)){
       GNode field = (GNode)fieldobj;
-      addField(field.getString(0), field.getGeneric(1), currentClass, null != field.getProperty("static"));
+      if (field.getProperty("static") == null)
+        addField(field.getString(0), field.getGeneric(1), currentClass, null != field.getProperty("static"));
     }
   }
   

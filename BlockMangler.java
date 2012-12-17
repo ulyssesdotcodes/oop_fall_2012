@@ -623,10 +623,19 @@ public class BlockMangler {
   }
 
   private GNode resolveClassField(String fieldName){
-    HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
-    System.err.println(fieldNameMap);
-    GNode fieldDeclaration = fieldNameMap.get(fieldName);
-    System.err.println(fieldDeclaration);
+    GNode targetClass = cppClass;
+    GNode fieldDeclaration = null;
+    while (targetClass != null &&  !targetClass.getString(0).equals("java.lang.Object")){
+      HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
+      System.err.println(fieldNameMap);
+      fieldDeclaration = fieldNameMap.get(fieldName);
+      System.err.println(fieldDeclaration);
+      if (fieldDeclaration != null){
+        fieldDeclaration.setProperty("ContainingClass", targetClass);
+        return fieldDeclaration;
+      }
+      targetClass = (GNode)targetClass.getProperty("ParentClassNode");
+    }
     return fieldDeclaration;
   }
 
