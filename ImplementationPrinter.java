@@ -524,7 +524,7 @@ public class ImplementationPrinter extends Visitor {
     }
 
     else {
-      if (n.getProperty("static") == null && n.getProperty("private") == null){        
+      if (n.getProperty("static") == null){        
         //TODO: Chained calls
         // Print the correct call here
         // Get the type of the calling expression or field name, and make a _this to reference it
@@ -539,7 +539,14 @@ public class ImplementationPrinter extends Visitor {
         printer.p(" ;");
 
         // Print the actual call
-        printer.p(" _this->__vptr->").p(n.getString(2)).p("( _this ");
+        if (n.getProperty("private") == null){
+          printer.p(" _this->__vptr->");
+        }
+        else{
+          printer.p(" _this->");
+        }
+        printer.p(n.getString(2)).p("( _this ");
+
         // We don't want to print the comma if there are not more arguments
         if (n.getGeneric(3).size()!= 0){
           printer.p(", ");
@@ -554,11 +561,6 @@ public class ImplementationPrinter extends Visitor {
         isTypeStaticReference = false;
 
         printer.p("::").p(n.getString(2)).p("(");
-        if (n.getProperty("static") == null){
-          printer.p(" __this ");
-          if (n.getGeneric(3).size()!= 0)
-            printer.p(", ");
-        }
         dispatch(n.getGeneric(3));
         printer.p(")");        
       }
