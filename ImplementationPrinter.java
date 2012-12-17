@@ -453,15 +453,16 @@ public class ImplementationPrinter extends Visitor {
     inMain = false;
 	}
 
-  boolean doneStatic = false;
+  boolean printedInitializers;
+
   public void visitBlock(GNode n) {
     
     printer.pln(" {");
     printer.incr();
-    if (inMain && !doneStatic){
+    if (inMain && !printedInitializers){
       StaticInitializerPrinter sip = new StaticInitializerPrinter(printer);
       sip.dispatch(compilationUnit);      
-      doneStatic = true;
+      printedInitializers = true;
     }
     indentOut();
     visit(n); // block
@@ -752,18 +753,18 @@ public class ImplementationPrinter extends Visitor {
           printer.p("this->");
         else 
           printer.p("__this->");
-      } else if (inMain && null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+      } else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
           .getProperty("static")) {
          String className = currentClassNode.getString(0);
          printer.p(Type.getClassTypeName(className)).p("::");
-      } else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
+      } /*else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
          int colonIndex = n.getString(0).indexOf("::");
          if(colonIndex != -1){
          String className = n.getString(0).substring(0, n.getString(0).indexOf("::"));
 
          n.set(0, Type.getClassTypeName(className) + n.getString(0).substring(n.getString(0).indexOf("::")));
          }
-      }
+      }*/
 
       //TODO: change this
       //GNode typeNode = (GNode)n.getProperty(Constants.IDENTIFIER_TYPE_NODE);
@@ -789,18 +790,18 @@ public class ImplementationPrinter extends Visitor {
         n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
       else printer.p("__this->");
-    } else if (inMain && null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+    } else if ( null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
         .getProperty("static")) {
        String className = currentClassNode.getString(0);
        printer.p(Type.getClassTypeName(className)).p("::");
-    }  else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
+    } /* else if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null != ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION)).getProperty("static")){
          int colonIndex = n.getString(0).indexOf("::");
          if(colonIndex != -1){
          String className = n.getString(0).substring(0, n.getString(0).indexOf("::"));
 
          n.set(0, Type.getClassTypeName(className) + n.getString(0).substring(n.getString(0).indexOf("::")));
          }
-    }
+    }*/
 
     printer.p(n.getString(0).replace(".", "::"));     
     //if (inPrintStatement && typeNode != null) {
