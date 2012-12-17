@@ -354,7 +354,7 @@ public class ImplementationPrinter extends Visitor {
     indentOut()
       .p("static java::lang::Class k = ")
       .p("new java::lang::__Class(__rt::literal(\"")
-			.p(this.currentClass).p("\"), ");
+			.p(this.currentClassNode.getString(0)).p("\"), ");
     //TODO: HACK
     isTypeStaticReference = true;
 		dispatch(n.getGeneric(1));

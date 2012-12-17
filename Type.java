@@ -99,15 +99,18 @@ class Type {
   /**
    * Get the higher priority of two types
    */
-  static String compare(String type1, String type2){
-    return "int";  
-    //for (int i = 0; i < priorities.length; i++){
-      //if (type1.equals(priorities[i]))
-      //  return type1;
-      //if (type2.equals(priorities[i]))
-      //  return type2;
-   // }
-   // return null;
+  static String compare(String type1, String type2) {
+    int resultIndex = 0;
+    for (int i = 0; i < priorities.length; i++){
+      if (type1.equals(priorities[i])) {
+        resultIndex = i; break;
+      }
+      if (type2.equals(priorities[i])) {
+        resultIndex = i; break;
+      }
+    }
+    if (resultIndex < 3) { return priorities[resultIndex]; }
+    else { return "int"; }
   }
 
   /**

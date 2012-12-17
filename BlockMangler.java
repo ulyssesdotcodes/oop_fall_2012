@@ -129,9 +129,17 @@ public class BlockMangler {
        * Set the appropriate properties for an IntegerLiteral
        */
       public String visitIntegerLiteral(GNode n){
-        n.setProperty(Constants.IDENTIFIER_TYPE, Constants.PRIMITIVE_TYPE_IDENTIFIER);
+        n.setProperty(Constants.IDENTIFIER_TYPE, 
+            Constants.PRIMITIVE_TYPE_IDENTIFIER);
         //TODO: Handle longs
-        n.setProperty(Constants.IDENTIFIER_TYPE_NODE, GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
+        if (n.getString(0).charAt(n.getString(0).length()-1) == 'l' ||
+            (n.getString(0).charAt(n.getString(0).length()-1) == 'L')) {
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, 
+              GNode.create("Type", GNode.create("PrimitiveType", "long"), null));
+        } else {
+          n.setProperty(Constants.IDENTIFIER_TYPE_NODE, 
+              GNode.create("Type", GNode.create("PrimitiveType", "int"), null));
+        }
         return Constants.PRIMITIVE_TYPE_IDENTIFIER;
       }
       
