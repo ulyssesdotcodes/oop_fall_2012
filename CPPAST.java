@@ -280,7 +280,7 @@ public class CPPAST {
         //TODO: Check for exact match
       if(Type.getCppMangledMethodName(method).equals(Type.getCppMangledMethodName(methodNode))){
         System.err.println("REPLACING METHOD");
-        
+        System.err.println("at " + i + " is " + Type.getCppMangledMethodName(method));
         methodsNode.set(i, methodNode);
         overridingMethod = true;
         break;
