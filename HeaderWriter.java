@@ -50,13 +50,9 @@ public class HeaderWriter extends Visitor {
   * Use .indent() to indent when needed. The Printer doesn't do it automatically. 
   * Use .incr() to increase indentation, and .decr() to decrease intentation.
   * ATTN: must call .incr() before you can call .indent()! Otherwise .indent() will do nothing 
-  * TODO: Packages
   * 
-  *@param roots The QimppClassDeclaration nodes for the classes we want to create a header for
+  *@param printer the printer
   */
-  
-  // TODO: Need to change the HeaderWriter to take a GNode, instead of an array of GNodes
-  
   public HeaderWriter(Printer printer) {
     this.printer = printer;
     inherited_methods = new ArrayList<GNode>();
@@ -73,17 +69,32 @@ public class HeaderWriter extends Visitor {
  // ==================
 
   GNode compilationUnit;
+  /**
+  * Visits Compilation Unit node. Writes dependencies.
+  *
+  * @param n the node to visit.
+  */
   public void visitCompilationUnit(GNode n){
     compilationUnit = n;
     writeDependencies(); 
     visit(n);
     printer.flush();
   }
-
+  
+ /**
+  * Visits Declarations node. 
+  *
+  * @param n the node to visit.
+  */
   public void visitDeclarations(GNode n){
     visit(n);
   }
-
+  
+ /**
+  * Visits Declaration node. Prints fully qualified names.
+  *
+  * @param n the node to visit.
+  */
   public void visitDeclaration(GNode n){
     String[] qualifiers = getNameQualifiedArray(n);
     // Declare the types in the correct namespaces
@@ -100,7 +111,12 @@ public class HeaderWriter extends Visitor {
       indentOut().pln("}");
     }
   }
-
+  
+ /**
+  * Visits Classes node. Dispatches on child nodes.
+  *
+  * @param n the node to visit.
+  */
   public void visitClasses(GNode n){
     System.out.println("===in classes , size: " +  n.size());
     for (int i = n.size() - 1 ; i >= 0; i--) {
@@ -112,6 +128,11 @@ public class HeaderWriter extends Visitor {
   /** State variable to make sure we get ordering done right */
   HashMap<String, Boolean> doneClass;
 
+ /**
+  * Visits Class Declaration node. Writes class namespace, vtable, etc
+  *
+  * @param n the node to visit.
+  */
   public void visitClassDeclaration(GNode n){
     //current_class = name(n);
     if (doneClass == null){
@@ -157,18 +178,29 @@ public class HeaderWriter extends Visitor {
     }
   }
 
+ /**
+  * Visits Fields node.
+  *
+  * @param n the node to visit.
+  */
   public void visitFields(GNode n){
     visit(n);
   }
 
+ /**
+  * Visits Field Declaration node. Adds to list of fields.
+  *
+  * @param n the node to visit.
+  */
   public void visitFieldDeclaration(GNode n){
     fields.add(n); 
   }
 
- /* public void visitBlock(GNode n) {
-    // do nothing
-  }
-*/
+ /**
+  * Visits Inherited Method Container node. Adds to list of methods. 
+  *
+  * @param n the node to visit.
+  */
   public void visitInheritedMethodContainer(GNode n){
     inherited = true;
     if (!n.getGeneric(0).getString(0).equals("main"))
@@ -180,6 +212,11 @@ public class HeaderWriter extends Visitor {
   //TODO: Hack
   //Prints out main methods for other classes differently
   boolean didMain = false;
+  /**
+  * Visits Implemented Method Declaration. If main method has not been printed, adds to list of methods.
+  *
+  * @param n the node to visit.
+  */
   public void visitImplementedMethodDeclaration(GNode n){
     if (!name(n).equals("main") || didMain) {
       implemented_methods.add(n);
@@ -190,6 +227,11 @@ public class HeaderWriter extends Visitor {
     }
   }
 
+  /**
+  * Generic Visit method.
+  *
+  * @param n the node to visit.
+  */
   public void visit(GNode n){
     System.out.println("Visiting " + n.getName());
     for (Object o : n) if (o instanceof Node) dispatch((Node)o);
@@ -200,7 +242,6 @@ public class HeaderWriter extends Visitor {
 // ================================
 
   /** Write out the dependencies for the header */
-  //TODO: this method should probably do more. Not sure ATM.
   private void writeDependencies() {
     printer.p("#pragma once").pln();
     printer.p("#include \"java_lang.h\"").pln() 
@@ -211,7 +252,7 @@ public class HeaderWriter extends Visitor {
   
   /** Write out the internal names of the structs and vtables for each class 
   *
-  * @param index the index of the class we are writing
+  * @param node the node being examined
   */
   public void writeTypeDeclaration(GNode node){
     indentOut().p("struct ").p("__").p(name(node)).p(";\n");
@@ -265,6 +306,10 @@ public class HeaderWriter extends Visitor {
     }catch(Exception e) { e.printStackTrace(); }
   }
 
+  /** Writes the VPtr for a given class.
+  *
+  * @param node  the node being written
+  */
   
   private void writeVPtr(GNode node){
     indentOut().p("__").p(name(node)).p("_VT* __vptr;\n");
@@ -273,7 +318,7 @@ public class HeaderWriter extends Visitor {
   /** 
    * The constructor.
    *
-   * @param index the index of the class we are writing.
+   * @param node the node being written
    */ 
   private void writeConstructor(GNode node){
     indentOut().p("__").p(name(node)).p("(");
@@ -292,22 +337,13 @@ public class HeaderWriter extends Visitor {
    * has <code>std::string data</code>, and Class has <code>String name</code>
    * and <code>Class parent</code>.
    *
-   * @param index The index of the class we are writing.
+   * @param node  the node being written
    */
   private void writeFields(GNode n) {
     //Interate through the FieldDeclarations
     for (GNode f : fields) {
       writeField(f, n);
     }
-    /** 
-    for(Iterator<Object> iter = node.getGeneric(2).iterator(); iter.hasNext();){
-      Object objCurrent = iter.next();
-      if(objCurrent == null || objCurrent instanceof String) continue;
-      GNode current = (GNode) objCurrent;
-      if(current.hasName("FieldDeclaration"))
-        //For now just get the first field declared
-        indentOut().p(Type.translate(current)).p(" ").p(current.getGeneric(2).getGeneric(0).getString(0)).p(";").pln();
-    } */
   }
   
   private String getTypeDirect(GNode n, boolean isPointer){
@@ -315,6 +351,13 @@ public class HeaderWriter extends Visitor {
     return getType(newNode, isPointer);
   }
   
+  /**
+   *Gets the type of a node
+   *
+   *@param n the node to examine
+   *@isPointer true if it is a pointer
+   *return the type
+   */
   private String getType(GNode n, boolean isPointer) {
     GNode type = n.getGeneric(1).getGeneric(0);
     String ret = "";
@@ -362,6 +405,12 @@ public class HeaderWriter extends Visitor {
     return (ret.length()!=0) ? ret : "NOT A VALID TYPE";
   }
 
+  /**
+   * Writes field
+   *
+   * @param n the node being examined
+   * @param k the class
+   */
   private void writeField(GNode n, GNode k) {
     String type = getType(n, true); 
     if (n.getProperty("static") != null)
@@ -374,7 +423,11 @@ public class HeaderWriter extends Visitor {
       if (!isOutsideStruct)
         indentOut().p(type).p(" ").p(getFieldPrefix(n)).p(";\n"); 
   }
-
+  /**
+   * Writes methods
+   *
+   * @param n the node being examined
+   */
   private void writeMethods(GNode n){
     String current_class = name(n);
     for (GNode m : implemented_methods) {
@@ -382,6 +435,12 @@ public class HeaderWriter extends Visitor {
     } 
   }
 
+  /**
+   *Writes a method
+   *
+   *@param n the node being examined
+   *@param current_class the current class
+   */
   private void writeMethod(GNode n, String current_class) {
     boolean isStatic;
     indentOut().p("static ");
@@ -432,7 +491,7 @@ public class HeaderWriter extends Visitor {
 
 
   /** Write out the struct definition of a class's VTable 
-  * @param i the index of the class we are writing
+  * @param node the node we are examining
   */
   private void writeVTStruct(GNode node) {
     
@@ -462,8 +521,8 @@ public class HeaderWriter extends Visitor {
 
 
   /** Write out all the inherited methods of its superclass(es)
-   * @param i the index of the class we are writing */
-  // TODO: this
+   * @param n the node we are examining
+   */
   private void writeInheritedVTMethods(GNode n) {
     String current_class = name(n);
     for (GNode m : inherited_methods) {
@@ -473,9 +532,10 @@ public class HeaderWriter extends Visitor {
     }
   }
 
-  /** Write out all the classe's own methods
-   * @param i the index of the class we are writing */
-  // TODO: this
+  /** Write out all the classes own methods
+   *
+   *@param n the node being examined
+   */
   private void writeVTMethods(GNode n) {
     String current_class = name(n);
     System.err.println("METHODS SIZE " + methods.size());
@@ -490,6 +550,11 @@ public class HeaderWriter extends Visitor {
     }
   }
 
+  /** Write a class method
+   *
+   *@param n the node being examined
+   *@param current_class the current class
+   */
   private void writeVTMethod(GNode n, String current_class){
     indentOut().p(getType(n, true)).p(" ");
     printer.p("(*").p(Type.getCppMangledMethodName(n)).p(")(").p(current_class);
@@ -512,7 +577,7 @@ public class HeaderWriter extends Visitor {
   }
 
   /** Write out the VT Constructor 
-   * @param i the index of the class we are writing */
+   * @param node the node being examined */
   private void writeVTConstructor(GNode node) {
     indentOut().p("__").p(name(node)).p("_VT()\n");
   }
@@ -542,8 +607,7 @@ public class HeaderWriter extends Visitor {
   }*/
 
   /** Write out all the VT addresses of the class' own methods
-   * @param i the index of the class we are writing */
-  // TODO: this
+   * @param n the node being examined */
   private void writeVTAddresses(GNode n) {
     String current_class = name(n);
     boolean hasPrintedComma = false;
