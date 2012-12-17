@@ -88,9 +88,9 @@ public class Disambiguator{
    */
   public static String getMethodOverloadName(GNode methodDeclaration){
     StringBuilder name = new StringBuilder();
-    name.append(methodDeclaration.getString(3));
+    name.append(methodDeclaration.getString(0));
 
-    GNode formalParameters = methodDeclaration.getGeneric(4);
+    GNode formalParameters = methodDeclaration.getGeneric(2);
     for (Object o : formalParameters){
       name.append('_');
       GNode type = ((GNode)o).getGeneric(1).getGeneric(0);

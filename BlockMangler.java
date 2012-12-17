@@ -39,6 +39,13 @@ public class BlockMangler {
 
   // takes java block 
   public GNode mangle(GNode java) {
+
+    if (java.getProperty("Mangled") != null){
+      (new Exception()).printStackTrace(System.err);
+      System.exit(1);
+    }
+    java.setProperty("Mangled", new Boolean(true));
+
     
     // Vivek: it doesn't seem like this is being used.
     GNode cpp = GNode.create("Block");
@@ -54,6 +61,11 @@ public class BlockMangler {
        */
       public String visitPrimaryIdentifier(GNode n){
         String identifier = n.getString(0);
+
+        if (identifier.equals("R1")){
+          System.err.println("--------------\nTHIS IS IT\n------------");
+          resolveClassField(identifier);
+        }
 
         if (selectionExpressionBuilder != null){
           selectionExpressionBuilder.insert(0, identifier);
@@ -247,10 +259,6 @@ public class BlockMangler {
         if (selectionExpressionDepth == 0)
           selectionExpressionBuilder = new StringBuilder();
 
-        System.err.println("-------------------\nSELECTIONEXPRESSION\n------------------------");
-        System.err.println(n);
-
-
         selectionExpressionDepth++;
         n.setProperty(Constants.IDENTIFIER_TYPE, dispatch(n.getGeneric(0)));
         System.err.println(n.getProperty(Constants.IDENTIFIER_TYPE));
@@ -413,6 +421,8 @@ public class BlockMangler {
             return null;
           }
           callerType = (GNode)caller.getProperty(Constants.IDENTIFIER_TYPE_NODE);
+          System.out.println(caller);
+          System.out.println(caller.getLocation());
 
           if (callerType.size() > 1 && null != callerType.getGeneric(1)) {
             GNode newQualifiedIdentifier = 
@@ -435,7 +445,10 @@ public class BlockMangler {
           callType = Constants.CALL_UNKNOWN; 
         }
         GNode argumentTypes = GNode.create("ArgumentTypes");
+        System.err.println(n);
         for ( Object o : n.getGeneric(3)) {
+          System.err.println("Yowza!");
+          System.err.println(o);
           argumentTypes.add(((GNode)o).getProperty(Constants.IDENTIFIER_TYPE_NODE));
         }
 
@@ -611,7 +624,9 @@ public class BlockMangler {
 
   private GNode resolveClassField(String fieldName){
     HashMap<String, GNode> fieldNameMap = (HashMap<String, GNode>)cppClass.getProperty("FieldMap");
+    System.err.println(fieldNameMap);
     GNode fieldDeclaration = fieldNameMap.get(fieldName);
+    System.err.println(fieldDeclaration);
     return fieldDeclaration;
   }
 

@@ -63,7 +63,7 @@ public class InheritanceTreeManager {
     root = GNode.create(CLASS_STRUCTURE_ROOT);
 
     GNode rootClassTreeNode = GNode.create(CLASS_TREE_NODE);
-    rootClassTreeNode.setProperty("ClassName", "java.lang.Object");;
+    rootClassTreeNode.setProperty("ClassName", "Object");;
     rootClassTreeNode.setProperty("ClassDeclaration", rootClassDeclaration);
     // Set a direct reference to what everyone inherits from
     this.rootClassNode = rootClassTreeNode;

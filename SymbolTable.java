@@ -976,9 +976,12 @@ public class SymbolTable {
       }
 
       public void visitClassDeclaration(GNode n) {
-        table.enter(n.getString(1), n);
+        table.enter(n.getString(0), n);
         table.mark(n);
-        visit(n.getNode(5));
+        System.err.println("----------------\nVISITING\n------------------");
+        System.err.println(n.getGeneric(4).getName());
+        visit(n.getGeneric(4));
+        visit(n.getGeneric(1));
         table.exit();
       }
 
@@ -993,13 +996,13 @@ public class SymbolTable {
       public void visitConstructorDeclaration(GNode n) {
         table.enter(table.freshCId("constructor"), n);
         table.mark(n);
-        visit(n.getNode(5)); // block
-        visit(n.getNode(3)); // parameters
+        visit(n.getNode(0)); // block
+        visit(n.getNode(1)); // parameters
         table.exit();
       }
 
-      public void visitMethodDeclaration(GNode n) {
-        Node parameters = n.getNode(4);
+      public void visitImplementedMethodDeclaration(GNode n) {
+        Node parameters = n.getNode(2);
         /*
         if (parameters.size() > 0) {
           table.enter(n.getString(3), n);
@@ -1018,10 +1021,12 @@ public class SymbolTable {
           table.exit();
         }*/
 
-        Node body = n.getNode(7);
+        Node body = n.getNode(3);
         // Make sure we don't enter the scope of some already-named method
         table.enter(Disambiguator.getMethodOverloadName(n) , n);
         table.mark(n);
+        System.err.println(parameters.getName());
+        System.err.println(body.getName());
         visit(parameters);
         this.inMethod = true;
         visit(body);
@@ -1102,7 +1107,15 @@ public class SymbolTable {
       }
 
       public void visitFormalParameter(GNode n) {
-        table.current().addDefinition(n.getString(3), n);
+        System.err.println(n);
+        //Use CPPAST's version of FormalParameter
+        if (!inMethod){
+          table.current().addDefinition(n.getString(0), n);
+        }
+
+        // For TryCatch
+        else
+          table.current().addDefinition(n.getString(3), n);
         //table.current().node(n);
         table.mark(n);
       }

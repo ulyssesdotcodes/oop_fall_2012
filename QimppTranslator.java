@@ -202,6 +202,12 @@ public class QimppTranslator extends Tool {
           addStaticInitializerMethod();
           setStaticInitializerMethodInstructions();
 
+          if (currentConstructor == null){
+            currentConstructor = cppast.addConstructor(currentClass);
+            cppast.setConstructorInstructions(GNode.create("Block"), currentConstructor);
+          }
+
+
         }
 
         /** Set the current package name context */
@@ -277,10 +283,11 @@ public class QimppTranslator extends Tool {
         }
 
         /** Visit block. */
-        public void visitBlock(GNode n) {
+        public GNode visitBlock(GNode n) {
           blockDepth++;
           visit(n); 
           blockDepth--;
+          return n;
         }
 
         GNode staticInitializerBlock;
@@ -458,6 +465,9 @@ public class QimppTranslator extends Tool {
             GNode tempStatInitStat = staticInitializerStatements;
             GNode tempStatInitMethod = staticInitializerMethod;
 
+            GNode tempCurrentConstructor = currentConstructor;
+            currentConstructor = null;
+
             HashMap<String, String> tempNameMap = currentNameMap;
             
             // disambiguate() - figure out the fully qualified name
@@ -512,6 +522,7 @@ public class QimppTranslator extends Tool {
             //currentNameMap = tempNameMap;
 
             currentClass = tempClass;
+            currentConstructor = tempCurrentConstructor;
             
             staticInitializerBlock = tempStatInitBlock;
             staticInitializerStatements = tempStatInitStat;
@@ -630,6 +641,26 @@ public class QimppTranslator extends Tool {
           return null; 
         }
 
+        public void visitConstructorDeclaration(GNode n) {
+          System.err.println("VISITING CONSTRUCTOR!!!");
+          System.err.println(currentClassName);
+          //Add a constructor to currentClass and get the associated GNode
+          currentConstructor = cppast.addConstructor(currentClass);
+
+          //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
+          if(n.getGeneric(4) != null){ 
+            
+            System.err.println("ADDING PARAMS");
+            cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
+          }
+          //If there are instructions in the block, visit them and add them to the constructor
+          if(n.getGeneric(5) != null){
+            System.err.println("ADDING INSTRUCTIONS");
+            cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
+          }
+        }
+
+
 
         public void visit(Node n) {
           //System.err.println("We are currently running " + currentClassName);
@@ -644,6 +675,8 @@ public class QimppTranslator extends Tool {
       String tempPackageName = currentPackageName;
       GNode tempClass = currentClass;
       String tempClassName = currentClassName;
+      GNode tempConstruct = currentConstructor;
+      currentConstructor = null;
 
       Node target = readQueue.poll();
       while (target != null){
@@ -651,6 +684,7 @@ public class QimppTranslator extends Tool {
         target = readQueue.poll();
       }
 
+      currentConstructor = tempConstruct;
       currentClassName = tempClassName;
       currentPackageName = tempPackageName;
       //currentNameMap = tempNameMap;
@@ -661,7 +695,7 @@ public class QimppTranslator extends Tool {
 
     /** SYMBOL TABLE */
     SymbolTable table = new SymbolTable();
-    table.incorporate(node);
+    table.incorporate(currentClass);
     // Now we can call .getProperty("qimpp.Constants.SCOPE") on certain
     // scope-defining nodes and we'll get back a Scope object (look in
     // SymbolTable).
@@ -677,8 +711,10 @@ public class QimppTranslator extends Tool {
       public GNode visitBlock(GNode n) {
         inBlock = true;
         GNode block = GNode.create("Block");
-        
-        mangler.mangle(n);
+        if ( n.getProperty("Mangled") == null){ 
+          mangler.mangle(n);
+          n.setProperty("Mangled", new Boolean(true));
+        }
         inBlock = false;
 
         return n;
@@ -707,9 +743,6 @@ public class QimppTranslator extends Tool {
         // later.
         //Add a constructor to currentClass and get the associated GNode
         visit(n);
-        if (currentConstructor == null){
-          currentConstructor = cppast.addConstructor(currentClass);
-        }
       }
 
       public void visitCompilationUnit(GNode n) {
@@ -719,31 +752,10 @@ public class QimppTranslator extends Tool {
         //System.out.println("In QinppTranslator:visitCompilationUnit after visit(n)");
         //Print the AST after we're done for debugging
         //cppast.printAST();
-        try{
-          PrintWriter h = new PrintWriter("out.h");
-          new HeaderWriter(new Printer(h)).dispatch(cppast.compilationUnit);
-          cppast.printAST();
-
-          PrintWriter cc = new PrintWriter("out.cc");
-          new ImplementationPrinter(new Printer(cc), treeManager).dispatch(cppast.compilationUnit);
-        } catch (Exception e) {
-          //System.out.println("Uh oh... " + e);
-          e.printStackTrace();
-        }
+        
       }
       
-      public void visitConstructorDeclaration(GNode n) {
-        //Add a constructor to currentClass and get the associated GNode
-        currentConstructor = cppast.addConstructor(currentClass);
-
-        //If there are formal parameters for the constructor, visit them and add them to the currentConstructor
-        if(n.getGeneric(4) != null){ 
-          
-          cppast.setConstructorParameters((GNode)dispatch(n.getGeneric(4)), currentConstructor);
-        }
-        //If there are instructions in the block, visit them and add them to the constructor
-        if(n.getGeneric(5) != null) cppast.setConstructorInstructions((GNode)dispatch(n.getGeneric(5)), currentConstructor);
-      }
+      
 
       
       
@@ -810,7 +822,21 @@ public class QimppTranslator extends Tool {
         for (Object o : n) if (o instanceof Node) dispatch((Node)o);
       }
 
-    }.dispatch(node);
+    }.dispatch(currentClass);
+
+    if (processDepth == 0){
+      try{
+          PrintWriter h = new PrintWriter("out.h");
+          new HeaderWriter(new Printer(h)).dispatch(cppast.compilationUnit);
+          cppast.printAST();
+
+          PrintWriter cc = new PrintWriter("out.cc");
+          new ImplementationPrinter(new Printer(cc), treeManager).dispatch(cppast.compilationUnit);
+        } catch (Exception e) {
+          //System.out.println("Uh oh... " + e);
+          e.printStackTrace();
+        }
+    }
     
     processDepth--;
   }

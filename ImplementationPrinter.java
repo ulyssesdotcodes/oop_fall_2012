@@ -386,6 +386,9 @@ public class ImplementationPrinter extends Visitor {
     printer.incr();
     indentOut();
 	  dispatch(n.getGeneric(1));
+    if (n.getGeneric(1) == null || !n.getGeneric(1).getName().equals("Block")){
+      printer.p("{}");
+    }
     printer.decr();
     printer.pln();
     inConstructor = false;
@@ -768,7 +771,8 @@ public class ImplementationPrinter extends Visitor {
         && (inPrintStatement || inConcatExpression)) {
       printer.p("(int)");
     }
-    if (null != n.getProperty(Constants.IDENTIFIER_DECLARATION) && null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
+    
+    if (null == ((GNode)n.getProperty(Constants.IDENTIFIER_DECLARATION))
         .getProperty("static") &&
         n.getProperty(Constants.IDENTIFIER_TYPE) == Constants.FIELD_IDENTIFIER) {
       if (inConstructor) printer.p("this->");
